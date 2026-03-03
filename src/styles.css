@@ -1,0 +1,1604 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@source "../node_modules/streamdown/dist/*.js";
+
+@variant dark 
+(
+&:where(.dark, .dark *));
+@variant light (&:where(.light, .light *));
+
+/* ============================================================================
+   Fonts
+   ============================================================================ */
+
+/* VCR OSD Mono - clickable/interactive items only (ALWAYS UPPERCASE) */
+@font-face {
+  font-family: "VCR OSD Mono";
+  src: url("/vcr.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Inter - Body text, general UI */
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Berkeley Mono - Code, markdown, technical content */
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("/fonts/BerkeleyMono-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("/fonts/BerkeleyMono-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("/fonts/BerkeleyMono-Italic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("/fonts/BerkeleyMono-BoldItalic.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ============================================================================
+   Design System - Based on ispo-code
+   ============================================================================ */
+
+@theme inline {
+  /* Fonts */
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-vcr: "VCR OSD Mono", monospace;
+  --font-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Typography scale (+2px across default text utilities) */
+  --text-xs: 14px;
+  --text-xs--line-height: 18px;
+  --text-sm: 16px;
+  --text-sm--line-height: 22px;
+  --text-base: 18px;
+  --text-base--line-height: 26px;
+  --text-lg: 20px;
+  --text-lg--line-height: 30px;
+  --text-xl: 22px;
+  --text-xl--line-height: 30px;
+  --text-2xl: 26px;
+  --text-2xl--line-height: 34px;
+  --text-3xl: 32px;
+  --text-3xl--line-height: 38px;
+
+  /* Border Radius */
+  --radius: 0.5rem;
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Map CSS custom properties to Tailwind colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-status-running: var(--status-running);
+  --color-status-completed: var(--status-completed);
+  --color-status-failed: var(--status-failed);
+  --color-status-pending: var(--status-pending);
+  --color-status-cancelled: var(--status-cancelled);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-highlight: var(--text-highlight);
+
+  /* Semantic aliases for ispo-code compatibility */
+  --color-panel: var(--card);
+  --color-panel-hover: var(--secondary);
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--muted-foreground);
+  --color-text-muted: var(--muted-foreground);
+  --color-error: var(--destructive);
+
+  /* Tool category colors */
+  --tool-file-ops: oklch(0.65 0.18 160);
+  --tool-search: oklch(0.70 0.15 220);
+  --tool-execution: oklch(0.75 0.15 85);
+  --tool-interaction: oklch(0.70 0.18 300);
+  --tool-other: oklch(0.65 0.15 var(--brand-hue));
+
+  /* Animations */
+  --animate-spin: spin 1s linear infinite;
+  --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ============================================================================
+   Theme Variables - Dark (Default)
+   ============================================================================ */
+
+:root {
+  /* Tell browser this is a dark theme - affects native scrollbars */
+  color-scheme: dark;
+
+  /* Brand hue - configurable accent color (0-360) */
+  --brand-hue: 250;
+
+  /* Cyan accent for selected/active states */
+  --cyan-accent: oklch(0.7 0.15 195);
+
+  /* Text highlight (selection + focus ring) */
+  --text-highlight: #00BE83;
+  --text-highlight-selection: #00BE8366;
+  --text-highlight-selection-strong: #00BE8380;
+
+  /* Neutral Colors (cohesive dark palette - card/secondary closer to background) */
+  --background: #000000;
+  --foreground: #A7A7A7;
+  --card: #181818;
+  --card-foreground: #DEDEDE;
+  --popover: #181818;
+  --popover-foreground: #DEDEDE;
+  --secondary: #1A1A1A;
+  --secondary-foreground: #DEDEDE;
+  --muted: #191919;
+  --muted-foreground: #8A8A8A;
+  --border: #2D2D2D;
+  --input: #181818;
+  --feature-input-bg: #101010;
+  --feature-input-body-bg: #1A1A1A;
+  --markdown-code-block-bg: #121212;
+  --markdown-code-block-header-bg: #0D0D0D;
+
+  /* Primary - Neutral (not colored) */
+  --primary: #DEDEDE;
+  --primary-foreground: #030303;
+
+  /* Accent - Neutral */
+  --accent: #DEDEDE;
+  --accent-foreground: #030303;
+
+  /* Status Colors */
+  --destructive: #F14D4C;
+  --destructive-foreground: #F8F8F8;
+  --success: #31AA40;
+  --success-foreground: #F8F8F8;
+  --warning: #D9A514;
+  --warning-foreground: #030303;
+
+  /* Ring & Focus */
+  --ring: var(--text-highlight);
+
+  /* Status Colors */
+  --status-running: #E8E8E8;
+  --status-completed: #11AD32;
+  --status-failed: #F14D4C;
+  --status-pending: #8A8A8A;
+  --status-cancelled: #8A8A8A;
+
+  /* Status Badge Backgrounds */
+  --badge-running: #E8E8E820;
+  --badge-completed: #11AD3220;
+  --badge-failed: #F14D4C20;
+  --badge-pending: #19191980;
+
+  /* Scrollbar */
+  --scrollbar-thumb: oklch(0.35 0 0);
+  --scrollbar-thumb-hover: oklch(0.45 0 0);
+}
+
+/* ============================================================================
+   Theme Variables - Light
+   ============================================================================ */
+
+.light {
+  color-scheme: light;
+
+  --background: #F5F0EB;
+  --foreground: #2C2420;
+  --card: #EDE7E1;
+  --card-foreground: #2C2420;
+  --popover: #EDE7E1;
+  --popover-foreground: #2C2420;
+  --secondary: #E8E2DB;
+  --secondary-foreground: #2C2420;
+  --muted: #E8E2DB;
+  --muted-foreground: #8A7F75;
+  --border: #D8D0C8;
+  --input: #EDE7E1;
+  --feature-input-bg: #EDE7E1;
+  --feature-input-body-bg: #F5F0EB;
+  --markdown-code-block-bg: #E4DDD6;
+  --markdown-code-block-header-bg: #DBD4CC;
+
+  /* Primary - Warm dark brown */
+  --primary: #2C2420;
+  --primary-foreground: #F5F0EB;
+
+  /* Accent - Hot pink */
+  --accent: #E84B8A;
+  --accent-foreground: #FFFFFF;
+
+  /* Status Colors */
+  --destructive: #D40924;
+  --destructive-foreground: #F8F8F8;
+  --success: #008D00;
+  --success-foreground: #F8F8F8;
+  --warning: #C18200;
+  --warning-foreground: #2C2420;
+
+  /* Text highlight (selection + focus ring) — pink */
+  --text-highlight: #E84B8A;
+  --text-highlight-selection: #E84B8A40;
+  --text-highlight-selection-strong: #E84B8A60;
+
+  /* Ring & Focus */
+  --ring: #E84B8A;
+
+  /* Status Colors */
+  --status-running: #2C2420;
+  --status-completed: #11AD32;
+  --status-failed: #F14D4C;
+  --status-pending: #8A7F75;
+  --status-cancelled: #8A7F75;
+
+  /* Status Badge Backgrounds */
+  --badge-running: #2C242026;
+  --badge-completed: #11AD3226;
+  --badge-failed: #F14D4C26;
+  --badge-pending: #E8E2DB80;
+
+  /* Scrollbar */
+  --scrollbar-thumb: oklch(0.65 0.02 60);
+  --scrollbar-thumb-hover: oklch(0.5 0.02 60);
+}
+
+/* ============================================================================
+   Base Styles
+   ============================================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--color-border);
+  --tw-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --tw-duration: 150ms;
+}
+
+html {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
+  overscroll-behavior: none;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  overscroll-behavior: none;
+  /* Desktop app: disable text selection globally */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ============================================================================
+   Scrollbar - Overlay Style (macOS native floating scrollbars)
+   ============================================================================ */
+
+/* Firefox scrollbar styling - thin scrollbars with transparent track */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.4 0 0) transparent;
+}
+
+.light * {
+  scrollbar-color: oklch(0.65 0.02 60) transparent;
+}
+
+/* WebKit: Hide default scrollbar completely, show custom thumb only */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+/* Make ALL scrollbar parts invisible */
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-track-piece,
+::-webkit-scrollbar-corner,
+::-webkit-scrollbar-button {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Only the thumb is visible */
+::-webkit-scrollbar-thumb {
+  background: oklch(0.4 0 0);
+  border-radius: 6px;
+  border: 4px solid transparent;
+  background-clip: content-box;
+  min-height: 40px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.5 0 0);
+  background-clip: content-box;
+}
+
+/* Light theme */
+.light ::-webkit-scrollbar-thumb {
+  background: oklch(0.65 0.02 60);
+  background-clip: content-box;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.5 0.02 60);
+  background-clip: content-box;
+}
+
+/* ============================================================================
+   Focus Ring (green, matching text selection)
+   ============================================================================
+   MUST be in @layer base so that Tailwind utility classes (e.g.
+   focus-visible:outline-none, ring-ring) in @layer utilities can override.
+   Unlayered CSS beats all layers and would fight with outline-none.
+   ============================================================================ */
+
+@layer base {
+  /* Default ring color for any ring-* utility without an explicit color */
+  :root {
+    --tw-ring-color: var(--ring);
+  }
+
+  /*
+   * Override the macOS WebKit user-agent focus ring.
+   *
+   * TW4 preflight does NOT reset :focus-visible at all, so the browser's
+   * default kicks in. On macOS WebKit (Tauri) that's `outline: auto` which
+   * renders the system blue ring and IGNORES outline-color.
+   *
+   * Setting `outline-style: solid` (not `auto`) makes outline-color work.
+   * Components with `outline-none` (utilities layer > base layer) still
+   * suppress this, so ring-ring based focus indicators work as expected.
+   */
+  *:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* ============================================================================
+   Selection
+   ============================================================================ */
+
+::selection {
+  background-color: var(--text-highlight-selection);
+  color: inherit;
+}
+
+/* ============================================================================
+   Custom Utilities
+   ============================================================================ */
+
+/* VCR font - for clickable/interactive items only. ALWAYS UPPERCASE */
+@utility font-vcr {
+  font-family: var(--font-vcr);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Berkeley Mono - for code, markdown content, technical text */
+@utility font-code {
+  font-family: var(--font-mono);
+}
+
+/* Re-enable text selection for copyable content (code, output) */
+@utility select-text {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Custom text selection highlighting */
+.select-text::selection,
+.select-text *::selection {
+  background-color: var(--text-highlight-selection-strong);
+  color: inherit;
+}
+
+/* ============================================================================
+   Code & Markdown Styling
+   ============================================================================ */
+
+code,
+pre,
+kbd,
+samp,
+.prose code,
+.prose pre,
+textarea.code,
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.2s ease-out;
+}
+
+/* ============================================================================
+   Status Classes
+   ============================================================================ */
+
+.status-pending {
+  color: var(--status-pending);
+}
+
+.status-running {
+  color: var(--status-running);
+}
+
+.status-completed {
+  color: var(--status-completed);
+}
+
+.status-failed {
+  color: var(--status-failed);
+}
+
+.status-cancelled {
+  color: var(--status-cancelled);
+  opacity: 0.6;
+}
+
+.status-queued {
+  color: var(--status-pending);
+}
+
+/* ============================================================================
+   Notification Drawer Animations
+   Sci-fi snap: fast deceleration on open, sharp acceleration on close.
+   ============================================================================ */
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes drawer-slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.animate-drawer-slide-in {
+  animation: drawer-slide-in 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-drawer-slide-out {
+  animation: drawer-slide-out 0.1s cubic-bezier(0.7, 0, 0.84, 0);
+}
+
+.animate-drawer-overlay-in {
+  animation: fade-in 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fade-out {
+  animation: fade-out 0.1s cubic-bezier(0.7, 0, 0.84, 0);
+}
+
+/* Reduced-motion: collapse all drawer/overlay animations to instant */
+@media (prefers-reduced-motion: reduce) {
+  .animate-drawer-slide-in,
+  .animate-drawer-slide-out,
+  .animate-drawer-overlay-in,
+  .animate-fade-out {
+    animation-duration: 0.01s;
+    animation-timing-function: linear;
+  }
+}
+
+/* ============================================================================
+   Agent Output Chunk Styling
+   ============================================================================ */
+
+.chunk-text {
+  color: var(--foreground);
+}
+
+.chunk-tool-use {
+  color: oklch(0.7 0.15 220);
+  background: oklch(0.7 0.15 220 / 0.1);
+}
+
+.chunk-tool-result {
+  color: oklch(0.7 0.15 145);
+  background: oklch(0.7 0.15 145 / 0.1);
+}
+
+.chunk-error {
+  color: oklch(0.7 0.2 25);
+  background: oklch(0.7 0.2 25 / 0.1);
+}
+
+.chunk-system {
+  color: var(--muted-foreground);
+}
+
+.chunk-thinking {
+  color: oklch(0.7 0.15 var(--brand-hue));
+  background: oklch(0.7 0.15 var(--brand-hue) / 0.1);
+  font-style: italic;
+}
+
+/* Compact line height for syntax-highlighted output */
+.syntax-highlighted-with-lines .shiki code > .line {
+  line-height: 1.2;
+}
+
+/* ============================================================================
+   Tool Call V2 Styling
+   ============================================================================ */
+
+/* Tool call container */
+.tool-call-v2 {
+  background: oklch(0.16 0 0);
+  border: 1px solid oklch(0.25 0 0);
+}
+
+.light .tool-call-v2 {
+  background: oklch(0.97 0 0);
+  border: 1px solid oklch(0.9 0 0);
+}
+
+/* Tool result container */
+.tool-result-v2 {
+  background: oklch(0.14 0 0);
+  border: 1px solid oklch(0.22 0 0);
+}
+
+.light .tool-result-v2 {
+  background: oklch(0.98 0 0);
+  border: 1px solid oklch(0.92 0 0);
+}
+
+/* Progress bar animation for tool execution */
+@keyframes tool-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-tool-progress {
+  animation: tool-progress 1.5s ease-in-out infinite;
+}
+
+/* Parameter value type colors */
+.tool-value-path {
+  color: oklch(0.75 0.15 180); /* Cyan for paths */
+}
+
+.tool-value-command {
+  color: oklch(0.8 0.15 85); /* Amber for commands */
+}
+
+.tool-value-pattern {
+  color: oklch(0.75 0.18 280); /* Purple for patterns */
+}
+
+.tool-value-content {
+  color: oklch(0.7 0 0); /* Neutral for content */
+}
+
+.tool-value-number {
+  color: oklch(0.75 0.15 140); /* Green for numbers */
+}
+
+.tool-value-boolean {
+  color: oklch(0.75 0.18 35); /* Orange for booleans */
+}
+
+.light .tool-value-path {
+  color: oklch(0.45 0.15 180);
+}
+
+.light .tool-value-command {
+  color: oklch(0.5 0.15 85);
+}
+
+.light .tool-value-pattern {
+  color: oklch(0.45 0.18 280);
+}
+
+.light .tool-value-content {
+  color: oklch(0.4 0 0);
+}
+
+.light .tool-value-number {
+  color: oklch(0.45 0.15 140);
+}
+
+.light .tool-value-boolean {
+  color: oklch(0.5 0.18 35);
+}
+
+/* ============================================================================
+   Markdown Task List / Checkbox Styling
+   ============================================================================ */
+
+ul li:has(> input[type="checkbox"]),
+ul li:has(> p > input[type="checkbox"]),
+ol li:has(> input[type="checkbox"]),
+ol li:has(> p > input[type="checkbox"]) {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0.25em;
+}
+
+ul li > input[type="checkbox"],
+ul li > p > input[type="checkbox"],
+ol li > input[type="checkbox"],
+ol li > p > input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  accent-color: var(--primary);
+  cursor: pointer;
+  vertical-align: middle;
+  border-radius: 3px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid var(--muted-foreground);
+  background: transparent;
+  position: relative;
+  flex-shrink: 0;
+}
+
+ul li > input[type="checkbox"]:hover,
+ul li > p > input[type="checkbox"]:hover,
+ol li > input[type="checkbox"]:hover,
+ol li > p > input[type="checkbox"]:hover {
+  border-color: var(--primary);
+}
+
+ul li > input[type="checkbox"]:checked,
+ul li > p > input[type="checkbox"]:checked,
+ol li > input[type="checkbox"]:checked,
+ol li > p > input[type="checkbox"]:checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+ul li > input[type="checkbox"]:checked::after,
+ul li > p > input[type="checkbox"]:checked::after,
+ol li > input[type="checkbox"]:checked::after,
+ol li > p > input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 5px;
+  height: 9px;
+  border: solid var(--primary-foreground);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ============================================================================
+   Additional Animations
+   ============================================================================ */
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px oklch(0.65 0.2 var(--brand-hue) / 0.5); }
+  50% { box-shadow: 0 0 20px oklch(0.65 0.2 var(--brand-hue) / 0.8); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes crt-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.85; }
+  94% { opacity: 1; }
+  97% { opacity: 0.9; }
+  98% { opacity: 1; }
+}
+
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes icon-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px var(--tool-color, var(--primary)));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px var(--tool-color, var(--primary)));
+    transform: scale(1.1);
+  }
+}
+
+@keyframes segment-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-segment-pulse {
+  animation: segment-pulse 1.5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+.animate-crt-flicker {
+  animation: crt-flicker 3s infinite;
+}
+
+
+.animate-cursor-blink {
+  animation: cursor-blink 0.8s step-end infinite;
+}
+
+.animate-icon-pulse {
+  animation: icon-pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================================================
+   Tool Call V2 Styles (Industrial/CRT Aesthetic)
+   ============================================================================ */
+
+.tool-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    oklch(0 0 0 / 0.03) 2px,
+    oklch(0 0 0 / 0.03) 4px
+  );
+  pointer-events: none;
+}
+
+.light .tool-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    oklch(0 0 0 / 0.02) 2px,
+    oklch(0 0 0 / 0.02) 4px
+  );
+}
+
+.tool-call-v2 {
+  background: oklch(0.16 0 0);
+  border: 1px solid oklch(0.25 0 0);
+}
+
+.light .tool-call-v2 {
+  background: oklch(0.97 0 0);
+  border: 1px solid oklch(0.9 0 0);
+}
+
+.tool-result-v2 {
+  background: oklch(0.14 0 0);
+  border: 1px solid oklch(0.22 0 0);
+}
+
+.light .tool-result-v2 {
+  background: oklch(0.98 0 0);
+  border: 1px solid oklch(0.92 0 0);
+}
+
+/* ============================================================================
+   Auto-Growing Textarea
+   ============================================================================ */
+
+.grow-wrap {
+  display: grid;
+}
+
+.grow-wrap::after {
+  content: attr(data-replicated-value) " ";
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  visibility: hidden;
+}
+
+.grow-wrap > textarea {
+  resize: none;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.grow-wrap > textarea,
+.grow-wrap::after {
+  font: inherit;
+  grid-area: 1 / 1 / 2 / 2;
+}
+
+/* Light mode scrollbar is handled by CSS variables in the Scrollbar section above */
+
+/* Light mode selection is handled by --text-highlight-selection */
+
+/* ============================================================================
+   Cyan Accent Utilities
+   ============================================================================ */
+
+@utility text-cyan-accent {
+  color: var(--cyan-accent);
+}
+
+@utility bg-cyan-accent {
+  background-color: var(--cyan-accent);
+}
+
+@utility border-cyan-accent {
+  border-color: var(--cyan-accent);
+}
+
+/* ============================================================================
+   Streamdown - AI Output Markdown Rendering
+   ============================================================================ */
+
+.streamdown-content {
+  /* Use Berkeley Mono for all code in streamdown output */
+  --font-code: var(--font-mono);
+}
+
+/* Code blocks */
+.streamdown-content [data-streamdown="code-block"] {
+  margin: 0.75rem 0;
+  background-color: var(--markdown-code-block-bg);
+  border-color: var(--border);
+}
+
+.streamdown-content [data-streamdown="code-block-header"] {
+  background-color: var(--markdown-code-block-header-bg);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+}
+
+.streamdown-content [data-streamdown="code-block-body"] {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.5;
+  background-color: var(--markdown-code-block-bg) !important;
+}
+
+.streamdown-content [data-streamdown="code-block-body"] code {
+  font-family: var(--font-mono);
+}
+
+/* Inline code */
+.streamdown-content [data-streamdown="inline-code"] {
+  font-family: var(--font-mono);
+  font-size: calc(0.875em + 2px);
+  background-color: var(--muted);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+}
+
+/* Tables */
+.streamdown-content [data-streamdown="table"] {
+  font-size: 15px;
+}
+
+.streamdown-content [data-streamdown="table-header"] {
+  background-color: var(--muted);
+}
+
+/* Links */
+.streamdown-content [data-streamdown="link"] {
+  color: var(--primary);
+  text-decoration-color: var(--muted-foreground);
+}
+
+.streamdown-content [data-streamdown="link"]:hover {
+  text-decoration-color: var(--primary);
+}
+
+/* Headings - use Inter, not VCR (agent output should be readable) */
+.streamdown-content [data-streamdown^="heading-"] {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.streamdown-content [data-streamdown="heading-1"] {
+  font-size: 22px;
+}
+
+.streamdown-content [data-streamdown="heading-2"] {
+  font-size: 20px;
+}
+
+.streamdown-content [data-streamdown="heading-3"] {
+  font-size: 18px;
+}
+
+/* Blockquotes */
+.streamdown-content [data-streamdown="blockquote"] {
+  border-left-color: var(--muted-foreground);
+  color: var(--muted-foreground);
+}
+
+/* Lists */
+.streamdown-content [data-streamdown="ordered-list"],
+.streamdown-content [data-streamdown="unordered-list"] {
+  margin: 0.5rem 0;
+}
+
+.streamdown-content [data-streamdown="list-item"] {
+  padding: 0.125rem 0;
+}
+
+/* Mermaid diagrams */
+.streamdown-content [data-streamdown="mermaid-block"] {
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+/* Mermaid click-to-expand in docs viewer */
+.docs-expandable-diagrams [data-streamdown="mermaid-block"] {
+  cursor: pointer;
+  border-radius: 0.375rem;
+  padding: 0;
+  border: none;
+  resize: none;
+  overflow: hidden;
+}
+
+.docs-expandable-diagrams [data-streamdown="mermaid-block"] * {
+  pointer-events: none;
+}
+
+/* Images */
+.streamdown-content img,
+.streamdown-content [data-streamdown="image"] img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  margin: 0.75rem 0;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+.streamdown-content [data-streamdown="image"] {
+  display: block;
+  margin: 0.75rem 0;
+}
+
+.streamdown-content img.streamdown-image-broken {
+  display: none;
+}
+
+.streamdown-content .streamdown-image-fallback {
+  border-radius: 0.375rem;
+  border: 1px dashed var(--border);
+  background: color-mix(in oklab, var(--card) 70%, var(--background));
+  color: var(--muted-foreground);
+  font-size: 14px;
+  padding: 0.5rem 0.75rem;
+}
+
+/* Copy/download buttons - match app UI */
+.streamdown-content [data-streamdown="code-block-copy-button"],
+.streamdown-content [data-streamdown="code-block-download-button"] {
+  color: var(--muted-foreground);
+  transition: color 0.15s ease;
+}
+
+.streamdown-content [data-streamdown="code-block-copy-button"]:hover,
+.streamdown-content [data-streamdown="code-block-download-button"]:hover {
+  color: var(--foreground);
+}
+
+/* Streaming caret animation */
+.streamdown-content [data-streamdown]:last-child::after {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ============================================================================
+   Diff View Styling (react-diff-view overrides)
+   ============================================================================ */
+
+/* Base diff file styling */
+.diff-file {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+/* Override react-diff-view default colors for dark theme */
+.diff-line {
+  line-height: 1.5;
+}
+
+.diff-gutter {
+  width: 50px;
+  text-align: right;
+  padding: 0 8px;
+  color: var(--muted-foreground);
+  background: var(--muted);
+  user-select: none;
+}
+
+.diff-code {
+  padding: 0 8px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: var(--card);
+}
+
+/* Dark theme - Insert (green) */
+.diff-code-insert {
+  background: oklch(0.25 0.12 145 / 0.4) !important;
+}
+
+.diff-gutter-insert {
+  background: oklch(0.3 0.12 145 / 0.5) !important;
+  color: oklch(0.7 0.15 145) !important;
+}
+
+/* Dark theme - Delete (red) */
+.diff-code-delete {
+  background: oklch(0.25 0.12 25 / 0.4) !important;
+}
+
+.diff-gutter-delete {
+  background: oklch(0.3 0.12 25 / 0.5) !important;
+  color: oklch(0.7 0.15 25) !important;
+}
+
+/* Word-level edits */
+.diff-code-edit {
+  background: oklch(0.4 0.15 85 / 0.3) !important;
+  border-radius: 2px;
+}
+
+/* Light theme overrides */
+.light .diff-code {
+  background: var(--card);
+}
+
+.light .diff-code-insert {
+  background: oklch(0.92 0.08 145 / 0.6) !important;
+}
+
+.light .diff-gutter-insert {
+  background: oklch(0.88 0.1 145 / 0.6) !important;
+  color: oklch(0.4 0.15 145) !important;
+}
+
+.light .diff-code-delete {
+  background: oklch(0.92 0.08 25 / 0.6) !important;
+}
+
+.light .diff-gutter-delete {
+  background: oklch(0.88 0.1 25 / 0.6) !important;
+  color: oklch(0.5 0.15 25) !important;
+}
+
+.light .diff-code-edit {
+  background: oklch(0.85 0.1 85 / 0.5) !important;
+}
+
+/* Table layout fixes */
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.diff-table td {
+  vertical-align: top;
+}
+
+/* ============================================================================
+   @pierre/diffs Library Overrides
+   ============================================================================ */
+
+/*
+ * NOTE: @pierre/diffs uses Shadow DOM with adoptedStyleSheets.
+ * CSS custom properties are passed via the `style` prop in split-diff-viewer.tsx
+ * to cascade into the shadow DOM. These rules won't penetrate shadow DOM.
+ *
+ * The component passes:
+ * - themeType: 'dark' | 'light' in options
+ * - CSS custom property overrides via style prop
+ */
+
+/* Container styling (outside shadow DOM) */
+diffs-container {
+  display: block;
+  border-radius: inherit;
+}
+
+/* ============================================================================
+   Thinking Block Styling
+   ============================================================================ */
+
+.thinking-block {
+  background: linear-gradient(to right, oklch(0.18 0.02 280), oklch(0.16 0.01 280));
+}
+
+.light .thinking-block {
+  background: linear-gradient(to right, oklch(0.96 0.02 280), oklch(0.98 0.01 280));
+  border-color: oklch(0.88 0.02 280);
+}
+
+/* ============================================================================
+   JSON Block Styling
+   ============================================================================ */
+
+.json-block {
+  background: oklch(0.14 0 0);
+}
+
+.light .json-block {
+  background: oklch(0.98 0 0);
+  border-color: oklch(0.9 0 0);
+}
+
+/* JSON syntax highlighting - Dark theme */
+.json-key {
+  color: oklch(0.75 0.15 200); /* Cyan */
+}
+
+.json-string {
+  color: oklch(0.75 0.15 145); /* Green */
+}
+
+.json-number {
+  color: oklch(0.8 0.15 85); /* Amber */
+}
+
+.json-boolean {
+  color: oklch(0.75 0.18 35); /* Orange */
+}
+
+.json-null {
+  color: oklch(0.6 0 0); /* Gray */
+}
+
+.json-bracket {
+  color: oklch(0.6 0 0); /* Gray */
+}
+
+/* JSON syntax highlighting - Light theme */
+.light .json-key {
+  color: oklch(0.45 0.15 200);
+}
+
+.light .json-string {
+  color: oklch(0.4 0.15 145);
+}
+
+.light .json-number {
+  color: oklch(0.5 0.15 85);
+}
+
+.light .json-boolean {
+  color: oklch(0.5 0.18 35);
+}
+
+.light .json-null {
+  color: oklch(0.5 0 0);
+}
+
+.light .json-bracket {
+  color: oklch(0.5 0 0);
+}
+
+/* ============================================================================
+   React Flow Overrides
+   ============================================================================ */
+
+.react-flow__controls {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background: var(--card) !important;
+  border-bottom: 1px solid var(--border) !important;
+  fill: var(--muted-foreground) !important;
+  color: var(--muted-foreground) !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--secondary) !important;
+  fill: var(--foreground) !important;
+  color: var(--foreground) !important;
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+
+.react-flow__controls-button svg {
+  max-width: 14px !important;
+  max-height: 14px !important;
+}
+
+/* Background dots */
+.react-flow__background pattern circle {
+  fill: var(--border) !important;
+}
+
+/* Edges */
+.react-flow__edge-path {
+  stroke: rgba(148, 163, 184, 0.5);
+  stroke-width: 2;
+  transition: stroke 0.15s, stroke-width 0.15s;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: rgba(148, 163, 184, 0.85);
+  stroke-width: 2.5;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--cyan-accent, oklch(0.7 0.15 195));
+  stroke-width: 2.5;
+}
+
+/* Arrow markers */
+.react-flow__edgemarker {
+  fill: rgba(148, 163, 184, 0.5);
+  transition: fill 0.15s;
+}
+
+.react-flow__edge:hover .react-flow__edgemarker {
+  fill: rgba(148, 163, 184, 0.85);
+}
+
+.react-flow__edge.selected .react-flow__edgemarker {
+  fill: var(--cyan-accent, oklch(0.7 0.15 195));
+}
+
+/* Selection box */
+.react-flow__selection {
+  background: oklch(0.7 0.15 195 / 0.1) !important;
+  border: 1px solid var(--cyan-accent) !important;
+}
+
+/* Minimap */
+.react-flow__minimap {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+}
+
+/* Attribution badge - hide */
+.react-flow__attribution {
+  display: none !important;
+}
+
+/* ============================================================================
+   Welcome Screen
+   ============================================================================ */
+
+.welcome-screen {
+  background: var(--background);
+}
+
+/* ============================================================================
+   Neumorphic Button — Reusable raised-in-trough button style
+   Usage: .neumorph-btn > .neumorph-btn-outer > .neumorph-btn-motion > .neumorph-btn-inner > .neumorph-btn-text
+   Optional: .neumorph-btn-arrow for trailing icon
+   ============================================================================ */
+
+/* ── Light mode (default) ── */
+
+/* Outer: darker than bg → recessed trough */
+.neumorph-btn-outer {
+  background: var(--muted);
+  box-shadow:
+    0 1px 1px 0 rgba(0, 0, 0, 0.08),
+    inset 0 2px 3px 0 rgba(0, 0, 0, 0.04);
+}
+
+/* Inner: lighter than outer → raised surface */
+.neumorph-btn-inner {
+  background: linear-gradient(180deg, #ffffff, #f3f3f3);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 3px 7px -2px rgba(0, 0, 0, 0.12);
+}
+
+.neumorph-btn-motion {
+  will-change: transform;
+}
+
+.neumorph-btn-text {
+  color: var(--card-foreground);
+}
+
+.neumorph-btn-arrow {
+  color: var(--muted-foreground);
+}
+
+/* Hover */
+.neumorph-btn:hover .neumorph-btn-outer {
+  background: color-mix(in oklab, var(--muted) 85%, var(--background));
+}
+
+.neumorph-btn:hover .neumorph-btn-inner {
+  background: linear-gradient(180deg, #ffffff, #eeeeee);
+}
+
+/* ── Dark mode ── */
+
+:where(.dark) .neumorph-btn-outer {
+  background: #161616;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px 0 rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.02);
+}
+
+:where(.dark) .neumorph-btn-inner {
+  background: linear-gradient(180deg, #2a2a2a, #232323);
+  border-color: #333333;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.05),
+    0 3px 8px -2px rgba(0, 0, 0, 0.6);
+}
+
+:where(.dark) .neumorph-btn:hover .neumorph-btn-outer {
+  background: #141414;
+}
+
+:where(.dark) .neumorph-btn:hover .neumorph-btn-inner {
+  background: linear-gradient(180deg, #2e2e2e, #272727);
+}
+
+/* ============================================================================
+   Neumorphic Button — Standalone raised button (no plate/trough)
+   Usage: .neumorph-button on a <button>
+   The gradient surface IS the button — no outer container needed.
+   ============================================================================ */
+
+.neumorph-button {
+  background: linear-gradient(180deg, #ffffff, #f3f3f3);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 3px 7px -2px rgba(0, 0, 0, 0.12);
+  color: var(--card-foreground);
+}
+
+.neumorph-button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffffff, #eeeeee);
+}
+
+.neumorph-button:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ── Dark mode ── */
+
+:where(.dark) .neumorph-button {
+  background: linear-gradient(180deg, #2a2a2a, #232323);
+  border-color: #333333;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.05),
+    0 3px 8px -2px rgba(0, 0, 0, 0.6);
+}
+
+:where(.dark) .neumorph-button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #2e2e2e, #272727);
+}
+
+/* ============================================================================
+   Neumorphic Plate Tab — Trough + Button for tab navigation
+   Usage: .neumorph-plate on the tab group container,
+          .neumorph-plate-tab on each tab button
+   Active tab gets the raised inner surface; inactive stays text-only.
+   ============================================================================ */
+
+.neumorph-plate {
+  background: var(--muted);
+  box-shadow:
+    0 1px 1px 0 rgba(0, 0, 0, 0.06),
+    inset 0 2px 3px 0 rgba(0, 0, 0, 0.04);
+}
+
+.neumorph-plate-tab[data-active="true"] {
+  background: linear-gradient(180deg, #ffffff, #f3f3f3);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.1);
+  color: var(--card-foreground);
+}
+
+.neumorph-plate-tab[data-active="false"] {
+  background: transparent;
+  border: 2px solid transparent;
+  color: var(--muted-foreground);
+}
+
+.neumorph-plate-tab[data-active="false"]:hover {
+  color: var(--foreground);
+}
+
+/* ── Dark mode ── */
+
+:where(.dark) .neumorph-plate {
+  background: #161616;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px 0 rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.02);
+}
+
+:where(.dark) .neumorph-plate-tab[data-active="true"] {
+  background: linear-gradient(180deg, #2a2a2a, #232323);
+  border-color: #333333;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.05),
+    0 2px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================================
+   Terminal Stability
+   ============================================================================
+   Keep xterm's accessibility overlay strictly hidden in normal app mode.
+   Some host webviews can leak this plain-text layer into the visual stack,
+   which looks like duplicated terminal rows.
+*/
+
+.xterm .xterm-accessibility:not(.debug),
+.xterm .xterm-accessibility-tree:not(.debug),
+.xterm .live-region {
+  color: transparent !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

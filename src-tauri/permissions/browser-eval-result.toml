@@ -1,0 +1,31 @@
+"$schema" = "schemas/schema.json"
+
+[[permission]]
+identifier = "allow-browser-eval-result"
+description = "Enables the browser_eval_result command."
+commands.allow = ["browser_eval_result"]
+
+[[permission]]
+identifier = "deny-browser-eval-result"
+description = "Denies the browser_eval_result command."
+commands.deny = ["browser_eval_result"]
+
+[[permission]]
+identifier = "allow-browser-push-event"
+description = "Enables the browser_push_event command."
+commands.allow = ["browser_push_event"]
+
+[[permission]]
+identifier = "deny-browser-push-event"
+description = "Denies the browser_push_event command."
+commands.deny = ["browser_push_event"]
+
+[[permission]]
+identifier = "allow-browser-bridge-ready"
+description = "Enables the browser_bridge_ready command."
+commands.allow = ["browser_bridge_ready"]
+
+[[permission]]
+identifier = "deny-browser-bridge-ready"
+description = "Denies the browser_bridge_ready command."
+commands.deny = ["browser_bridge_ready"]

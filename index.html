@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weekend Software</title>
+    <script>
+      (function() {
+        try {
+          var mode = localStorage.getItem('ispo-theme-mode') || 'dark';
+          var preset = localStorage.getItem('ispo-theme-preset') || 'default';
+          var hue = localStorage.getItem('ispo-theme-hue') || '250';
+          var resolvedMode = mode;
+          if (mode === 'system') {
+            resolvedMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.classList.add(resolvedMode);
+          var presets = { default: 250, blue: 220, green: 145, orange: 35, pink: 330 };
+          var brandHue = preset === 'custom' ? parseInt(hue, 10) : (presets[preset] || 250);
+          document.documentElement.style.setProperty('--brand-hue', brandHue);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

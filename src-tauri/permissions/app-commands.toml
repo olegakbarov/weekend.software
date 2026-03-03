@@ -1,0 +1,71 @@
+"$schema" = "schemas/schema.json"
+
+[[permission]]
+identifier = "allow-app-commands"
+description = "Enables core app commands used by the local frontend."
+commands.allow = [
+  "create_new_project",
+  "shared_assets_list",
+  "shared_assets_upload_batch",
+  "list_projects",
+  "project_config_read",
+  "project_config_write",
+  "delete_project",
+  "archive_project",
+  "unarchive_project",
+  "rename_project",
+  "list_project_tree",
+  "read_project_file",
+  "write_project_file",
+  "terminal_open",
+  "terminal_write",
+  "terminal_resize",
+  "terminal_close",
+  "terminal_list",
+  "terminal_active_processes",
+  "terminal_get_all_sessions",
+  "terminal_set_custom_name",
+  "terminal_remove_session",
+  "browser_history_navigate",
+  "browser_eval_result",
+  "runtime_debug_dump",
+  "ui_log_batch",
+  "logs_read_weekend",
+  "logs_read_project",
+  "shell_name"
+]
+
+[[permission]]
+identifier = "deny-app-commands"
+description = "Denies core app commands used by the local frontend."
+commands.deny = [
+  "create_new_project",
+  "shared_assets_list",
+  "shared_assets_upload_batch",
+  "list_projects",
+  "project_config_read",
+  "project_config_write",
+  "delete_project",
+  "archive_project",
+  "unarchive_project",
+  "rename_project",
+  "list_project_tree",
+  "read_project_file",
+  "write_project_file",
+  "terminal_open",
+  "terminal_write",
+  "terminal_resize",
+  "terminal_close",
+  "terminal_list",
+  "terminal_active_processes",
+  "terminal_get_all_sessions",
+  "terminal_set_custom_name",
+  "terminal_remove_session",
+  "browser_history_navigate",
+  "browser_eval_result",
+  "runtime_debug_dump",
+  "ui_log_batch",
+  "logs_read_weekend",
+  "logs_read_project",
+  "shell_name"
+]

@@ -1,0 +1,15 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "browser-remote-eval-callback",
+  "description": "Allow remote browser-pane pages to send eval results back to backend.",
+  "webviews": ["browser-pane:*"],
+  "remote": {
+    "urls": ["http://*/*", "https://*/*", "http://*:*/*", "https://*:*/*"]
+  },
+  "local": false,
+  "permissions": [
+    "allow-browser-eval-result",
+    "allow-browser-push-event",
+    "allow-browser-bridge-ready"
+  ]
+}

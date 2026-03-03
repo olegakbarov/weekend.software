@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Weekend Software",
+  "version": "0.1.0",
+  "identifier": "com.weekend.app",
+  "build": {
+    "beforeDevCommand": "bash scripts/copy-sidecar.sh debug && pnpm dev",
+    "devUrl": "http://127.0.0.1:1430",
+    "beforeBuildCommand": "bash scripts/copy-sidecar.sh release && pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Weekend Software",
+        "width": 1521,
+        "height": 922,
+        "resizable": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": {
+          "x": 11,
+          "y": 20
+        },
+        "backgroundColor": "#000000"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg", "app"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
+    "category": "DeveloperTool",
+    "shortDescription": "AI-powered operating system",
+    "copyright": "Copyright 2025 Weekend Software contributors",
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    },
+    "externalBin": [
+      "binaries/weekend-browser-mcp"
+    ]
+  }
+}
