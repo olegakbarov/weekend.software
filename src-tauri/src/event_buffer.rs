@@ -29,6 +29,8 @@ pub struct ObserverConfig {
     #[serde(default)]
     pub network: bool,
     #[serde(default)]
+    pub element_grab: bool,
+    #[serde(default)]
     pub custom: bool,
 }
 

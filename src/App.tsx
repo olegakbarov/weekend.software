@@ -532,6 +532,58 @@ export function App() {
     [switchWorkspaceMode]
   );
 
+  const handleElementGrabbed = useCallback(
+    (data: {
+      tag: string;
+      id: string;
+      className: string;
+      text: string;
+      selector: string;
+      outerHTML?: string;
+    }) => {
+      if (activeView.route !== "workspace") return;
+      const project = activeView.project;
+      workspaceController.selectProject(project);
+
+      const agentTerminalId =
+        workspaceController.getAgentTerminalId(project) ??
+        workspaceController.ensureAgentTerminalSession(project);
+      setActiveView({
+        route: "workspace",
+        project,
+        view: {
+          kind: "terminal",
+          terminalId: agentTerminalId,
+        },
+      });
+
+      const tagPart =
+        data.tag +
+        (data.id ? `#${data.id}` : "") +
+        (data.className
+          ? `.${data.className.trim().split(/\s+/).join(".")}`
+          : "");
+      const textSnippet = data.text ? data.text.slice(0, 200) : "";
+      const htmlSnippet = data.outerHTML ? data.outerHTML.slice(0, 500) : "";
+      const formatted = [
+        "",
+        `DOM node selected: <${tagPart}>`,
+        `selector: ${data.selector}`,
+        textSnippet ? `text: ${textSnippet}` : null,
+        htmlSnippet ? `html: ${htmlSnippet}` : null,
+        "",
+      ]
+        .filter((line): line is string => Boolean(line))
+        .join("\n");
+
+      void invoke("terminal_write", {
+        terminalId: agentTerminalId,
+        data: formatted,
+      }).catch(() => undefined);
+    },
+    [activeView, workspaceController]
+  );
+
   const refreshRuntimeSnapshot = useCallback(() => {
     if (isRefreshingRuntimeSnapshot) return;
     setIsRefreshingRuntimeSnapshot(true);
@@ -698,6 +750,7 @@ export function App() {
                 ) : null
               }
               agentTerminalLabel={activeTerminalLabel}
+              onElementGrabbed={handleElementGrabbed}
               onWorkspaceModeChange={handleWorkspaceModeChange}
               onPlayProject={handlePlayFromBrowser}
               playState={selectedProjectPlayState}

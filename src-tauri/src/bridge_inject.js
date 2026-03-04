@@ -368,6 +368,85 @@
       };
     },
 
+    element_grab: () => {
+      const overlay = document.createElement("div");
+      overlay.style.cssText =
+        "position:fixed;pointer-events:none;z-index:2147483647;border:2px solid #3b82f6;border-radius:3px;background:rgba(59,130,246,0.08);transition:all 60ms ease-out;display:none;";
+      document.documentElement.appendChild(overlay);
+
+      let currentTarget = null;
+
+      const computeSelector = (el) => {
+        if (el.id) return "#" + el.id;
+        const parts = [];
+        let node = el;
+        while (node && node !== document.documentElement) {
+          let sel = node.tagName.toLowerCase();
+          if (node.id) {
+            parts.unshift("#" + node.id);
+            break;
+          }
+          const parent = node.parentElement;
+          if (parent) {
+            const siblings = Array.from(parent.children).filter(
+              (c) => c.tagName === node.tagName
+            );
+            if (siblings.length > 1) {
+              sel += ":nth-of-type(" + (siblings.indexOf(node) + 1) + ")";
+            }
+          }
+          parts.unshift(sel);
+          node = parent;
+        }
+        return parts.join(" > ");
+      };
+
+      const onMouseOver = (event) => {
+        const target = event.target;
+        if (!target || !target.tagName || target === document.documentElement) return;
+        currentTarget = target;
+        const rect = target.getBoundingClientRect();
+        overlay.style.left = rect.left + "px";
+        overlay.style.top = rect.top + "px";
+        overlay.style.width = rect.width + "px";
+        overlay.style.height = rect.height + "px";
+        overlay.style.display = "block";
+      };
+
+      const onClick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        const target = currentTarget || event.target;
+        if (!target || !target.tagName) return;
+
+        const tag = target.tagName.toLowerCase();
+        const id = target.id || "";
+        const className =
+          typeof target.className === "string" ? target.className : "";
+        const text = (target.textContent || "").trim().slice(0, 200);
+        const selector = computeSelector(target);
+        const outerHTML = (target.outerHTML || "").slice(0, 500);
+
+        pushEvent("element_grab", { tag, id, className, text, selector, outerHTML });
+
+        // Auto-disable after selection
+        configure({ ...state.config, element_grab: false });
+      };
+
+      document.addEventListener("mouseover", onMouseOver, true);
+      document.addEventListener("click", onClick, true);
+
+      return () => {
+        document.removeEventListener("mouseover", onMouseOver, true);
+        document.removeEventListener("click", onClick, true);
+        overlay.style.display = "none";
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        currentTarget = null;
+      };
+    },
+
     custom: () => {
       return () => {};
     },
@@ -381,6 +460,7 @@
     inputs: Boolean(raw && raw.inputs),
     dom_mutations: Boolean(raw && raw.dom_mutations),
     network: Boolean(raw && raw.network),
+    element_grab: Boolean(raw && raw.element_grab),
     custom: Boolean(raw && raw.custom),
   });
 

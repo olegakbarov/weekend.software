@@ -31,6 +31,23 @@ function vimModeColor(mode: VimMode): string {
   }
 }
 
+function isPathAtOrBelow(path: string | null, basePath: string): boolean {
+  if (!path) return false;
+  return path === basePath || path.startsWith(`${basePath}/`);
+}
+
+function remapPathAfterRename(
+  path: string | null,
+  oldBasePath: string,
+  newBasePath: string
+): string | null {
+  if (!path) return null;
+  if (path === oldBasePath) return newBasePath;
+  const oldPrefix = `${oldBasePath}/`;
+  if (!path.startsWith(oldPrefix)) return path;
+  return `${newBasePath}/${path.slice(oldPrefix.length)}`;
+}
+
 export function ProjectEditorPane({
   project,
   projectTree,
@@ -51,6 +68,7 @@ export function ProjectEditorPane({
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isMutatingTree, setIsMutatingTree] = useState(false);
   const [vimMode, setVimMode] = useState<VimMode>("insert");
   const [vimSubMode, setVimSubMode] = useState<string | undefined>(undefined);
 
@@ -151,6 +169,71 @@ export function ProjectEditorPane({
     }
     void flushSave();
   }, [flushSave]);
+
+  const handleRenamePath = useCallback(
+    async (path: string, newName: string) => {
+      setIsMutatingTree(true);
+      if (saveTimerRef.current !== null) {
+        window.clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+      await flushSave();
+
+      try {
+        const renamedPath = await invoke<string>("rename_project_path", {
+          project,
+          path,
+          newName,
+        });
+
+        const nextSelectedPath = remapPathAfterRename(
+          selectedFilePath,
+          path,
+          renamedPath
+        );
+        if (nextSelectedPath !== selectedFilePath) {
+          setSelectedFilePath(nextSelectedPath);
+          onSelectedFilePathChange(nextSelectedPath);
+          currentPathRef.current = nextSelectedPath;
+        }
+      } catch (error) {
+        console.error("[ProjectEditor] rename path failed", error);
+        throw error;
+      } finally {
+        setIsMutatingTree(false);
+      }
+    },
+    [flushSave, onSelectedFilePathChange, project, selectedFilePath]
+  );
+
+  const handleDeletePath = useCallback(
+    async (path: string) => {
+      setIsMutatingTree(true);
+      if (saveTimerRef.current !== null) {
+        window.clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+      await flushSave();
+
+      try {
+        await invoke("delete_project_path", { project, path });
+        if (isPathAtOrBelow(selectedFilePath, path)) {
+          setSelectedFilePath(null);
+          onSelectedFilePathChange(null);
+          currentPathRef.current = null;
+          pendingContentRef.current = null;
+          setFileContent(null);
+          setLoadError(null);
+        }
+      } catch (error) {
+        console.error("[ProjectEditor] delete path failed", error);
+        throw error;
+      } finally {
+        setIsMutatingTree(false);
+      }
+    },
+    [flushSave, onSelectedFilePathChange, project, selectedFilePath]
+  );
 
   const handleVimModeChange = useCallback(
     (mode: VimMode, subMode?: string) => {
@@ -264,6 +347,9 @@ export function ProjectEditorPane({
               tree={projectTree}
               selectedPath={selectedFilePath}
               onSelectFile={handleSelectFile}
+              onRenamePath={handleRenamePath}
+              onDeletePath={handleDeletePath}
+              isMutating={isMutatingTree}
             />
           </div>
           <div className="space-y-1 border-border border-t p-2">

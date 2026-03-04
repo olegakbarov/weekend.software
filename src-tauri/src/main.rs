@@ -1415,6 +1415,38 @@ fn resolve_project_dir(project: &str) -> Result<PathBuf, String> {
     Ok(path)
 }
 
+fn sanitize_project_relative_path(path: &str) -> Result<String, String> {
+    let sanitized = path.trim().replace('\\', "/");
+    if sanitized.is_empty() {
+        return Err("path is required".to_string());
+    }
+    if sanitized.starts_with('/') {
+        return Err("absolute paths are not allowed".to_string());
+    }
+    if sanitized
+        .split('/')
+        .any(|segment| segment.is_empty() || segment == "." || segment == "..")
+    {
+        return Err("invalid path".to_string());
+    }
+    Ok(sanitized)
+}
+
+fn resolve_existing_project_path(project_dir: &Path, path: &str) -> Result<PathBuf, String> {
+    let sanitized = sanitize_project_relative_path(path)?;
+    let resolved = project_dir.join(&sanitized);
+    let canonical = resolved
+        .canonicalize()
+        .map_err(|error| format!("cannot resolve path {sanitized}: {error}"))?;
+    if !canonical.starts_with(project_dir) {
+        return Err("path is outside project directory".to_string());
+    }
+    if canonical == *project_dir {
+        return Err("project root cannot be modified".to_string());
+    }
+    Ok(canonical)
+}
+
 fn resolve_terminal_working_dir(project: Option<&str>) -> Result<PathBuf, String> {
     let root = weekend_root()?;
     std::fs::create_dir_all(&root)
@@ -3642,10 +3674,7 @@ fn list_project_tree(project: String) -> Result<Vec<ProjectTreeNode>, String> {
 #[tauri::command]
 fn read_project_file(project: String, path: String) -> Result<String, String> {
     let project_dir = resolve_project_dir(&project)?;
-    let sanitized = path.trim().replace('\\', "/");
-    if sanitized.is_empty() {
-        return Err("path is required".to_string());
-    }
+    let sanitized = sanitize_project_relative_path(&path)?;
     let resolved = project_dir.join(&sanitized);
     let canonical = resolved
         .canonicalize()
@@ -3663,10 +3692,7 @@ fn read_project_file(project: String, path: String) -> Result<String, String> {
 #[tauri::command]
 fn write_project_file(project: String, path: String, content: String) -> Result<(), String> {
     let project_dir = resolve_project_dir(&project)?;
-    let sanitized = path.trim().replace('\\', "/");
-    if sanitized.is_empty() {
-        return Err("path is required".to_string());
-    }
+    let sanitized = sanitize_project_relative_path(&path)?;
     let resolved = project_dir.join(&sanitized);
     // For new files the target may not exist yet, so canonicalize the parent.
     let parent = resolved
@@ -3697,6 +3723,49 @@ fn write_project_file(project: String, path: String, content: String) -> Result<
     }
     std::fs::write(&target, content)
         .map_err(|error| format!("failed to write {}: {error}", target.display()))
+}
+
+#[tauri::command]
+fn rename_project_path(project: String, path: String, new_name: String) -> Result<String, String> {
+    let project_dir = resolve_project_dir(&project)?;
+    let source = resolve_existing_project_path(&project_dir, &path)?;
+
+    let trimmed_new_name = new_name.trim();
+    if trimmed_new_name.is_empty() {
+        return Err("new name is required".to_string());
+    }
+    if trimmed_new_name.contains('/') || trimmed_new_name.contains('\\') {
+        return Err("new name cannot include path separators".to_string());
+    }
+    if matches!(trimmed_new_name, "." | "..") {
+        return Err("invalid new name".to_string());
+    }
+
+    let parent = source.parent().ok_or_else(|| "invalid path".to_string())?;
+    let target = parent.join(trimmed_new_name);
+    if target.exists() {
+        return Err(format!("'{trimmed_new_name}' already exists"));
+    }
+
+    std::fs::rename(&source, &target)
+        .map_err(|error| format!("failed to rename {}: {error}", source.display()))?;
+
+    Ok(relative_path(&project_dir, &target))
+}
+
+#[tauri::command]
+fn delete_project_path(project: String, path: String) -> Result<(), String> {
+    let project_dir = resolve_project_dir(&project)?;
+    let target = resolve_existing_project_path(&project_dir, &path)?;
+
+    if target.is_dir() {
+        std::fs::remove_dir_all(&target)
+            .map_err(|error| format!("failed to delete {}: {error}", target.display()))?;
+        return Ok(());
+    }
+
+    std::fs::remove_file(&target)
+        .map_err(|error| format!("failed to delete {}: {error}", target.display()))
 }
 
 #[tauri::command]
@@ -4340,6 +4409,7 @@ fn browser_history_navigate<R: Runtime>(
 #[tauri::command]
 fn browser_push_event<R: Runtime>(
     webview: tauri::Webview<R>,
+    app: AppHandle<R>,
     category: String,
     data: String,
     event_buffer: State<'_, EventBufferState>,
@@ -4350,8 +4420,47 @@ fn browser_push_event<R: Runtime>(
     }
     let parsed: serde_json::Value =
         serde_json::from_str(&data).unwrap_or(serde_json::Value::String(data));
-    event_buffer.push_event(&label, category, parsed);
+    event_buffer.push_event(&label, category.clone(), parsed.clone());
+    if category == "element_grab" {
+        let _ = app.emit(
+            "browser-element-grabbed",
+            serde_json::json!({
+                "label": label,
+                "data": parsed,
+            }),
+        );
+    }
     Ok(())
+}
+
+#[tauri::command]
+fn browser_start_element_grab<R: Runtime>(
+    label: String,
+    app: AppHandle<R>,
+) -> Result<(), String> {
+    let webview = app
+        .get_webview(&label)
+        .ok_or_else(|| format!("webview not found: {label}"))?;
+    webview
+        .eval(
+            "if (window.__WEEKEND_BRIDGE__) { window.__WEEKEND_BRIDGE__.configure({ ...window.__WEEKEND_BRIDGE_STATE__.config, element_grab: true }); }",
+        )
+        .map_err(|e| format!("eval failed: {e}"))
+}
+
+#[tauri::command]
+fn browser_stop_element_grab<R: Runtime>(
+    label: String,
+    app: AppHandle<R>,
+) -> Result<(), String> {
+    let webview = app
+        .get_webview(&label)
+        .ok_or_else(|| format!("webview not found: {label}"))?;
+    webview
+        .eval(
+            "if (window.__WEEKEND_BRIDGE__) { window.__WEEKEND_BRIDGE__.configure({ ...window.__WEEKEND_BRIDGE_STATE__.config, element_grab: false }); }",
+        )
+        .map_err(|e| format!("eval failed: {e}"))
 }
 
 #[tauri::command]
@@ -4673,6 +4782,8 @@ fn main() {
             list_project_tree,
             read_project_file,
             write_project_file,
+            rename_project_path,
+            delete_project_path,
             terminal_open,
             terminal_write,
             terminal_resize,
@@ -4685,6 +4796,8 @@ fn main() {
             browser_history_navigate,
             browser_push_event,
             browser_bridge_ready,
+            browser_start_element_grab,
+            browser_stop_element_grab,
             browser_eval_result,
             runtime_debug_dump,
             ui_log_batch,

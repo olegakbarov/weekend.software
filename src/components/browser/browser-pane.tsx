@@ -1,6 +1,7 @@
 import {
   ChevronLeft,
   ChevronRight,
+  Crosshair,
   FileCode2,
   Globe2,
   RefreshCw,
@@ -16,6 +17,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import {
   buildEmbeddedBrowserWebviewLabel,
   createEmbeddedBrowserWebview,
@@ -276,6 +279,7 @@ export function BrowserPane({
   settingsContent,
   agentContent,
   agentTerminalLabel,
+  onElementGrabbed,
 }: {
   projectKey: string;
   filesystemEventVersion: number;
@@ -295,6 +299,14 @@ export function BrowserPane({
   settingsContent?: ReactNode;
   agentContent?: ReactNode;
   agentTerminalLabel?: string | null;
+  onElementGrabbed?: (data: {
+    tag: string;
+    id: string;
+    className: string;
+    text: string;
+    selector: string;
+    outerHTML?: string;
+  }) => void;
 }) {
   const [frameVersionByProject, setFrameVersionByProject] = useState<
     Record<string, number>
@@ -316,6 +328,7 @@ export function BrowserPane({
   const [addressBarErrorByProject, setAddressBarErrorByProject] = useState<
     Record<string, string | null>
   >({});
+  const [isGrabbing, setIsGrabbing] = useState(false);
   const loadTimeoutRef = useRef<number | null>(null);
   const nativeWebviewHostRef = useRef<HTMLDivElement | null>(null);
   const embeddedWebviewRef = useRef<EmbeddedBrowserWebviewHandle | null>(null);
@@ -472,6 +485,51 @@ export function BrowserPane({
   const goForward = useCallback(() => {
     void embeddedWebviewRef.current?.goForward();
   }, []);
+
+  const toggleElementGrab = useCallback(() => {
+    const label = embeddedWebviewRef.current?.label;
+    if (!label) return;
+    const shouldEnable = !isGrabbing;
+    setIsGrabbing(shouldEnable);
+    void invoke(
+      shouldEnable ? "browser_start_element_grab" : "browser_stop_element_grab",
+      { label }
+    ).catch(() => {
+      setIsGrabbing(!shouldEnable);
+    });
+  }, [isGrabbing]);
+
+  useEffect(() => {
+    const unlisten = listen<{
+      label: string;
+      data: {
+        tag: string;
+        id: string;
+        className: string;
+        text: string;
+        selector: string;
+        outerHTML?: string;
+      };
+    }>("browser-element-grabbed", (event) => {
+      const activeLabel = embeddedWebviewRef.current?.label;
+      if (!activeLabel || event.payload.label !== activeLabel) {
+        return;
+      }
+      setIsGrabbing(false);
+      onElementGrabbed?.(event.payload.data);
+    });
+    return () => {
+      void unlisten.then((fn) => fn());
+    };
+  }, [onElementGrabbed]);
+
+  useEffect(() => {
+    if (workspaceMode === "browser" || !isGrabbing) return;
+    const label = embeddedWebviewRef.current?.label;
+    setIsGrabbing(false);
+    if (!label) return;
+    void invoke("browser_stop_element_grab", { label }).catch(() => undefined);
+  }, [isGrabbing, workspaceMode]);
 
   const navigateFromAddressBar = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -869,7 +927,15 @@ export function BrowserPane({
               }`}
               onSubmit={navigateFromAddressBar}
             >
-              <div className="flex shrink-0 items-center gap-0.5 pl-1">
+              <input
+                aria-invalid={addressBarError ? true : undefined}
+                className="h-8 min-w-0 flex-1 bg-transparent px-2 font-code text-xs text-foreground outline-none placeholder:text-muted-foreground/60"
+                onChange={(event) => updateAddressBarDraft(event.target.value)}
+                placeholder="Enter URL and press Enter"
+                spellCheck={false}
+                value={urlInputDraft}
+              />
+              <div className="flex shrink-0 items-center gap-0.5 pr-1">
                 <button
                   className="rounded p-1 text-muted-foreground/50 transition-colors hover:text-foreground disabled:text-muted-foreground/25"
                   disabled={!hasBrowserUrl}
@@ -898,14 +964,6 @@ export function BrowserPane({
                   <RefreshCw className="size-3" />
                 </button>
               </div>
-              <input
-                aria-invalid={addressBarError ? true : undefined}
-                className="h-8 min-w-0 flex-1 bg-transparent px-2 font-code text-xs text-foreground outline-none placeholder:text-muted-foreground/60"
-                onChange={(event) => updateAddressBarDraft(event.target.value)}
-                placeholder="Enter URL and press Enter"
-                spellCheck={false}
-                value={urlInputDraft}
-              />
             </form>
           ) : workspaceMode === "editor" ? (
             <div className="min-w-0 flex h-8 flex-1 items-center rounded-md border border-border/80 bg-background px-2.5">
@@ -941,21 +999,41 @@ export function BrowserPane({
             </div>
           )}
         </div>
-        <button
-          aria-label="Project settings"
-          aria-pressed={workspaceMode === "settings"}
-          className={
-            workspaceMode === "settings"
-              ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/60 text-foreground transition-colors"
-              : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground"
-          }
-          disabled={!selectedProject}
-          onClick={() => onWorkspaceModeChange("settings")}
-          title="Project settings"
-          type="button"
-        >
-          <Settings className="size-3.5" />
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {workspaceMode === "browser" ? (
+            <button
+              aria-label="Grab element"
+              aria-pressed={isGrabbing}
+              className={
+                isGrabbing
+                  ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-blue-500/60 bg-blue-500/10 text-blue-500 transition-colors hover:text-blue-400"
+                  : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground disabled:text-muted-foreground/25"
+              }
+              disabled={!hasBrowserUrl}
+              onClick={toggleElementGrab}
+              title={isGrabbing ? "Stop grabbing element" : "Grab element"}
+              type="button"
+            >
+              <Crosshair className="size-3.5" />
+            </button>
+          ) : null}
+
+          <button
+            aria-label="Project settings"
+            aria-pressed={workspaceMode === "settings"}
+            className={
+              workspaceMode === "settings"
+                ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/60 text-foreground transition-colors"
+                : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground"
+            }
+            disabled={!selectedProject}
+            onClick={() => onWorkspaceModeChange("settings")}
+            title="Project settings"
+            type="button"
+          >
+            <Settings className="size-3.5" />
+          </button>
+        </div>
       </div>
 
       <div className="relative min-h-0 flex-1 bg-background">
