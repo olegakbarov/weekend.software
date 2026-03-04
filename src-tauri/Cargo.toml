@@ -2,7 +2,7 @@
 name = "weekend"
 version = "0.1.0"
 description = "A Tauri application"
-authors = ["you"]
+authors = ["ISPO labs"]
 edition = "2021"
 
 [build-dependencies]

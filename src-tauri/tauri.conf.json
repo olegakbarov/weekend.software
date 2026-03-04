@@ -42,12 +42,10 @@
     ],
     "category": "DeveloperTool",
     "shortDescription": "AI-powered operating system",
-    "copyright": "Copyright 2025 Weekend Software contributors",
+    "copyright": "Copyright 2025 ISPO Labs Inc & contributors",
     "macOS": {
       "minimumSystemVersion": "10.15"
     },
-    "externalBin": [
-      "binaries/weekend-browser-mcp"
-    ]
+    "externalBin": ["binaries/weekend-browser-mcp"]
   }
 }
