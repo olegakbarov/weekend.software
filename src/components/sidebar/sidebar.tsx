@@ -1,5 +1,5 @@
-import { Archive, FileText, Plus, Settings, X } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { Archive, FileText, Plus, Settings } from "lucide-react";
+import { useCallback } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -17,6 +17,7 @@ import {
 import { SidebarProjectItem } from "@/components/sidebar/sidebar-project-item";
 import type { ActiveView } from "@/lib/types";
 import type { TerminalSessionDescriptor } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import type { PlayState } from "@/lib/workspace-controller";
 
 export function Sidebar({
@@ -26,13 +27,8 @@ export function Sidebar({
   terminalSessionsByProject,
   playStateByProject,
   playErrorByProject,
-  isCreatingProject,
-  isNamingProject,
-  projectNameDraft,
-  onProjectNameDraftChange,
-  onStartNamingProject,
-  onCancelNamingProject,
-  onCreateProject,
+  isFullscreen,
+  onOpenHome,
   onSelectBrowser,
   onSelectTerminal,
   onCreateTerminal,
@@ -55,13 +51,8 @@ export function Sidebar({
   terminalSessionsByProject: Record<string, TerminalSessionDescriptor[]>;
   playStateByProject: Record<string, PlayState>;
   playErrorByProject: Record<string, string | null>;
-  isCreatingProject: boolean;
-  isNamingProject: boolean;
-  projectNameDraft: string;
-  onProjectNameDraftChange: (value: string) => void;
-  onStartNamingProject: () => void;
-  onCancelNamingProject: () => void;
-  onCreateProject: () => Promise<void>;
+  isFullscreen: boolean;
+  onOpenHome: () => void;
   onSelectBrowser: (project: string) => void;
   onSelectTerminal: (project: string, terminalId: string) => void;
   onCreateTerminal: (project: string) => void;
@@ -105,32 +96,39 @@ export function Sidebar({
   );
 
   return (
-    <aside className="flex w-[260px] shrink-0 flex-col border-border border-r bg-background">
-      {/* ── Header row: traffic lights + archive label/drag area ── */}
-      <div className="shrink-0 px-2">
-        <div className="flex h-12 items-center gap-2">
-          <div
-            className="h-full shrink-0"
-            data-tauri-drag-region
-            style={{ width: `${trafficLightsSafeZonePx}px` }}
-          />
-          {showArchived ? (
+    <aside className="flex h-full w-[260px] shrink-0 flex-col border-border border-r bg-background">
+      {!isFullscreen ? (
+        /* ── Header row: traffic lights + archive label/drag area ── */
+        <div className="shrink-0 px-2">
+          <div className="flex h-12 items-center gap-2">
             <div
-              className="flex min-w-0 flex-1 items-center justify-center font-vcr text-[12px] text-muted-foreground/50"
+              className="h-full shrink-0"
               data-tauri-drag-region
-            >
-              ARCHIVED PROJECTS
-            </div>
-          ) : (
-            <div className="min-w-0 flex-1" data-tauri-drag-region />
-          )}
+              style={{ width: `${trafficLightsSafeZonePx}px` }}
+            />
+            {showArchived ? (
+              <div
+                className="flex min-w-0 flex-1 items-center justify-center font-vcr text-[12px] text-muted-foreground/50"
+                data-tauri-drag-region
+              >
+                ARCHIVED PROJECTS
+              </div>
+            ) : (
+              <div className="min-w-0 flex-1" data-tauri-drag-region />
+            )}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {/* ── Project list ── */}
       <div className="flex min-h-0 flex-1 flex-col px-1.5">
         {showArchived ? (
-          <div className="min-h-0 flex-1 space-y-px overflow-auto py-0.5">
+          <div
+            className={cn(
+              "min-h-0 flex-1 space-y-px overflow-auto",
+              isFullscreen ? "pt-2 pb-0.5" : "py-0.5"
+            )}
+          >
             {displayedProjects.length === 0 ? (
               <div className="flex items-center justify-center py-8">
                 <p className="font-code text-xs text-muted-foreground/40">
@@ -163,30 +161,28 @@ export function Sidebar({
           </div>
         ) : (
           <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <div className="min-h-0 flex-1 space-y-px overflow-auto py-1">
-              {isNamingProject ? (
-                <div className="pb-1">
-                  <InlineNewProject
-                    isCreating={isCreatingProject}
-                    onCancel={onCancelNamingProject}
-                    onChange={onProjectNameDraftChange}
-                    onCreate={onCreateProject}
-                    value={projectNameDraft}
-                  />
-                </div>
-              ) : (
-                <button
-                  className="mb-[29px] flex w-full items-center gap-2.5 rounded-md border border-border/30 px-2 text-left font-vcr text-[13px] text-muted-foreground transition-colors hover:border-border/60 hover:text-foreground/70"
-                  onClick={onStartNamingProject}
-                  style={{ height: `${newProjectButtonHeightPx}px` }}
-                  type="button"
-                >
-                  <span className="inline-flex size-1.5 shrink-0 items-center justify-center">
-                    <Plus className="size-[0.9rem] shrink-0" />
-                  </span>
-                  <span className="min-w-0 flex-1 truncate">NEW PROJECT</span>
-                </button>
+            <div
+              className={cn(
+                "min-h-0 flex-1 space-y-px overflow-auto",
+                isFullscreen ? "pt-2 pb-1" : "py-1"
               )}
+            >
+              <button
+                className={cn(
+                  "mb-[29px] flex w-full items-center gap-2.5 rounded-md border px-2 text-left font-vcr text-[13px] transition-colors",
+                  activeView.route === "home"
+                    ? "border-border/70 text-foreground"
+                    : "border-border/30 text-muted-foreground hover:border-border/60 hover:text-foreground/70"
+                )}
+                onClick={onOpenHome}
+                style={{ height: `${newProjectButtonHeightPx}px` }}
+                type="button"
+              >
+                <span className="inline-flex size-1.5 shrink-0 items-center justify-center">
+                  <Plus className="size-[0.9rem] shrink-0" />
+                </span>
+                <span className="min-w-0 flex-1 truncate">NEW PROJECT</span>
+              </button>
               <SortableContext items={projects} strategy={verticalListSortingStrategy}>
                 {displayedProjects.map((project) => (
                   <SidebarProjectItem
@@ -268,53 +264,5 @@ function FooterIconButton({
     >
       {icon}
     </button>
-  );
-}
-
-/* ── Inline project creation input ── */
-function InlineNewProject({
-  isCreating,
-  onCancel,
-  onChange,
-  onCreate,
-  value,
-}: {
-  isCreating: boolean;
-  onCancel: () => void;
-  onChange: (value: string) => void;
-  onCreate: () => Promise<void>;
-  value: string;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
-  return (
-    <div className="flex items-center gap-1 rounded-md border border-border/60 bg-input px-2 py-0.5">
-      <input
-        ref={inputRef}
-        className="min-w-0 flex-1 bg-transparent py-0.5 font-code text-xs text-foreground placeholder:text-muted-foreground/40 outline-none"
-        disabled={isCreating}
-        onBlur={() => {
-          if (!isCreating && !value.trim()) onCancel();
-        }}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && value.trim()) void onCreate();
-          if (e.key === "Escape") onCancel();
-        }}
-        placeholder="project name"
-        value={value}
-      />
-      <button
-        className="shrink-0 p-0.5 text-muted-foreground/40 hover:text-foreground"
-        onClick={onCancel}
-        type="button"
-      >
-        <X className="size-3" />
-      </button>
-    </div>
   );
 }

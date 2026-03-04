@@ -98,6 +98,13 @@ struct ProjectTreeChangedPayload {
     project: String,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ProjectFileBinaryPayload {
+    data_base64: String,
+    size_bytes: u64,
+}
+
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct BrowserWebviewPageLoadPayload {
@@ -141,6 +148,14 @@ struct SharedAssetSnapshot {
 struct SharedAssetUploadInput {
     file_name: String,
     data_base64: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ProjectFileImportInput {
+    file_name: String,
+    source_path: Option<String>,
+    data_base64: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -232,6 +247,7 @@ const PORT_RANGE_START: u16 = 8457;
 const PORT_RANGE_END: u16 = 8999;
 const DEFAULT_RUNTIME_HOST: &str = "127.0.0.1";
 const DEFAULT_STARTUP_COMMAND: &str = "pnpm dev";
+const DEFAULT_AGENT_COMMAND: &str = "claude";
 const PROJECT_CONFIG_FILE_NAME: &str = "weekend.config.json";
 const LEGACY_PROJECT_CONFIG_FILE_NAME: &str = "aios.config.json";
 const PROJECT_CLAUDE_FILE_NAME: &str = "CLAUDE.md";
@@ -243,6 +259,7 @@ const LOG_ROTATE_MAX_BYTES: u64 = 2 * 1024 * 1024;
 const LOG_ROTATE_ARCHIVE_COUNT: usize = 6;
 const LOG_MESSAGE_MAX_CHARS: usize = 8000;
 const LOG_TAIL_DEFAULT_MAX_BYTES: usize = 128 * 1024;
+const MAX_PREVIEW_FILE_BYTES: u64 = 20 * 1024 * 1024;
 
 const PROJECT_AGENT_RUNTIME_GUIDANCE: &str = r#"# Runtime Configuration
 
@@ -358,6 +375,24 @@ fn decode_shared_asset_payload(data_base64: &str) -> Result<Vec<u8>, String> {
     BASE64_STANDARD
         .decode(payload)
         .map_err(|error| format!("invalid shared asset payload: {error}"))
+}
+
+fn decode_project_file_payload(data_base64: &str) -> Result<Vec<u8>, String> {
+    let trimmed = data_base64.trim();
+    if trimmed.is_empty() {
+        return Err("file payload is required".to_string());
+    }
+    let payload = trimmed
+        .split_once(',')
+        .map(|(_, encoded)| encoded)
+        .unwrap_or(trimmed)
+        .trim();
+    if payload.is_empty() {
+        return Err("file payload is required".to_string());
+    }
+    BASE64_STANDARD
+        .decode(payload)
+        .map_err(|error| format!("invalid file payload: {error}"))
 }
 
 fn to_unix_ms(time: SystemTime) -> Option<u64> {
@@ -993,7 +1028,7 @@ fn default_startup_commands() -> Vec<String> {
     vec![DEFAULT_STARTUP_COMMAND.to_string()]
 }
 
-fn default_processes_map() -> HashMap<String, ProcessEntrySnapshot> {
+fn default_processes_map(agent_command: &str) -> HashMap<String, ProcessEntrySnapshot> {
     let mut map = HashMap::new();
     map.insert(
         "dev".to_string(),
@@ -1005,7 +1040,7 @@ fn default_processes_map() -> HashMap<String, ProcessEntrySnapshot> {
     map.insert(
         "agent".to_string(),
         ProcessEntrySnapshot {
-            command: "claude".to_string(),
+            command: agent_command.to_string(),
             role: "agent".to_string(),
         },
     );
@@ -1430,6 +1465,81 @@ fn sanitize_project_relative_path(path: &str) -> Result<String, String> {
         return Err("invalid path".to_string());
     }
     Ok(sanitized)
+}
+
+fn sanitize_project_file_name(file_name: &str) -> Result<String, String> {
+    let trimmed = file_name.trim();
+    if trimmed.is_empty() {
+        return Err("file name is required".to_string());
+    }
+    let normalized = Path::new(trimmed)
+        .file_name()
+        .and_then(|value| value.to_str())
+        .map(str::trim)
+        .ok_or_else(|| format!("invalid file name: {trimmed}"))?;
+    if normalized.is_empty() || matches!(normalized, "." | "..") {
+        return Err(format!("invalid file name: {trimmed}"));
+    }
+    if normalized.contains('/') || normalized.contains('\\') {
+        return Err(format!("invalid file name: {trimmed}"));
+    }
+    Ok(normalized.to_string())
+}
+
+fn resolve_project_target_dir(
+    project_dir: &Path,
+    target_dir: Option<String>,
+) -> Result<PathBuf, String> {
+    let Some(raw_target) = target_dir else {
+        return Ok(project_dir.to_path_buf());
+    };
+    if raw_target.trim().is_empty() {
+        return Ok(project_dir.to_path_buf());
+    }
+
+    let sanitized = sanitize_project_relative_path(&raw_target)?;
+    let resolved = project_dir.join(&sanitized);
+    let canonical_project_dir = project_dir
+        .canonicalize()
+        .unwrap_or_else(|_| project_dir.to_path_buf());
+    let canonical = resolved
+        .canonicalize()
+        .map_err(|error| format!("cannot resolve target directory {sanitized}: {error}"))?;
+    if !canonical.starts_with(&canonical_project_dir) {
+        return Err("target directory is outside project directory".to_string());
+    }
+    if !canonical.is_dir() {
+        return Err(format!("target directory does not exist: {sanitized}"));
+    }
+    Ok(resolved)
+}
+
+fn move_file_with_fallback(source: &Path, target: &Path) -> Result<(), String> {
+    match std::fs::rename(source, target) {
+        Ok(()) => Ok(()),
+        Err(rename_error) if rename_error.raw_os_error() == Some(18) => {
+            std::fs::copy(source, target).map_err(|error| {
+                format!(
+                    "failed to move {} to {}: {error}",
+                    source.display(),
+                    target.display()
+                )
+            })?;
+            std::fs::remove_file(source).map_err(|error| {
+                let _ = std::fs::remove_file(target);
+                format!(
+                    "failed to remove original {} after copy: {error}",
+                    source.display()
+                )
+            })?;
+            Ok(())
+        }
+        Err(error) => Err(format!(
+            "failed to move {} to {}: {error}",
+            source.display(),
+            target.display()
+        )),
+    }
 }
 
 fn resolve_existing_project_path(project_dir: &Path, path: &str) -> Result<PathBuf, String> {
@@ -2153,6 +2263,55 @@ fn extract_projects_from_event_paths(watched_roots: &[PathBuf], paths: &[PathBuf
     projects.sort_unstable();
     projects.dedup();
     projects
+}
+
+#[cfg(test)]
+mod project_file_import_tests {
+    use super::{resolve_project_target_dir, sanitize_project_file_name};
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn make_temp_dir(prefix: &str) -> PathBuf {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock")
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("{prefix}-{unique}"));
+        std::fs::create_dir_all(&dir).expect("create temp dir");
+        dir
+    }
+
+    #[test]
+    fn sanitize_project_file_name_uses_basename() {
+        let file_name = sanitize_project_file_name("Desktop/screenshot.png").expect("sanitize");
+        assert_eq!(file_name, "screenshot.png");
+    }
+
+    #[test]
+    fn sanitize_project_file_name_rejects_invalid_names() {
+        assert!(sanitize_project_file_name("").is_err());
+        assert!(sanitize_project_file_name(".").is_err());
+        assert!(sanitize_project_file_name("..").is_err());
+    }
+
+    #[test]
+    fn resolve_project_target_dir_handles_root_and_nested_targets() {
+        let project_dir = make_temp_dir("weekend-project-target-dir");
+        let nested = project_dir.join("assets");
+        std::fs::create_dir_all(&nested).expect("create nested target");
+
+        let root_target =
+            resolve_project_target_dir(&project_dir, None).expect("resolve project root target");
+        let nested_target = resolve_project_target_dir(&project_dir, Some("assets".to_string()))
+            .expect("resolve nested target");
+        let missing_target = resolve_project_target_dir(&project_dir, Some("missing".to_string()));
+
+        let _ = std::fs::remove_dir_all(&project_dir);
+
+        assert_eq!(root_target, project_dir);
+        assert_eq!(nested_target, nested);
+        assert!(missing_target.is_err());
+    }
 }
 
 #[cfg(test)]
@@ -3035,7 +3194,7 @@ fn backfill_existing_project_configs() -> Result<(), String> {
             }
             ProjectConfigLookup::Missing => {
                 let allocated_port = allocate_deterministic_project_port(&root, &project_name)?;
-                let default_procs = default_processes_map();
+                let default_procs = default_processes_map(DEFAULT_AGENT_COMMAND);
                 write_project_config(
                     &project_dir,
                     DEFAULT_RUNTIME_HOST,
@@ -3058,8 +3217,65 @@ fn backfill_existing_project_configs() -> Result<(), String> {
     Ok(())
 }
 
+fn normalize_optional_string(value: Option<String>) -> Option<String> {
+    value.and_then(|raw| {
+        let trimmed = raw.trim();
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(trimmed.to_string())
+        }
+    })
+}
+
+fn validate_github_repo_url(repo_url: &str) -> Result<(), String> {
+    if repo_url.chars().any(char::is_whitespace) {
+        return Err("github repo URL cannot contain whitespace".to_string());
+    }
+
+    if repo_url.starts_with("https://github.com/")
+        || repo_url.starts_with("http://github.com/")
+        || repo_url.starts_with("git@github.com:")
+    {
+        return Ok(());
+    }
+
+    Err("github repo URL must start with https://github.com/ or git@github.com:".to_string())
+}
+
+fn clone_github_repo(repo_url: &str, target_dir: &Path) -> Result<(), String> {
+    let output = std::process::Command::new("git")
+        .arg("clone")
+        .arg("--depth")
+        .arg("1")
+        .arg(repo_url)
+        .arg(target_dir)
+        .output()
+        .map_err(|error| format!("failed to run git clone: {error}"))?;
+
+    if output.status.success() {
+        return Ok(());
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let detail = if !stderr.trim().is_empty() {
+        stderr.trim().to_string()
+    } else if !stdout.trim().is_empty() {
+        stdout.trim().to_string()
+    } else {
+        format!("exit status {}", output.status)
+    };
+
+    Err(format!("git clone failed: {detail}"))
+}
+
 #[tauri::command]
-fn create_new_project(name: Option<String>) -> Result<String, String> {
+fn create_new_project(
+    name: Option<String>,
+    default_agent_command: Option<String>,
+    github_repo_url: Option<String>,
+) -> Result<String, String> {
     let weekend_root = weekend_root()?;
 
     std::fs::create_dir_all(&weekend_root)
@@ -3085,8 +3301,20 @@ fn create_new_project(name: Option<String>) -> Result<String, String> {
         suffix += 1;
     }
 
-    std::fs::create_dir(&candidate)
-        .map_err(|error| format!("failed to create project directory: {error}"))?;
+    let resolved_agent_command =
+        normalize_process_command(default_agent_command.as_deref().unwrap_or(DEFAULT_AGENT_COMMAND))
+            .ok_or_else(|| "default agent command is required".to_string())?;
+    let resolved_github_repo_url = normalize_optional_string(github_repo_url);
+    if let Some(repo_url) = resolved_github_repo_url.as_deref() {
+        validate_github_repo_url(repo_url)?;
+        if let Err(error) = clone_github_repo(repo_url, &candidate) {
+            let _ = std::fs::remove_dir_all(&candidate);
+            return Err(error);
+        }
+    } else {
+        std::fs::create_dir(&candidate)
+            .map_err(|error| format!("failed to create project directory: {error}"))?;
+    }
 
     let project_name = candidate
         .file_name()
@@ -3097,7 +3325,7 @@ fn create_new_project(name: Option<String>) -> Result<String, String> {
             .lock()
             .map_err(|_| "failed to lock project port allocator".to_string())?;
         let allocated_port = allocate_deterministic_project_port(&weekend_root, project_name)?;
-        let default_processes = default_processes_map();
+        let default_processes = default_processes_map(&resolved_agent_command);
         write_project_config(
             &candidate,
             DEFAULT_RUNTIME_HOST,
@@ -3111,7 +3339,9 @@ fn create_new_project(name: Option<String>) -> Result<String, String> {
     let shared_root = ensure_shared_assets_root()?;
     sync_shared_assets_into_project(&candidate, &shared_root)?;
     seed_agent_runtime_guidance_files(&candidate)?;
-    init_git_repo(&candidate)?;
+    if resolved_github_repo_url.is_none() {
+        init_git_repo(&candidate)?;
+    }
 
     log_backend(
         "INFO",
@@ -3726,6 +3956,42 @@ fn write_project_file(project: String, path: String, content: String) -> Result<
 }
 
 #[tauri::command]
+fn read_project_file_binary(
+    project: String,
+    path: String,
+) -> Result<ProjectFileBinaryPayload, String> {
+    let project_dir = resolve_project_dir(&project)?;
+    let sanitized = sanitize_project_relative_path(&path)?;
+    let resolved = project_dir.join(&sanitized);
+    let canonical = resolved
+        .canonicalize()
+        .map_err(|error| format!("cannot resolve path {sanitized}: {error}"))?;
+    if !canonical.starts_with(&project_dir) {
+        return Err("path is outside project directory".to_string());
+    }
+    if canonical.is_dir() {
+        return Err("path is a directory".to_string());
+    }
+
+    let metadata = std::fs::metadata(&canonical)
+        .map_err(|error| format!("failed to inspect {}: {error}", canonical.display()))?;
+    if metadata.len() > MAX_PREVIEW_FILE_BYTES {
+        return Err(format!(
+            "file is too large to preview ({} bytes, limit {} bytes)",
+            metadata.len(),
+            MAX_PREVIEW_FILE_BYTES
+        ));
+    }
+
+    let bytes = std::fs::read(&canonical)
+        .map_err(|error| format!("failed to read {}: {error}", canonical.display()))?;
+    Ok(ProjectFileBinaryPayload {
+        data_base64: BASE64_STANDARD.encode(bytes.as_slice()),
+        size_bytes: bytes.len() as u64,
+    })
+}
+
+#[tauri::command]
 fn rename_project_path(project: String, path: String, new_name: String) -> Result<String, String> {
     let project_dir = resolve_project_dir(&project)?;
     let source = resolve_existing_project_path(&project_dir, &path)?;
@@ -3766,6 +4032,70 @@ fn delete_project_path(project: String, path: String) -> Result<(), String> {
 
     std::fs::remove_file(&target)
         .map_err(|error| format!("failed to delete {}: {error}", target.display()))
+}
+
+#[tauri::command]
+fn import_external_files_to_project(
+    project: String,
+    target_dir: Option<String>,
+    files: Vec<ProjectFileImportInput>,
+) -> Result<Vec<String>, String> {
+    if files.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let project_dir = resolve_project_dir(&project)?;
+    let destination_dir = resolve_project_target_dir(&project_dir, target_dir)?;
+    let mut imported_paths = Vec::with_capacity(files.len());
+
+    for file in files {
+        let file_name = sanitize_project_file_name(&file.file_name)?;
+        let target = destination_dir.join(&file_name);
+        if target.exists() {
+            return Err(format!(
+                "cannot import '{file_name}': destination already exists"
+            ));
+        }
+
+        let mut imported = false;
+        if let Some(raw_source_path) = file.source_path.as_deref() {
+            let trimmed_source = raw_source_path.trim();
+            if !trimmed_source.is_empty() {
+                let source = PathBuf::from(trimmed_source);
+                if !source.exists() {
+                    return Err(format!(
+                        "cannot import '{file_name}': source file does not exist"
+                    ));
+                }
+                if source.is_dir() {
+                    return Err(format!(
+                        "cannot import '{file_name}': source path is a directory"
+                    ));
+                }
+
+                move_file_with_fallback(&source, &target)?;
+                imported = true;
+            }
+        }
+
+        if !imported {
+            let data_base64 = file
+                .data_base64
+                .as_deref()
+                .ok_or_else(|| format!("cannot import '{file_name}': file payload is missing"))?;
+            let decoded = decode_project_file_payload(data_base64)?;
+            std::fs::write(&target, decoded).map_err(|error| {
+                format!(
+                    "failed to write imported file {}: {error}",
+                    target.display()
+                )
+            })?;
+        }
+
+        imported_paths.push(relative_path(&project_dir, &target));
+    }
+
+    Ok(imported_paths)
 }
 
 #[tauri::command]
@@ -4434,10 +4764,7 @@ fn browser_push_event<R: Runtime>(
 }
 
 #[tauri::command]
-fn browser_start_element_grab<R: Runtime>(
-    label: String,
-    app: AppHandle<R>,
-) -> Result<(), String> {
+fn browser_start_element_grab<R: Runtime>(label: String, app: AppHandle<R>) -> Result<(), String> {
     let webview = app
         .get_webview(&label)
         .ok_or_else(|| format!("webview not found: {label}"))?;
@@ -4449,10 +4776,7 @@ fn browser_start_element_grab<R: Runtime>(
 }
 
 #[tauri::command]
-fn browser_stop_element_grab<R: Runtime>(
-    label: String,
-    app: AppHandle<R>,
-) -> Result<(), String> {
+fn browser_stop_element_grab<R: Runtime>(label: String, app: AppHandle<R>) -> Result<(), String> {
     let webview = app
         .get_webview(&label)
         .ok_or_else(|| format!("webview not found: {label}"))?;
@@ -4782,8 +5106,10 @@ fn main() {
             list_project_tree,
             read_project_file,
             write_project_file,
+            read_project_file_binary,
             rename_project_path,
             delete_project_path,
+            import_external_files_to_project,
             terminal_open,
             terminal_write,
             terminal_resize,

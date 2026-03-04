@@ -31,6 +31,7 @@ export type ProjectView =
 
 export type ActiveView =
   | { route: "workspace"; project: string; view: ProjectView }
+  | { route: "home" }
   | { route: "settings" }
   | { route: "logs" };
 

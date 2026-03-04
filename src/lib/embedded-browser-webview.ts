@@ -52,11 +52,14 @@ function readContainerBounds(container: HTMLElement): Bounds | null {
   ) {
     return null;
   }
+  // Native webview bounds are pixel-aligned. During animated/fractional layout
+  // changes, round() can undershoot by 1px and expose a right-edge gap.
+  // floor(position) + ceil(size) guarantees the webview fully covers the host.
   return {
-    x: Math.round(rect.left),
-    y: Math.round(rect.top),
-    width: Math.max(1, Math.round(rect.width)),
-    height: Math.max(1, Math.round(rect.height)),
+    x: Math.floor(rect.left),
+    y: Math.floor(rect.top),
+    width: Math.max(1, Math.ceil(rect.width)),
+    height: Math.max(1, Math.ceil(rect.height)),
   };
 }
 

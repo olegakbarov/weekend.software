@@ -88,6 +88,36 @@ pnpm tauri:build
 
 Outputs a `.dmg` / `.app` bundle on macOS.
 
+### Release to GitHub
+
+This repo has an automated release workflow at
+`.github/workflows/release.yml`. It runs when you push a tag matching `v*`
+and builds macOS artifacts for both `aarch64-apple-darwin` and
+`x86_64-apple-darwin`.
+
+Use this flow:
+
+```bash
+# 1) Ensure main is up to date
+git checkout main
+git pull --rebase
+
+# 2) Commit your release changes (for example, version bumps)
+git add -A
+git commit -m "release: v0.2.0"
+git push origin main
+
+# 3) Create and push a release tag (must start with `v`)
+git tag -a v0.2.0 -m "Weekend Software v0.2.0"
+git push origin v0.2.0
+```
+
+After the tag push:
+
+1. Open GitHub Actions and wait for `Release (macOS)` to complete.
+2. Open the created draft release.
+3. Review the generated assets and click Publish.
+
 ### Creating Your First Project
 
 1. Open Weekend

@@ -852,7 +852,7 @@ export function BrowserPane({
         : workspaceMode === "editor"
           ? 2
           : null;
-  const TAB_WIDTH = 92;
+  const TAB_WIDTH = 102;
   const tabPlateTranslateX =
     workspaceModeIndex === null ? null : workspaceModeIndex * TAB_WIDTH;
 
@@ -860,11 +860,11 @@ export function BrowserPane({
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="relative flex h-12 shrink-0 items-center gap-2 border-border border-b px-3">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <div className="relative inline-flex h-8 items-stretch rounded-lg bg-muted/35 p-1">
+          <div className="neumorph-plate relative inline-flex items-stretch rounded-lg p-[3px]">
             {tabPlateTranslateX !== null ? (
               <span
                 aria-hidden
-                className="pointer-events-none absolute inset-y-1 left-1 w-[92px] rounded-md border border-border/80 bg-background transition-transform duration-200 ease-out"
+                className="pointer-events-none absolute inset-y-[3px] left-[3px] w-[102px] rounded-md border border-border/80 bg-background transition-transform duration-200 ease-out"
                 style={{ transform: `translateX(${tabPlateTranslateX}px)` }}
               />
             ) : null}
@@ -872,8 +872,8 @@ export function BrowserPane({
               aria-pressed={workspaceMode === "browser"}
               className={
                 workspaceMode === "browser"
-                  ? "relative z-10 inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 font-medium text-foreground transition-colors"
-                  : "relative z-10 inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 text-foreground/70 transition-colors hover:text-foreground/90"
+                  ? "relative z-10 mx-[5px] my-[6px] inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 font-medium text-foreground transition-colors"
+                  : "relative z-10 mx-[5px] my-[6px] inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 text-foreground/70 transition-colors hover:text-foreground/90"
               }
               onClick={() => onWorkspaceModeChange("browser")}
               title="Browser mode"
@@ -888,8 +888,8 @@ export function BrowserPane({
               aria-pressed={workspaceMode === "agent"}
               className={
                 workspaceMode === "agent"
-                  ? "relative z-10 inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 font-medium text-foreground transition-colors"
-                  : "relative z-10 inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 text-foreground/70 transition-colors hover:text-foreground/90"
+                  ? "relative z-10 mx-[5px] my-[6px] inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 font-medium text-foreground transition-colors"
+                  : "relative z-10 mx-[5px] my-[6px] inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 text-foreground/70 transition-colors hover:text-foreground/90"
               }
               onClick={() => onWorkspaceModeChange("agent")}
               title="Agent mode"
@@ -904,8 +904,8 @@ export function BrowserPane({
               aria-pressed={workspaceMode === "editor"}
               className={
                 workspaceMode === "editor"
-                  ? "relative z-10 inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 font-medium text-foreground transition-colors"
-                  : "relative z-10 inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 text-foreground/70 transition-colors hover:text-foreground/90"
+                  ? "relative z-10 mx-[5px] my-[6px] inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 font-medium text-foreground transition-colors"
+                  : "relative z-10 mx-[5px] my-[6px] inline-flex h-full w-[92px] items-center justify-center gap-1.5 rounded-md px-2.5 text-foreground/70 transition-colors hover:text-foreground/90"
               }
               onClick={() => onWorkspaceModeChange("editor")}
               title="Editor mode"

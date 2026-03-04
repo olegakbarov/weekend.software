@@ -6,6 +6,7 @@
   "permissions": [
     "allow-app-commands",
     "core:default",
+    "core:window:allow-is-fullscreen",
     "core:window:allow-set-theme",
     "core:window:allow-set-background-color",
     "core:window:allow-start-dragging",

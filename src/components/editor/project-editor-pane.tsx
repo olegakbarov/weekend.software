@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ProjectFileTree } from "@/components/editor/project-file-tree";
+import {
+  ProjectFileTree,
+  type DroppedTreeFile,
+} from "@/components/editor/project-file-tree";
 import { CodeEditor, type VimMode } from "@/components/editor/code-editor";
 import {
   ResizableHandle,
@@ -17,6 +20,72 @@ const VIM_MODE_LABELS: Record<string, string> = {
   visual: "VISUAL",
   replace: "REPLACE",
 };
+
+const IMAGE_MIME_BY_EXTENSION: Record<string, string> = {
+  avif: "image/avif",
+  bmp: "image/bmp",
+  gif: "image/gif",
+  ico: "image/x-icon",
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  svg: "image/svg+xml",
+  tif: "image/tiff",
+  tiff: "image/tiff",
+  webp: "image/webp",
+};
+
+type ProjectBinaryPayload = {
+  dataBase64: string;
+  sizeBytes: number;
+};
+
+type ImagePreviewState = {
+  path: string;
+  mimeType: string;
+  dataUrl: string;
+  sizeBytes: number;
+};
+
+type DroppedExternalFile = File & {
+  path?: string;
+};
+
+type ProjectFileImportPayload = {
+  fileName: string;
+  sourcePath?: string;
+  dataBase64?: string;
+};
+
+function toImageMimeType(path: string): string | null {
+  const ext = path.split(".").pop()?.toLowerCase() ?? "";
+  return IMAGE_MIME_BY_EXTENSION[ext] ?? null;
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== "string") {
+        reject(new Error(`failed to read "${file.name}"`));
+        return;
+      }
+      resolve(result);
+    };
+    reader.onerror = () => {
+      reject(reader.error ?? new Error(`failed to read "${file.name}"`));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function extractDroppedFilePath(file: File): string | null {
+  const candidate = (file as DroppedExternalFile).path;
+  if (typeof candidate !== "string") return null;
+  const trimmed = candidate.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
 
 function vimModeColor(mode: VimMode): string {
   switch (mode) {
@@ -53,6 +122,7 @@ export function ProjectEditorPane({
   projectTree,
   requestedFilePath,
   onSelectedFilePathChange,
+  onProjectTreeMutated,
   isVimModeEnabled,
   onVimModeEnabledChange,
 }: {
@@ -60,11 +130,13 @@ export function ProjectEditorPane({
   projectTree: ProjectTreeNode[];
   requestedFilePath: string | null;
   onSelectedFilePathChange: (path: string | null) => void;
+  onProjectTreeMutated?: (project: string) => Promise<void>;
   isVimModeEnabled: boolean;
   onVimModeEnabledChange?: (enabled: boolean) => void;
 }) {
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
   const [fileContent, setFileContent] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<ImagePreviewState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -126,15 +198,30 @@ export function ProjectEditorPane({
       onSelectedFilePathChange(path);
       currentPathRef.current = path;
       setFileContent(null);
+      setImagePreview(null);
       setLoadError(null);
       setIsLoading(true);
 
       try {
-        const content = await invoke<string>("read_project_file", {
-          project,
-          path,
-        });
-        setFileContent(content);
+        const imageMimeType = toImageMimeType(path);
+        if (imageMimeType) {
+          const payload = await invoke<ProjectBinaryPayload>(
+            "read_project_file_binary",
+            { project, path }
+          );
+          setImagePreview({
+            path,
+            mimeType: imageMimeType,
+            dataUrl: `data:${imageMimeType};base64,${payload.dataBase64}`,
+            sizeBytes: payload.sizeBytes,
+          });
+        } else {
+          const content = await invoke<string>("read_project_file", {
+            project,
+            path,
+          });
+          setFileContent(content);
+        }
       } catch (error) {
         setLoadError(
           error instanceof Error ? error.message : String(error)
@@ -196,6 +283,16 @@ export function ProjectEditorPane({
           onSelectedFilePathChange(nextSelectedPath);
           currentPathRef.current = nextSelectedPath;
         }
+        setImagePreview((prev) => {
+          if (!prev) return prev;
+          const remappedPath = remapPathAfterRename(prev.path, path, renamedPath);
+          return remappedPath ? { ...prev, path: remappedPath } : prev;
+        });
+        if (onProjectTreeMutated) {
+          await onProjectTreeMutated(project).catch((error) => {
+            console.error("[ProjectEditor] refresh tree after rename failed", error);
+          });
+        }
       } catch (error) {
         console.error("[ProjectEditor] rename path failed", error);
         throw error;
@@ -203,7 +300,13 @@ export function ProjectEditorPane({
         setIsMutatingTree(false);
       }
     },
-    [flushSave, onSelectedFilePathChange, project, selectedFilePath]
+    [
+      flushSave,
+      onProjectTreeMutated,
+      onSelectedFilePathChange,
+      project,
+      selectedFilePath,
+    ]
   );
 
   const handleDeletePath = useCallback(
@@ -223,7 +326,13 @@ export function ProjectEditorPane({
           currentPathRef.current = null;
           pendingContentRef.current = null;
           setFileContent(null);
+          setImagePreview(null);
           setLoadError(null);
+        }
+        if (onProjectTreeMutated) {
+          await onProjectTreeMutated(project).catch((error) => {
+            console.error("[ProjectEditor] refresh tree after delete failed", error);
+          });
         }
       } catch (error) {
         console.error("[ProjectEditor] delete path failed", error);
@@ -232,7 +341,13 @@ export function ProjectEditorPane({
         setIsMutatingTree(false);
       }
     },
-    [flushSave, onSelectedFilePathChange, project, selectedFilePath]
+    [
+      flushSave,
+      onProjectTreeMutated,
+      onSelectedFilePathChange,
+      project,
+      selectedFilePath,
+    ]
   );
 
   const handleVimModeChange = useCallback(
@@ -241,6 +356,60 @@ export function ProjectEditorPane({
       setVimSubMode(subMode);
     },
     []
+  );
+
+  const handleDropFiles = useCallback(
+    async (targetDirPath: string | null, files: DroppedTreeFile[]) => {
+      const selectedFiles = files.filter(
+        (item) => item.file.name.trim().length > 0
+      );
+      if (selectedFiles.length === 0) return;
+
+      setIsMutatingTree(true);
+      try {
+        const payload: ProjectFileImportPayload[] = await Promise.all(
+          selectedFiles.map(async (item) => {
+            const sourcePath = item.sourcePath ?? extractDroppedFilePath(item.file);
+            if (sourcePath) {
+              return {
+                fileName: item.file.name,
+                sourcePath,
+              };
+            }
+            return {
+              fileName: item.file.name,
+              dataBase64: await readFileAsDataUrl(item.file),
+            };
+          })
+        );
+
+        const importedPaths = await invoke<string[]>(
+          "import_external_files_to_project",
+          {
+            project,
+            targetDir: targetDirPath,
+            files: payload,
+          }
+        );
+
+        if (onProjectTreeMutated) {
+          await onProjectTreeMutated(project).catch((error) => {
+            console.error("[ProjectEditor] refresh tree after drop failed", error);
+          });
+        }
+
+        const firstImportedPath = importedPaths[0];
+        if (firstImportedPath) {
+          await handleSelectFile(firstImportedPath);
+        }
+      } catch (error) {
+        console.error("[ProjectEditor] drop import failed", error);
+        throw error;
+      } finally {
+        setIsMutatingTree(false);
+      }
+    },
+    [handleSelectFile, onProjectTreeMutated, project]
   );
 
   useEffect(() => {
@@ -255,6 +424,13 @@ export function ProjectEditorPane({
       : vimMode === "visual" && vimSubMode === "blockwise"
         ? "V-BLOCK"
         : (VIM_MODE_LABELS[vimMode] ?? vimMode.toUpperCase());
+  const isImageSelected =
+    imagePreview !== null &&
+    selectedFilePath !== null &&
+    imagePreview.path === selectedFilePath;
+  const previewSizeLabel = isImageSelected
+    ? new Intl.NumberFormat("en-US").format(imagePreview.sizeBytes)
+    : null;
 
   return (
     <div className="flex h-full w-full min-h-0 min-w-0">
@@ -276,6 +452,25 @@ export function ProjectEditorPane({
                 <p className="font-code text-xs text-foreground">
                   {loadError}
                 </p>
+              </div>
+            ) : isImageSelected && imagePreview ? (
+              <div className="flex h-full min-h-0 flex-col">
+                <div className="border-b border-border/70 px-3 py-2">
+                  <p
+                    className="truncate font-code text-xs text-muted-foreground"
+                    title={imagePreview.path}
+                  >
+                    {imagePreview.path}
+                    {previewSizeLabel ? ` • ${previewSizeLabel} bytes` : ""}
+                  </p>
+                </div>
+                <div className="flex min-h-0 flex-1 items-center justify-center p-4">
+                  <img
+                    alt={selectedFilePath}
+                    className="max-h-full max-w-full rounded border border-border/60 bg-background object-contain shadow-sm"
+                    src={imagePreview.dataUrl}
+                  />
+                </div>
               </div>
             ) : fileContent !== null && selectedFilePath ? (
               <CodeEditor
@@ -349,19 +544,20 @@ export function ProjectEditorPane({
               onSelectFile={handleSelectFile}
               onRenamePath={handleRenamePath}
               onDeletePath={handleDeletePath}
+              onDropFiles={handleDropFiles}
               isMutating={isMutatingTree}
             />
           </div>
           <div className="space-y-1 border-border border-t p-2">
             <Button
               className="w-full justify-start"
-              disabled={!selectedFilePath || isSaving}
+              disabled={!selectedFilePath || isSaving || isImageSelected}
               onClick={handleSave}
               size="sm"
               variant="ghost"
             >
               <Save className="mr-1.5 size-3" />
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? "Saving..." : isImageSelected ? "Image Preview" : "Save"}
             </Button>
           </div>
         </ResizablePanel>

@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { useTheme } from "@/components/theme/use-theme";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   type RuntimeDebugSnapshot,
   type SharedAssetSnapshot,
@@ -74,6 +73,7 @@ export function SettingsPage({
   const { mode, setMode } = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleUpload = () => {
     if (selectedFiles.length === 0 || isSharedAssetsUploading) return;
@@ -90,19 +90,63 @@ export function SettingsPage({
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden p-6">
       <h1 className="font-code text-sm text-foreground">Settings</h1>
-      <Tabs className="mt-3 min-h-0 flex-1" defaultValue="shared-assets">
-        <TabsList className="font-code text-xs">
-          <TabsTrigger value="shared-assets">Shared Assets</TabsTrigger>
-          <TabsTrigger value="debug">Debug</TabsTrigger>
-        </TabsList>
 
-        <TabsContent className="min-h-0 overflow-auto" value="shared-assets">
-          <div className="space-y-4 rounded border border-border/70 bg-background/60 p-4">
+      <div className="mt-4 min-h-0 flex-1 space-y-6 overflow-auto">
+        {/* ── Basic ── */}
+        <div className="space-y-3">
+          <h2 className="font-code text-xs uppercase tracking-wider text-muted-foreground">
+            Basic
+          </h2>
+
+          {/* Theme */}
+          <div className="flex items-center justify-between rounded border border-border/70 bg-background/60 px-3 py-2.5">
+            <div>
+              <p className="font-code text-xs text-foreground">Theme</p>
+              <p className="font-code text-[11px] text-muted-foreground">
+                Switch between light, dark, or system theme.
+              </p>
+            </div>
+            <div className="flex gap-1">
+              {THEME_MODES.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={`rounded px-2.5 py-1 font-code text-xs transition-colors ${
+                    mode === m
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Vim Mode */}
+          <div className="flex items-center justify-between rounded border border-border/70 bg-background/60 px-3 py-2.5">
+            <div>
+              <p className="font-code text-xs text-foreground">Vim Mode</p>
+              <p className="font-code text-[11px] text-muted-foreground">
+                Enable Vim keybindings in all project editors.
+              </p>
+            </div>
+            <Switch
+              checked={isVimModeEnabled}
+              onChange={(event) =>
+                onVimModeEnabledChange(event.currentTarget.checked)
+              }
+              size="md"
+            />
+          </div>
+
+          {/* Shared Files */}
+          <div className="space-y-3 rounded border border-border/70 bg-background/60 p-3">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="font-code text-xs text-foreground">Global Shared Assets</p>
+                <p className="font-code text-xs text-foreground">Shared Files</p>
                 <p className="font-code text-[11px] text-muted-foreground">
-                  Uploaded files are copied into every project at `./shared-assets/`.
+                  Files copied into every project at `./shared-assets/`.
                 </p>
               </div>
               <Button
@@ -177,69 +221,56 @@ export function SettingsPage({
               )}
             </div>
           </div>
-        </TabsContent>
+        </div>
 
-        <TabsContent className="min-h-0 overflow-auto" value="debug">
-          <div className="flex items-center justify-between">
-            <h2 className="font-code text-sm text-foreground">Debug</h2>
-            <Button
-              className="h-7 px-2 font-code text-[10px]"
-              onClick={onRefreshRuntimeSnapshot}
-              size="sm"
-              variant="ghost"
+        {/* ── Advanced ── */}
+        <div className="space-y-3">
+          <button
+            onClick={() => setShowAdvanced((prev) => !prev)}
+            className="flex w-full items-center gap-1.5 font-code text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <span
+              className="inline-block transition-transform"
+              style={{ transform: showAdvanced ? "rotate(90deg)" : "rotate(0deg)" }}
             >
-              {isRefreshing ? "Refreshing..." : "Refresh"}
-            </Button>
-          </div>
+              ▶
+            </span>
+            Advanced
+          </button>
 
-          <div className="mt-3 flex items-center gap-2">
-            <span className="font-code text-xs text-muted-foreground">Theme</span>
-            <div className="flex gap-1">
-              {THEME_MODES.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMode(m)}
-                  className={`rounded px-2.5 py-1 font-code text-xs transition-colors ${
-                    mode === m
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
+          {showAdvanced && (
+            <div className="space-y-3">
+              {/* Runtime Debug */}
+              <div className="space-y-2 rounded border border-border/70 bg-background/60 p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-code text-xs text-foreground">Runtime Debug</p>
+                    <p className="font-code text-[11px] text-muted-foreground">
+                      Backend runtime snapshot (terminal sessions).
+                    </p>
+                  </div>
+                  <Button
+                    className="h-7 px-2 font-code text-[10px]"
+                    onClick={onRefreshRuntimeSnapshot}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    {isRefreshing ? "Refreshing..." : "Refresh"}
+                  </Button>
+                </div>
+
+                {error ? (
+                  <p className="font-code text-xs text-destructive">{error}</p>
+                ) : null}
+
+                <pre className="min-h-0 overflow-auto rounded border border-border/70 bg-[var(--feature-input-body-bg)] p-3 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
+                  {snapshot ? formatRuntimeDebugDump(snapshot) : "Loading runtime state..."}
+                </pre>
+              </div>
             </div>
-          </div>
-
-          <div className="mt-3 flex items-start justify-between rounded border border-border/70 bg-background/60 px-3 py-2">
-            <div>
-              <p className="font-code text-xs text-foreground">Editor / Vim Mode</p>
-              <p className="font-code text-[11px] text-muted-foreground">
-                Enable Vim keybindings (Esc, i, h, j, k, l) in all project editors.
-              </p>
-            </div>
-            <Switch
-              checked={isVimModeEnabled}
-              onChange={(event) =>
-                onVimModeEnabledChange(event.currentTarget.checked)
-              }
-              size="md"
-            />
-          </div>
-
-          <p className="mt-2 font-code text-xs text-muted-foreground">
-            Backend runtime snapshot (terminal sessions only).
-          </p>
-
-          {error ? (
-            <p className="mt-3 font-code text-xs text-destructive">{error}</p>
-          ) : null}
-
-          <pre className="mt-3 min-h-0 flex-1 overflow-auto rounded border border-border/70 bg-[var(--feature-input-body-bg)] p-3 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
-            {snapshot ? formatRuntimeDebugDump(snapshot) : "Loading runtime state..."}
-          </pre>
-        </TabsContent>
-      </Tabs>
+          )}
+        </div>
+      </div>
     </section>
   );
 }

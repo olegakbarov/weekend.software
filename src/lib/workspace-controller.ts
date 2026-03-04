@@ -46,6 +46,12 @@ export type SharedAssetSnapshot = {
   modifiedAtUnixMs: number | null;
 };
 
+export type CreateProjectInput = {
+  name?: string;
+  defaultAgentCommand?: string;
+  githubRepoUrl?: string;
+};
+
 type SharedAssetUploadInput = {
   fileName: string;
   dataBase64: string;
@@ -828,8 +834,16 @@ export function createWorkspaceController() {
     return refreshPromise;
   };
 
-  const createProject = async (name?: string): Promise<string> => {
-    const createdPath = await invoke<string>("create_new_project", { name });
+  const createProject = async (input: CreateProjectInput = {}): Promise<string> => {
+    const normalizedName = input.name?.trim();
+    const normalizedAgentCommand = input.defaultAgentCommand?.trim();
+    const normalizedGithubRepoUrl = input.githubRepoUrl?.trim();
+
+    const createdPath = await invoke<string>("create_new_project", {
+      name: normalizedName || undefined,
+      defaultAgentCommand: normalizedAgentCommand || undefined,
+      githubRepoUrl: normalizedGithubRepoUrl || undefined,
+    });
     const createdName = extractProjectName(createdPath);
 
     await loadProjects(createdName ?? undefined);
