@@ -51,11 +51,12 @@ jobs:
         run: bash scripts/copy-sidecar.sh release ${{ matrix.target }}
 
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v0.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SKIP_SIDECAR: "1"
         with:
+          tauriScript: pnpm tauri
           tagName: ${{ github.ref_name }}
           releaseName: "Weekend Software ${{ github.ref_name }}"
           releaseBody: "See the assets below to download and install this version."
