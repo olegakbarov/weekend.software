@@ -5,7 +5,7 @@ use std::io::{self, BufRead, Write};
 
 const PROTOCOL_VERSION: &str = "2024-11-05";
 const SERVER_NAME: &str = "weekend-browser";
-const SERVER_VERSION: &str = "0.1.0";
+const SERVER_VERSION: &str = "0.2.0";
 
 pub fn run_stdio_server() -> Result<(), String> {
     let stdin = io::stdin();
