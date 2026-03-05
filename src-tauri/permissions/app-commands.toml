@@ -31,6 +31,7 @@ commands.allow = [
   "terminal_set_custom_name",
   "terminal_remove_session",
   "browser_history_navigate",
+  "browser_probe_runtime_url",
   "browser_start_element_grab",
   "browser_stop_element_grab",
   "browser_eval_result",
@@ -38,7 +39,9 @@ commands.allow = [
   "ui_log_batch",
   "logs_read_weekend",
   "logs_read_project",
-  "shell_name"
+  "shell_name",
+  "find_available_port",
+  "probe_runtime_url"
 ]
 
 [[permission]]
@@ -72,6 +75,7 @@ commands.deny = [
   "terminal_set_custom_name",
   "terminal_remove_session",
   "browser_history_navigate",
+  "browser_probe_runtime_url",
   "browser_start_element_grab",
   "browser_stop_element_grab",
   "browser_eval_result",
@@ -79,5 +83,7 @@ commands.deny = [
   "ui_log_batch",
   "logs_read_weekend",
   "logs_read_project",
-  "shell_name"
+  "shell_name",
+  "find_available_port",
+  "probe_runtime_url"
 ]

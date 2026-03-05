@@ -26,9 +26,9 @@ Weekend combines four core surfaces into a single desktop application:
 └──────────────────────────────────────────────────────┘
 ```
 
-**Projects** live in `~/.weekend/projects/`. Each project has a `weekend.config.json` that defines startup commands, runtime ports, and process roles.
+**Projects** live in `~/.weekend/projects/`. Each project has a `weekend.config.json` that defines startup commands, a local runtime address, and process roles.
 
-**The Browser pane** renders your running app in an embedded iframe. Hit "Play" and Weekend spawns your dev server, allocates a port, and loads the preview automatically.
+**The Browser pane** renders your running app in an embedded iframe. Hit "Play" and Weekend runs your startup commands and loads the preview from `runtime.url` (generated as a local address).
 
 **The Editor** is CodeMirror 6 with syntax highlighting for JS, TS, HTML, CSS, JSON, and Markdown. Optional Vim mode. Auto-saves with a 1-second debounce.
 
@@ -124,13 +124,13 @@ After the tag push:
 2. Click "New Project" in the sidebar
 3. The project folder is created at `~/.weekend/projects/<name>/`
 4. Add your code, or initialize a framework (`npm create vite@latest .`)
-5. Edit `weekend.config.json` to set your startup command:
+5. Edit `weekend.config.json` to set your startup command (runtime URL is auto-generated from the project name):
 
 ```json
 {
   "runtime": {
-    "host": "127.0.0.1",
-    "port": 8457
+    "mode": "portless",
+    "url": "http://my-app.localhost:1355"
   },
   "startup": {
     "commands": ["pnpm dev"]
@@ -140,6 +140,10 @@ After the tag push:
 
 6. Hit Play — your dev server starts and the browser pane loads your app
 
+Weekend uses `runtime.mode: "portless"` with `runtime.url` as the single runtime endpoint mode.
+`runtime.url` must be a local address (`localhost`, `*.localhost`, or loopback IP). Missing/invalid values are repaired to a generated local URL during config backfill.
+Weekend can run `dev-server` process commands through its bundled `portless` runtime during Play (no global `npm install -g portless` required).
+
 ## Project Configuration
 
 Each project has a `weekend.config.json` at its root:
@@ -147,8 +151,8 @@ Each project has a `weekend.config.json` at its root:
 ```json
 {
   "runtime": {
-    "host": "127.0.0.1",
-    "port": 8457
+    "mode": "portless",
+    "url": "http://my-app.localhost:1355"
   },
   "startup": {
     "commands": ["pnpm dev"]
@@ -165,8 +169,8 @@ Each project has a `weekend.config.json` at its root:
 
 | Field | Description |
 |-------|-------------|
-| `runtime.host` | Address your dev server binds to |
-| `runtime.port` | Port for the dev server (auto-allocated from 8457-8999 if omitted) |
+| `runtime.mode` | Runtime endpoint mode. Weekend uses `portless`. |
+| `runtime.url` | Local runtime URL used by the Browser pane (for example `http://my-app.localhost:1355`). |
 | `startup.commands` | Commands to execute when you hit Play |
 | `processes` | Named process definitions with roles (`dev-server`, `service`, `agent`) |
 | `archived` | Hide the project from the sidebar |
@@ -206,7 +210,7 @@ This closes the loop that's missing from pure-terminal AI coding — the agent c
 
 ### Rapid Prototyping
 
-Spin up a new project, describe what you want to an agent, and watch it build a working prototype. Weekend handles all the environment setup — ports, dev servers, file system — so the agent can focus on building.
+Spin up a new project, describe what you want to an agent, and watch it build a working prototype. Weekend handles runtime endpoint setup, dev servers, and file system wiring so the agent can focus on building.
 
 ### UI Testing and QA
 
@@ -214,7 +218,7 @@ Use agents to systematically test your web app. The MCP tools let agents navigat
 
 ### Multi-Project Management
 
-Weekend manages multiple projects in a single workspace. Each project gets isolated terminal sessions, its own port, and independent start/stop controls. Switch between projects instantly from the sidebar.
+Weekend manages multiple projects in a single workspace. Each project gets isolated terminal sessions, its own runtime endpoint URL, and independent start/stop controls. Switch between projects instantly from the sidebar.
 
 ### AI Agent Playground
 
@@ -236,7 +240,7 @@ Configure startup commands to orchestrate multi-step build processes. A project 
 
 - **Real browser environment** for AI agents — not simulated, not headless. Agents see actual rendered output.
 - **MCP integration** via a Rust sidecar binary. Fast, type-safe bridge between agents and the browser.
-- **Multi-project workspace** with per-project configuration, ports, and terminal sessions.
+- **Multi-project workspace** with per-project configuration, runtime endpoints, and terminal sessions.
 - **Code editor** with CodeMirror 6, language support, Vim mode, and auto-save.
 - **PTY terminal** with process detection and session management. Knows what's running and in what state.
 - **Shared assets** synced across all projects from a central store.

@@ -1,6 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { Input } from "@/components/ui/input";
-import type { CreateProjectInput } from "@/lib/workspace-controller";
+import type { CreateProjectInput } from "@/lib/controller";
 
 function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);

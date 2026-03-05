@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.weekend.app",
   "build": {
-    "beforeDevCommand": "bash scripts/copy-sidecar.sh debug && pnpm dev",
+    "beforeDevCommand": "bash scripts/copy-sidecar.sh debug && bash scripts/copy-portless-runtime.sh && pnpm dev",
     "devUrl": "http://127.0.0.1:1430",
-    "beforeBuildCommand": "bash scripts/copy-sidecar.sh release && pnpm build",
+    "beforeBuildCommand": "bash scripts/copy-sidecar.sh release && bash scripts/copy-portless-runtime.sh && pnpm build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -46,6 +46,7 @@
     "macOS": {
       "minimumSystemVersion": "10.15"
     },
+    "resources": ["resources/portless/**/*"],
     "externalBin": ["binaries/weekend-browser-mcp"]
   }
 }

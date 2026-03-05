@@ -21,7 +21,8 @@ use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
-use tauri::{AppHandle, Emitter, Manager, Runtime, State};
+use tauri::{AppHandle, Emitter, Manager, Runtime, State, Url};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 struct TerminalSession {
     master: Mutex<Box<dyn portable_pty::MasterPty + Send>>,
@@ -114,6 +115,14 @@ struct BrowserWebviewPageLoadPayload {
     phase: String,
 }
 
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct BrowserRuntimeProbeResult {
+    ready: bool,
+    status_code: Option<u16>,
+    error: Option<String>,
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct UiLogEntry {
@@ -161,8 +170,23 @@ struct ProjectFileImportInput {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct ProjectRuntimeConfig {
-    host: String,
-    port: Option<u16>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    mode: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    url: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ProjectRuntimeMode {
+    Portless,
+}
+
+impl ProjectRuntimeMode {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Portless => "portless",
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -206,14 +230,12 @@ struct ProjectConfigReadSnapshot {
     config_path: String,
     config_exists: bool,
     config_valid: bool,
-    runtime_host: Option<String>,
-    runtime_port: Option<u16>,
+    runtime_mode: Option<String>,
+    runtime_url: Option<String>,
     startup_commands: Vec<String>,
     processes: HashMap<String, ProcessEntrySnapshot>,
     source: String,
     error: Option<String>,
-    port_range_start: u16,
-    port_range_end: u16,
     archived: bool,
 }
 
@@ -243,9 +265,8 @@ fn legacy_aios_root() -> Result<PathBuf, String> {
     Ok(PathBuf::from(home).join(".aios"))
 }
 
-const PORT_RANGE_START: u16 = 8457;
-const PORT_RANGE_END: u16 = 8999;
-const DEFAULT_RUNTIME_HOST: &str = "127.0.0.1";
+const DEFAULT_PORTLESS_RUNTIME_DOMAIN: &str = "localhost";
+const DEFAULT_PORTLESS_PROXY_PORT: u16 = 1355;
 const DEFAULT_STARTUP_COMMAND: &str = "pnpm dev";
 const DEFAULT_AGENT_COMMAND: &str = "claude";
 const PROJECT_CONFIG_FILE_NAME: &str = "weekend.config.json";
@@ -261,10 +282,43 @@ const LOG_MESSAGE_MAX_CHARS: usize = 8000;
 const LOG_TAIL_DEFAULT_MAX_BYTES: usize = 128 * 1024;
 const MAX_PREVIEW_FILE_BYTES: u64 = 20 * 1024 * 1024;
 
+fn sanitize_project_name_for_runtime_url(project_name: &str) -> String {
+    let mut out = String::new();
+    let mut last_was_sep = false;
+
+    for ch in project_name.trim().chars() {
+        if ch.is_ascii_alphanumeric() {
+            out.push(ch.to_ascii_lowercase());
+            last_was_sep = false;
+            continue;
+        }
+
+        if !last_was_sep {
+            out.push('-');
+            last_was_sep = true;
+        }
+    }
+
+    let trimmed = out.trim_matches('-');
+    if trimmed.is_empty() {
+        "app".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+fn default_runtime_url_for_project_name(project_name: &str) -> String {
+    let slug = sanitize_project_name_for_runtime_url(project_name);
+    format!("http://{slug}.{DEFAULT_PORTLESS_RUNTIME_DOMAIN}:{DEFAULT_PORTLESS_PROXY_PORT}")
+}
+
 const PROJECT_AGENT_RUNTIME_GUIDANCE: &str = r#"# Runtime Configuration
 
 Read `./weekend.config.json` before launching any runtime command.
-Use `runtime.host` and `runtime.port` from that file as the runtime endpoint.
+Resolve the runtime endpoint from that file:
+- Always use `runtime.url` from `runtime.mode: "portless"`.
+Weekend may provide a bundled `portless` runtime during Play for `dev-server` processes.
+Do not assume every process is automatically wrapped.
 Use backend commands (or browser controls) to update `weekend.config.json`.
 
 # Shared Assets
@@ -514,8 +568,6 @@ fn sync_shared_assets_into_all_projects(
 
     Ok(synced_projects)
 }
-static PROJECT_PORT_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-
 fn now_unix_ms() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -525,10 +577,6 @@ fn now_unix_ms() -> u64 {
 
 fn log_file_lock() -> &'static Mutex<()> {
     LOG_FILE_LOCK.get_or_init(|| Mutex::new(()))
-}
-
-fn project_port_lock() -> &'static Mutex<()> {
-    PROJECT_PORT_LOCK.get_or_init(|| Mutex::new(()))
 }
 
 fn logs_dir() -> Result<PathBuf, String> {
@@ -732,24 +780,27 @@ fn read_project_config_from_path(config_path: &Path) -> ProjectConfigLookup {
         }
     };
 
-    let Some(host) = normalize_runtime_host(&parsed.runtime.host) else {
-        return ProjectConfigLookup::Invalid("runtime.host is required".to_string());
+    let runtime_mode = match parse_runtime_mode(parsed.runtime.mode.as_deref()) {
+        Ok(mode) => mode,
+        Err(error) => return ProjectConfigLookup::Invalid(error),
     };
-    if let Some(port) = parsed.runtime.port {
-        if !is_runtime_port_in_range(port) {
-            return ProjectConfigLookup::Invalid(format!(
-                "runtime.port must be in range {PORT_RANGE_START}-{PORT_RANGE_END}"
-            ));
+    let runtime_url = match normalize_runtime_url(parsed.runtime.url.as_deref()) {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return ProjectConfigLookup::Invalid(
+                "runtime.url is required for portless mode".to_string(),
+            );
         }
-    }
+        Err(error) => return ProjectConfigLookup::Invalid(error),
+    };
 
     let startup_commands = normalize_startup_commands(&parsed.startup.commands);
     let processes = resolve_processes(parsed.processes.as_ref(), &startup_commands);
 
     ProjectConfigLookup::Valid(ProjectConfigResolved {
         runtime: ProjectRuntimeConfig {
-            host,
-            port: parsed.runtime.port,
+            mode: Some(runtime_mode.as_str().to_string()),
+            url: Some(runtime_url),
         },
         startup_commands,
         processes,
@@ -894,13 +945,132 @@ fn maybe_migrate_legacy_project_config(project_dir: &Path) {
     }
 }
 
-fn normalize_runtime_host(value: &str) -> Option<String> {
-    let trimmed = value.trim();
-    if trimmed.is_empty() {
-        None
-    } else {
-        Some(trimmed.to_string())
+fn parse_runtime_mode(value: Option<&str>) -> Result<ProjectRuntimeMode, String> {
+    let Some(raw) = value else {
+        return Ok(ProjectRuntimeMode::Portless);
+    };
+
+    let trimmed = raw.trim().to_ascii_lowercase();
+    match trimmed.as_str() {
+        "portless" => Ok(ProjectRuntimeMode::Portless),
+        "direct" => Err("runtime.mode 'direct' is no longer supported; use 'portless'".to_string()),
+        _ => Err(format!(
+            "runtime.mode must be 'portless' (received '{}')",
+            raw.trim()
+        )),
     }
+}
+
+fn normalize_runtime_url(value: Option<&str>) -> Result<Option<String>, String> {
+    let Some(raw) = value else {
+        return Ok(None);
+    };
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Ok(None);
+    }
+
+    let candidate = if trimmed.contains("://") {
+        trimmed.to_string()
+    } else {
+        format!("http://{trimmed}")
+    };
+    let mut parsed = Url::parse(&candidate)
+        .map_err(|error| format!("runtime.url must be a valid URL: {error}"))?;
+    match parsed.scheme() {
+        "http" | "https" => {}
+        scheme => {
+            return Err(format!(
+                "runtime.url must use http or https (received '{scheme}')"
+            ));
+        }
+    }
+    if parsed.host_str().is_none() {
+        return Err("runtime.url must include a host".to_string());
+    }
+    let host = parsed.host_str().unwrap_or_default().to_ascii_lowercase();
+    let is_local_address = host == "localhost"
+        || host.ends_with(".localhost")
+        || host == "127.0.0.1"
+        || host == "::1"
+        || host == "0.0.0.0";
+    if !is_local_address {
+        return Err(
+            "runtime.url must target a local address (localhost, *.localhost, or loopback IP)"
+                .to_string(),
+        );
+    }
+
+    let is_portless_local_host = host == "localhost" || host.ends_with(".localhost");
+    if is_portless_local_host && parsed.port().is_none() {
+        parsed
+            .set_port(Some(DEFAULT_PORTLESS_PROXY_PORT))
+            .map_err(|_| "runtime.url has an invalid port".to_string())?;
+    }
+
+    Ok(Some(parsed.to_string()))
+}
+
+fn browser_runtime_status_is_ready(status_code: u16) -> bool {
+    (200..400).contains(&status_code) || status_code == 401 || status_code == 403
+}
+
+fn probe_browser_runtime_url(url: &str) -> Result<BrowserRuntimeProbeResult, String> {
+    let normalized_url =
+        normalize_runtime_url(Some(url))?.ok_or_else(|| "runtime url is required".to_string())?;
+
+    let output = std::process::Command::new("/usr/bin/curl")
+        .args([
+            "--insecure",
+            "--location",
+            "--silent",
+            "--show-error",
+            "--output",
+            "/dev/null",
+            "--write-out",
+            "%{http_code}",
+            "--connect-timeout",
+            "1",
+            "--max-time",
+            "2",
+            &normalized_url,
+        ])
+        .output()
+        .map_err(|error| format!("failed probing runtime url: {error}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        let error = if stderr.is_empty() {
+            format!("curl exited with status {}", output.status)
+        } else {
+            stderr
+        };
+        return Ok(BrowserRuntimeProbeResult {
+            ready: false,
+            status_code: None,
+            error: Some(error),
+        });
+    }
+
+    let status_text = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let status_code = status_text.parse::<u16>().ok();
+
+    Ok(BrowserRuntimeProbeResult {
+        ready: status_code
+            .map(browser_runtime_status_is_ready)
+            .unwrap_or(false),
+        status_code,
+        error: None,
+    })
+}
+
+fn recover_runtime_url_from_raw_project_config(project_dir: &Path) -> Option<String> {
+    let config_path = project_config_path(project_dir);
+    let raw = std::fs::read_to_string(&config_path).ok()?;
+    let parsed = serde_json::from_str::<ProjectConfig>(&raw).ok()?;
+    normalize_runtime_url(parsed.runtime.url.as_deref())
+        .ok()
+        .flatten()
 }
 
 fn normalize_startup_commands(commands: &[String]) -> Vec<String> {
@@ -1047,166 +1217,25 @@ fn default_processes_map(agent_command: &str) -> HashMap<String, ProcessEntrySna
     map
 }
 
-fn is_runtime_port_in_range(port: u16) -> bool {
-    (PORT_RANGE_START..=PORT_RANGE_END).contains(&port)
-}
-
 fn read_project_config(project_dir: &Path) -> ProjectConfigLookup {
     maybe_migrate_legacy_project_config(project_dir);
     let config_path = project_config_path(project_dir);
     read_project_config_from_path(&config_path)
 }
 
-fn extract_runtime_port_from_raw_config(project_dir: &Path) -> Option<u16> {
-    let config_path = project_config_path(project_dir);
-    let raw = std::fs::read_to_string(config_path).ok()?;
-    let parsed: serde_json::Value = serde_json::from_str(&raw).ok()?;
-    let port_u64 = parsed.get("runtime")?.get("port")?.as_u64()?;
-    let port = u16::try_from(port_u64).ok()?;
-    if is_runtime_port_in_range(port) {
-        Some(port)
-    } else {
-        None
-    }
-}
-
-fn collect_runtime_port_claims(weekend_root: &Path) -> Result<HashMap<u16, Vec<String>>, String> {
-    let mut claims: HashMap<u16, Vec<String>> = HashMap::new();
-    if !weekend_root.exists() {
-        return Ok(claims);
-    }
-
-    let entries = std::fs::read_dir(weekend_root)
-        .map_err(|error| format!("failed to read ~/.weekend: {error}"))?;
-
-    for entry in entries.flatten() {
-        let Ok(file_type) = entry.file_type() else {
-            continue;
-        };
-        if !file_type.is_dir() {
-            continue;
-        }
-
-        let project_name = match entry.file_name().into_string() {
-            Ok(name) => name,
-            Err(_) => continue,
-        };
-        if is_reserved_root_entry(&project_name) || !is_safe_project_name(&project_name) {
-            continue;
-        }
-
-        let project_dir = entry.path();
-        let claimed_port = match read_project_config(&project_dir) {
-            ProjectConfigLookup::Valid(config) => config.runtime.port,
-            ProjectConfigLookup::Missing => None,
-            ProjectConfigLookup::Invalid(error) => {
-                log_backend(
-                    "WARN",
-                    format!(
-                        "ignoring invalid {PROJECT_CONFIG_FILE_NAME} for project={project_name}: {error}"
-                    ),
-                );
-                extract_runtime_port_from_raw_config(&project_dir)
-            }
-        };
-
-        let Some(port) = claimed_port else {
-            continue;
-        };
-        let owners = claims.entry(port).or_default();
-        if owners.iter().any(|owner| owner == &project_name) {
-            continue;
-        }
-        owners.push(project_name);
-        owners.sort_unstable();
-    }
-
-    Ok(claims)
-}
-
-fn is_localhost_tcp_port_available(port: u16) -> bool {
-    TcpListener::bind(("127.0.0.1", port)).is_ok()
-}
-
-fn validate_runtime_port_available_for_project(
-    weekend_root: &Path,
-    project_name: &str,
-    port: u16,
-) -> Result<(), String> {
-    let claims = collect_runtime_port_claims(weekend_root)?;
-    let Some(owners) = claims.get(&port) else {
-        return Ok(());
-    };
-
-    let mut conflicting_projects: Vec<String> = owners
-        .iter()
-        .filter(|owner| owner.as_str() != project_name)
-        .cloned()
-        .collect();
-    conflicting_projects.sort_unstable();
-    conflicting_projects.dedup();
-
-    if conflicting_projects.is_empty() {
-        return Ok(());
-    }
-
-    let owner = conflicting_projects[0].clone();
-    Err(format!(
-        "runtime.port {port} is already assigned to project '{owner}'"
-    ))
-}
-
-fn stable_project_hash(input: &str) -> u64 {
-    let mut hash: u64 = 1469598103934665603;
-    for byte in input.bytes() {
-        hash ^= u64::from(byte);
-        hash = hash.wrapping_mul(1099511628211);
-    }
-    hash
-}
-
-fn allocate_deterministic_project_port(
-    weekend_root: &Path,
-    project_name: &str,
-) -> Result<u16, String> {
-    let claims = collect_runtime_port_claims(weekend_root)?;
-    let used_ports: HashSet<u16> = claims.keys().copied().collect();
-    let range_size = usize::from(PORT_RANGE_END - PORT_RANGE_START + 1);
-
-    if used_ports.len() >= range_size {
-        return Err(format!(
-            "no available ports in range {PORT_RANGE_START}-{PORT_RANGE_END}"
-        ));
-    }
-
-    let seed = stable_project_hash(project_name);
-    let start_offset = (seed % u64::try_from(range_size).unwrap_or(1)) as usize;
-
-    for offset in 0..range_size {
-        let index = (start_offset + offset) % range_size;
-        let candidate = PORT_RANGE_START + u16::try_from(index).unwrap_or(0);
-        if !used_ports.contains(&candidate) && is_localhost_tcp_port_available(candidate) {
-            return Ok(candidate);
-        }
-    }
-
-    Err(format!(
-        "no available ports in range {PORT_RANGE_START}-{PORT_RANGE_END}"
-    ))
-}
-
 fn write_project_config(
     project_dir: &Path,
-    host: &str,
-    port: Option<u16>,
+    runtime_url: &str,
     startup_commands: &[String],
     processes: Option<&HashMap<String, ProcessEntrySnapshot>>,
     archived: bool,
 ) -> Result<PathBuf, String> {
+    let normalized_runtime_url = normalize_runtime_url(Some(runtime_url))?
+        .ok_or_else(|| "runtime.url is required".to_string())?;
     let config = ProjectConfig {
         runtime: ProjectRuntimeConfig {
-            host: host.to_string(),
-            port,
+            mode: Some(ProjectRuntimeMode::Portless.as_str().to_string()),
+            url: Some(normalized_runtime_url),
         },
         startup: ProjectStartupConfig {
             commands: normalize_startup_commands(startup_commands),
@@ -1401,6 +1430,44 @@ fn resolve_mcp_binary_path() -> String {
     BINARY_NAME.to_string()
 }
 
+fn resolve_bundled_portless_cli_path<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
+    let mut candidates = Vec::<PathBuf>::new();
+
+    // Explicit override for local debugging.
+    if let Ok(explicit) = std::env::var("WEEKEND_PORTLESS_CLI") {
+        let trimmed = explicit.trim();
+        if !trimmed.is_empty() {
+            candidates.push(PathBuf::from(trimmed));
+        }
+    }
+
+    // Dev-mode candidates (repo checkout).
+    if let Ok(cwd) = std::env::current_dir() {
+        candidates.push(cwd.join("src-tauri/resources/portless/dist/cli.js"));
+        candidates.push(cwd.join("resources/portless/dist/cli.js"));
+        candidates.push(cwd.join("../src-tauri/resources/portless/dist/cli.js"));
+    }
+
+    // Bundle resources at runtime.
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        candidates.push(resource_dir.join("portless/dist/cli.js"));
+        candidates.push(resource_dir.join("resources/portless/dist/cli.js"));
+    }
+
+    // Executable-adjacent fallbacks.
+    if let Ok(exe) = std::env::current_exe() {
+        let exe = exe.canonicalize().unwrap_or(exe);
+        if let Some(exe_dir) = exe.parent() {
+            candidates.push(exe_dir.join("portless/dist/cli.js"));
+            // macOS bundle layout fallback.
+            candidates.push(exe_dir.join("../Resources/portless/dist/cli.js"));
+            candidates.push(exe_dir.join("../../Resources/portless/dist/cli.js"));
+        }
+    }
+
+    candidates.into_iter().find(|candidate| candidate.is_file())
+}
+
 fn sanitize_project_name(input: &str) -> String {
     let mut out = String::new();
     let mut last_was_sep = false;
@@ -1585,6 +1652,153 @@ fn shell_name() -> String {
         .and_then(|n| n.to_str())
         .unwrap_or("zsh")
         .to_string()
+}
+
+#[tauri::command]
+fn find_available_port(preferred: u16, min: Option<u16>, max: Option<u16>) -> Result<u16, String> {
+    let min_port = min.unwrap_or(43000).max(1);
+    let max_port = max.unwrap_or(49999).min(65535);
+    if min_port > max_port {
+        return Err("invalid port range".to_string());
+    }
+
+    let mut start = preferred;
+    if start < min_port || start > max_port {
+        start = min_port;
+    }
+
+    let span = u32::from(max_port - min_port) + 1;
+    for offset in 0..span {
+        let candidate = min_port + (((start - min_port) as u32 + offset) % span) as u16;
+        if let Ok(listener) = TcpListener::bind(("127.0.0.1", candidate)) {
+            drop(listener);
+            return Ok(candidate);
+        }
+    }
+
+    Err(format!(
+        "no available loopback port found in range {min_port}-{max_port}"
+    ))
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RuntimeUrlProbeStatus {
+    ok: bool,
+    reachable: bool,
+    status: Option<u16>,
+}
+
+fn build_runtime_probe_request(url: &Url) -> Result<(String, String), String> {
+    let scheme = url.scheme();
+    if scheme != "http" {
+        return Err(format!(
+            "runtime probing only supports http URLs (received '{scheme}')"
+        ));
+    }
+
+    let host = url
+        .host_str()
+        .ok_or_else(|| "runtime.url must include a host".to_string())?;
+    let port = url
+        .port_or_known_default()
+        .ok_or_else(|| "runtime.url must include a port".to_string())?;
+    let connect_target = if host == "::1" {
+        format!("[::1]:{port}")
+    } else {
+        format!("127.0.0.1:{port}")
+    };
+    let request_path = match url.query() {
+        Some(query) => format!("{}?{query}", url.path()),
+        None => url.path().to_string(),
+    };
+    let host_header = match (scheme, port) {
+        ("http", 80) | ("https", 443) => host.to_string(),
+        _ => format!("{host}:{port}"),
+    };
+    let request = format!(
+        "GET {request_path} HTTP/1.1\r\nHost: {host_header}\r\nConnection: close\r\nAccept: text/html,*/*\r\nUser-Agent: weekend-runtime-probe\r\n\r\n"
+    );
+    Ok((connect_target, request))
+}
+
+fn parse_runtime_probe_status(response: &str) -> Option<u16> {
+    let status_line = response.lines().next()?.trim();
+    let mut parts = status_line.split_whitespace();
+    let protocol = parts.next()?;
+    if !protocol.starts_with("HTTP/") {
+        return None;
+    }
+    parts.next()?.parse::<u16>().ok()
+}
+
+#[tauri::command]
+async fn probe_runtime_url(url: String) -> Result<RuntimeUrlProbeStatus, String> {
+    let parsed = Url::parse(url.trim())
+        .map_err(|error| format!("runtime.url must be a valid URL: {error}"))?;
+    let (connect_target, request) = match build_runtime_probe_request(&parsed) {
+        Ok(value) => value,
+        Err(_) => {
+            return Ok(RuntimeUrlProbeStatus {
+                ok: false,
+                reachable: false,
+                status: None,
+            })
+        }
+    };
+
+    let connect_result = tokio::time::timeout(
+        Duration::from_millis(800),
+        tokio::net::TcpStream::connect(connect_target),
+    )
+    .await;
+    let mut stream = match connect_result {
+        Ok(Ok(stream)) => stream,
+        _ => {
+            return Ok(RuntimeUrlProbeStatus {
+                ok: false,
+                reachable: false,
+                status: None,
+            })
+        }
+    };
+
+    let write_result = tokio::time::timeout(
+        Duration::from_millis(800),
+        stream.write_all(request.as_bytes()),
+    )
+    .await;
+    if !matches!(write_result, Ok(Ok(()))) {
+        return Ok(RuntimeUrlProbeStatus {
+            ok: false,
+            reachable: false,
+            status: None,
+        });
+    }
+
+    let mut buffer = [0u8; 1024];
+    let read_result =
+        tokio::time::timeout(Duration::from_millis(800), stream.read(&mut buffer)).await;
+    let bytes_read = match read_result {
+        Ok(Ok(bytes)) if bytes > 0 => bytes,
+        _ => {
+            return Ok(RuntimeUrlProbeStatus {
+                ok: false,
+                reachable: false,
+                status: None,
+            })
+        }
+    };
+
+    let response = String::from_utf8_lossy(&buffer[..bytes_read]);
+    let status = parse_runtime_probe_status(&response);
+    Ok(RuntimeUrlProbeStatus {
+        ok: status
+            .map(|value| (200..400).contains(&value))
+            .unwrap_or(false),
+        reachable: status.is_some(),
+        status,
+    })
 }
 
 #[derive(Debug, Clone)]
@@ -2522,7 +2736,7 @@ mod config_tests {
         write_config(
             &project_dir,
             r#"{
-  "runtime": { "host": "127.0.0.1", "port": 8744 },
+  "runtime": { "mode": "portless", "url": "http://music.localhost" },
   "startup": { "commands": ["pnpm dev", "claude"] },
   "processes": {
     "dev": { "command": "pnpm dev", "role": "dev-server" }
@@ -2553,7 +2767,7 @@ mod config_tests {
         write_config(
             &project_dir,
             r#"{
-  "runtime": { "host": "127.0.0.1", "port": 8744 },
+  "runtime": { "mode": "portless", "url": "http://music.localhost" },
   "startup": { "commands": ["claude", "pnpm dev"] }
 }"#,
         );
@@ -2581,7 +2795,7 @@ mod config_tests {
         std::fs::write(
             project_dir.join(LEGACY_PROJECT_CONFIG_FILE_NAME),
             r#"{
-  "runtime": { "host": "127.0.0.1", "port": 8744 },
+  "runtime": { "mode": "portless", "url": "http://legacy.localhost" },
   "startup": { "commands": ["pnpm dev"] }
 }"#,
         )
@@ -2595,7 +2809,10 @@ mod config_tests {
         let ProjectConfigLookup::Valid(config) = lookup else {
             panic!("expected valid config");
         };
-        assert_eq!(config.runtime.port, Some(8744));
+        assert_eq!(
+            config.runtime.url.as_deref(),
+            Some("http://legacy.localhost:1355/")
+        );
         assert!(canonical_exists);
         assert!(!legacy_exists);
     }
@@ -2606,13 +2823,13 @@ mod config_tests {
         write_config(
             &project_dir,
             r#"{
-  "runtime": { "host": "", "port": 8744 }
+  "runtime": { "mode": "direct", "url": "http://invalid.localhost" }
 }"#,
         );
         std::fs::write(
             project_dir.join(LEGACY_PROJECT_CONFIG_FILE_NAME),
             r#"{
-  "runtime": { "host": "127.0.0.1", "port": 8745 },
+  "runtime": { "mode": "portless", "url": "http://promoted.localhost" },
   "startup": { "commands": ["pnpm dev"] }
 }"#,
         )
@@ -2627,9 +2844,194 @@ mod config_tests {
         let ProjectConfigLookup::Valid(config) = lookup else {
             panic!("expected valid config");
         };
-        assert_eq!(config.runtime.port, Some(8745));
-        assert!(canonical_raw.contains("\"port\": 8745"));
+        assert_eq!(
+            config.runtime.url.as_deref(),
+            Some("http://promoted.localhost:1355/")
+        );
+        assert!(canonical_raw.contains("\"url\": \"http://promoted.localhost\""));
         assert!(!legacy_exists);
+    }
+
+    #[test]
+    fn defaults_runtime_mode_to_portless_when_missing() {
+        let project_dir = make_temp_project_dir("weekend-config-default-runtime-mode");
+        write_config(
+            &project_dir,
+            r#"{
+  "runtime": { "url": "http://fallback.localhost" }
+}"#,
+        );
+
+        let lookup = read_project_config(&project_dir);
+        let _ = std::fs::remove_dir_all(&project_dir);
+
+        let ProjectConfigLookup::Valid(config) = lookup else {
+            panic!("expected valid config");
+        };
+        assert_eq!(config.runtime.mode.as_deref(), Some("portless"));
+        assert_eq!(
+            config.runtime.url.as_deref(),
+            Some("http://fallback.localhost:1355/")
+        );
+    }
+
+    #[test]
+    fn rejects_invalid_runtime_mode() {
+        let project_dir = make_temp_project_dir("weekend-config-invalid-runtime-mode");
+        write_config(
+            &project_dir,
+            r#"{
+  "runtime": { "mode": "edge", "url": "http://mode.localhost" }
+}"#,
+        );
+
+        let lookup = read_project_config(&project_dir);
+        let _ = std::fs::remove_dir_all(&project_dir);
+
+        let ProjectConfigLookup::Invalid(error) = lookup else {
+            panic!("expected invalid config");
+        };
+        assert!(error.contains("runtime.mode must be 'portless'"));
+    }
+
+    #[test]
+    fn rejects_direct_runtime_mode() {
+        let project_dir = make_temp_project_dir("weekend-config-reject-direct-mode");
+        write_config(
+            &project_dir,
+            r#"{
+  "runtime": { "mode": "direct", "url": "http://direct.localhost" }
+}"#,
+        );
+
+        let lookup = read_project_config(&project_dir);
+        let _ = std::fs::remove_dir_all(&project_dir);
+
+        let ProjectConfigLookup::Invalid(error) = lookup else {
+            panic!("expected invalid config");
+        };
+        assert!(error.contains("no longer supported"));
+    }
+
+    #[test]
+    fn normalizes_runtime_url_without_scheme() {
+        let project_dir = make_temp_project_dir("weekend-config-runtime-url-normalize");
+        write_config(
+            &project_dir,
+            r#"{
+  "runtime": {
+    "mode": "portless",
+    "url": "music.localhost/dashboard"
+  }
+}"#,
+        );
+
+        let lookup = read_project_config(&project_dir);
+        let _ = std::fs::remove_dir_all(&project_dir);
+
+        let ProjectConfigLookup::Valid(config) = lookup else {
+            panic!("expected valid config");
+        };
+        assert_eq!(
+            config.runtime.url.as_deref(),
+            Some("http://music.localhost:1355/dashboard")
+        );
+    }
+
+    #[test]
+    fn normalizes_localhost_runtime_url_without_port_to_default_proxy_port() {
+        let project_dir =
+            make_temp_project_dir("weekend-config-runtime-url-localhost-default-port");
+        write_config(
+            &project_dir,
+            r#"{
+  "runtime": {
+    "mode": "portless",
+    "url": "http://music.localhost"
+  }
+}"#,
+        );
+
+        let lookup = read_project_config(&project_dir);
+        let _ = std::fs::remove_dir_all(&project_dir);
+
+        let ProjectConfigLookup::Valid(config) = lookup else {
+            panic!("expected valid config");
+        };
+        assert_eq!(
+            config.runtime.url.as_deref(),
+            Some("http://music.localhost:1355/")
+        );
+    }
+
+    #[test]
+    fn keeps_explicit_localhost_port_in_runtime_url() {
+        let project_dir =
+            make_temp_project_dir("weekend-config-runtime-url-localhost-explicit-port");
+        write_config(
+            &project_dir,
+            r#"{
+  "runtime": {
+    "mode": "portless",
+    "url": "http://music.localhost:4567/dashboard"
+  }
+}"#,
+        );
+
+        let lookup = read_project_config(&project_dir);
+        let _ = std::fs::remove_dir_all(&project_dir);
+
+        let ProjectConfigLookup::Valid(config) = lookup else {
+            panic!("expected valid config");
+        };
+        assert_eq!(
+            config.runtime.url.as_deref(),
+            Some("http://music.localhost:4567/dashboard")
+        );
+    }
+
+    #[test]
+    fn rejects_runtime_url_with_non_http_scheme() {
+        let project_dir = make_temp_project_dir("weekend-config-runtime-url-reject-scheme");
+        write_config(
+            &project_dir,
+            r#"{
+  "runtime": {
+    "mode": "portless",
+    "url": "ws://example.com/socket"
+  }
+}"#,
+        );
+
+        let lookup = read_project_config(&project_dir);
+        let _ = std::fs::remove_dir_all(&project_dir);
+
+        let ProjectConfigLookup::Invalid(error) = lookup else {
+            panic!("expected invalid config");
+        };
+        assert!(error.contains("runtime.url must use http or https"));
+    }
+
+    #[test]
+    fn rejects_runtime_url_with_non_local_host() {
+        let project_dir = make_temp_project_dir("weekend-config-runtime-url-reject-remote");
+        write_config(
+            &project_dir,
+            r#"{
+  "runtime": {
+    "mode": "portless",
+    "url": "https://music.portless.dev"
+  }
+}"#,
+        );
+
+        let lookup = read_project_config(&project_dir);
+        let _ = std::fs::remove_dir_all(&project_dir);
+
+        let ProjectConfigLookup::Invalid(error) = lookup else {
+            panic!("expected invalid config");
+        };
+        assert!(error.contains("runtime.url must target a local address"));
     }
 }
 
@@ -2683,94 +3085,23 @@ mod wrapper_repair_tests {
 }
 
 #[cfg(test)]
-mod port_allocation_tests {
-    use super::{
-        allocate_deterministic_project_port, collect_runtime_port_claims,
-        validate_runtime_port_available_for_project, PROJECT_CONFIG_FILE_NAME,
-    };
-    use std::path::{Path, PathBuf};
-    use std::time::{SystemTime, UNIX_EPOCH};
+mod browser_runtime_probe_tests {
+    use super::browser_runtime_status_is_ready;
 
-    fn make_temp_root(prefix: &str) -> PathBuf {
-        let unique = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("clock")
-            .as_nanos();
-        let root = std::env::temp_dir().join(format!("{prefix}-{unique}"));
-        std::fs::create_dir_all(&root).expect("create temp root");
-        root
-    }
-
-    fn write_config(project_dir: &Path, config_json: &str) {
-        std::fs::create_dir_all(project_dir).expect("create project dir");
-        std::fs::write(project_dir.join(PROJECT_CONFIG_FILE_NAME), config_json)
-            .expect("write config");
+    #[test]
+    fn accepts_success_redirect_and_auth_statuses() {
+        assert!(browser_runtime_status_is_ready(200));
+        assert!(browser_runtime_status_is_ready(302));
+        assert!(browser_runtime_status_is_ready(401));
+        assert!(browser_runtime_status_is_ready(403));
     }
 
     #[test]
-    fn claims_port_from_invalid_config_when_runtime_port_is_present() {
-        let root = make_temp_root("weekend-port-claims");
-        write_config(
-            &root.join("music"),
-            r#"{
-  "runtime": { "host": "", "port": 8611 }
-}"#,
-        );
-
-        let claims = collect_runtime_port_claims(&root).expect("collect claims");
-        let _ = std::fs::remove_dir_all(&root);
-
-        let owners = claims.get(&8611).expect("expected claimed port");
-        assert!(owners.iter().any(|owner| owner == "music"));
-    }
-
-    #[test]
-    fn rejects_runtime_port_assigned_to_another_project() {
-        let root = make_temp_root("weekend-port-conflict");
-        write_config(
-            &root.join("video"),
-            r#"{
-  "runtime": { "host": "127.0.0.1", "port": 8650 }
-}"#,
-        );
-        write_config(
-            &root.join("music"),
-            r#"{
-  "runtime": { "host": "127.0.0.1", "port": 8651 }
-}"#,
-        );
-
-        let conflict =
-            validate_runtime_port_available_for_project(&root, "music", 8650).unwrap_err();
-        let same_project = validate_runtime_port_available_for_project(&root, "video", 8650);
-        let _ = std::fs::remove_dir_all(&root);
-
-        assert!(conflict.contains("already assigned"));
-        assert!(same_project.is_ok());
-    }
-
-    #[test]
-    fn allocator_skips_port_that_is_bound_on_localhost() {
-        let root = make_temp_root("weekend-port-bind-skip");
-        let project_name = "music";
-
-        // Some sandboxed CI environments disallow binding localhost sockets.
-        if std::net::TcpListener::bind(("127.0.0.1", 0)).is_err() {
-            let _ = std::fs::remove_dir_all(&root);
-            return;
-        }
-
-        let first_port =
-            allocate_deterministic_project_port(&root, project_name).expect("allocate first port");
-        let listener =
-            std::net::TcpListener::bind(("127.0.0.1", first_port)).expect("bind first port");
-
-        let second_port =
-            allocate_deterministic_project_port(&root, project_name).expect("allocate second port");
-        drop(listener);
-        let _ = std::fs::remove_dir_all(&root);
-
-        assert_ne!(first_port, second_port);
+    fn rejects_proxy_boot_and_server_error_statuses() {
+        assert!(!browser_runtime_status_is_ready(0));
+        assert!(!browser_runtime_status_is_ready(404));
+        assert!(!browser_runtime_status_is_ready(500));
+        assert!(!browser_runtime_status_is_ready(503));
     }
 }
 
@@ -3133,10 +3464,6 @@ fn backfill_existing_project_configs() -> Result<(), String> {
         return Ok(());
     }
 
-    let _port_guard = project_port_lock()
-        .lock()
-        .map_err(|_| "failed to lock project port allocator".to_string())?;
-
     let mut entries: Vec<(String, PathBuf)> = std::fs::read_dir(&root)
         .map_err(|error| format!("failed to read ~/.weekend: {error}"))?
         .flatten()
@@ -3154,10 +3481,13 @@ fn backfill_existing_project_configs() -> Result<(), String> {
         .collect();
     entries.sort_unstable_by(|left, right| left.0.cmp(&right.0));
 
-    let mut seen_runtime_ports = HashSet::<u16>::new();
     for (project_name, project_dir) in entries {
         match read_project_config(&project_dir) {
             ProjectConfigLookup::Valid(config) => {
+                let runtime_url = config
+                    .runtime
+                    .url
+                    .unwrap_or_else(|| default_runtime_url_for_project_name(&project_name));
                 let startup_commands = if config.startup_commands.is_empty() {
                     default_startup_commands()
                 } else {
@@ -3168,48 +3498,67 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                 } else {
                     Some(config.processes)
                 };
-                let mut runtime_port = config.runtime.port;
-                if let Some(port) = runtime_port {
-                    if !seen_runtime_ports.insert(port) {
-                        let reassigned_port =
-                            allocate_deterministic_project_port(&root, &project_name)?;
-                        log_backend(
-                            "WARN",
-                            format!(
-                                "project={project_name} had duplicate runtime.port={port}; reassigning to {reassigned_port}"
-                            ),
-                        );
-                        runtime_port = Some(reassigned_port);
-                        let _ = seen_runtime_ports.insert(reassigned_port);
-                    }
-                }
                 write_project_config(
                     &project_dir,
-                    &config.runtime.host,
-                    runtime_port,
+                    &runtime_url,
                     &startup_commands,
                     procs.as_ref(),
                     config.archived,
                 )?;
             }
             ProjectConfigLookup::Missing => {
-                let allocated_port = allocate_deterministic_project_port(&root, &project_name)?;
                 let default_procs = default_processes_map(DEFAULT_AGENT_COMMAND);
+                let runtime_url = default_runtime_url_for_project_name(&project_name);
                 write_project_config(
                     &project_dir,
-                    DEFAULT_RUNTIME_HOST,
-                    Some(allocated_port),
+                    &runtime_url,
                     &default_startup_commands(),
                     Some(&default_procs),
                     false,
                 )?;
-                let _ = seen_runtime_ports.insert(allocated_port);
             }
             ProjectConfigLookup::Invalid(error) => {
-                log_backend(
-                    "WARN",
-                    format!("skipping config backfill for project={project_name}: {error}"),
-                );
+                let config_path = project_config_path(&project_dir);
+                let recovered = std::fs::read_to_string(&config_path)
+                    .ok()
+                    .and_then(|raw| serde_json::from_str::<ProjectConfig>(&raw).ok());
+
+                if let Some(parsed) = recovered {
+                    let startup_commands = if parsed.startup.commands.is_empty() {
+                        default_startup_commands()
+                    } else {
+                        normalize_startup_commands(&parsed.startup.commands)
+                    };
+                    let resolved_processes =
+                        resolve_processes(parsed.processes.as_ref(), &startup_commands);
+                    let procs = if resolved_processes.is_empty() {
+                        None
+                    } else {
+                        Some(resolved_processes)
+                    };
+                    let runtime_url = normalize_runtime_url(parsed.runtime.url.as_deref())
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| default_runtime_url_for_project_name(&project_name));
+                    log_backend(
+                        "WARN",
+                        format!(
+                            "project={project_name} had invalid runtime config ({error}); preserving/recovering runtime.url={runtime_url}"
+                        ),
+                    );
+                    write_project_config(
+                        &project_dir,
+                        &runtime_url,
+                        &startup_commands,
+                        procs.as_ref(),
+                        parsed.archived,
+                    )?;
+                } else {
+                    log_backend(
+                        "WARN",
+                        format!("skipping config backfill for project={project_name}: {error}"),
+                    );
+                }
             }
         }
     }
@@ -3301,9 +3650,12 @@ fn create_new_project(
         suffix += 1;
     }
 
-    let resolved_agent_command =
-        normalize_process_command(default_agent_command.as_deref().unwrap_or(DEFAULT_AGENT_COMMAND))
-            .ok_or_else(|| "default agent command is required".to_string())?;
+    let resolved_agent_command = normalize_process_command(
+        default_agent_command
+            .as_deref()
+            .unwrap_or(DEFAULT_AGENT_COMMAND),
+    )
+    .ok_or_else(|| "default agent command is required".to_string())?;
     let resolved_github_repo_url = normalize_optional_string(github_repo_url);
     if let Some(repo_url) = resolved_github_repo_url.as_deref() {
         validate_github_repo_url(repo_url)?;
@@ -3320,22 +3672,16 @@ fn create_new_project(
         .file_name()
         .and_then(|value| value.to_str())
         .ok_or_else(|| "failed to resolve project name".to_string())?;
-    let allocated_port = {
-        let _port_guard = project_port_lock()
-            .lock()
-            .map_err(|_| "failed to lock project port allocator".to_string())?;
-        let allocated_port = allocate_deterministic_project_port(&weekend_root, project_name)?;
-        let default_processes = default_processes_map(&resolved_agent_command);
-        write_project_config(
-            &candidate,
-            DEFAULT_RUNTIME_HOST,
-            Some(allocated_port),
-            &default_startup_commands(),
-            Some(&default_processes),
-            false,
-        )?;
-        allocated_port
-    };
+    let created_runtime_mode = ProjectRuntimeMode::Portless;
+    let created_runtime_url = default_runtime_url_for_project_name(project_name);
+    let default_processes = default_processes_map(&resolved_agent_command);
+    write_project_config(
+        &candidate,
+        &created_runtime_url,
+        &default_startup_commands(),
+        Some(&default_processes),
+        false,
+    )?;
     let shared_root = ensure_shared_assets_root()?;
     sync_shared_assets_into_project(&candidate, &shared_root)?;
     seed_agent_runtime_guidance_files(&candidate)?;
@@ -3346,8 +3692,10 @@ fn create_new_project(
     log_backend(
         "INFO",
         format!(
-            "created project {} with runtime endpoint {DEFAULT_RUNTIME_HOST}:{allocated_port}",
-            candidate.display()
+            "created project {} with runtime mode={} runtime.url={}",
+            candidate.display(),
+            created_runtime_mode.as_str(),
+            created_runtime_url
         ),
     );
 
@@ -3447,14 +3795,12 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             config_path: config_path_string,
             config_exists: true,
             config_valid: true,
-            runtime_host: Some(config.runtime.host),
-            runtime_port: config.runtime.port,
+            runtime_mode: config.runtime.mode,
+            runtime_url: config.runtime.url,
             startup_commands: config.startup_commands,
             processes: config.processes,
             source: "project-config".to_string(),
             error: None,
-            port_range_start: PORT_RANGE_START,
-            port_range_end: PORT_RANGE_END,
             archived: config.archived,
         }),
         ProjectConfigLookup::Missing => Ok(ProjectConfigReadSnapshot {
@@ -3463,14 +3809,12 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             config_path: config_path_string,
             config_exists: false,
             config_valid: false,
-            runtime_host: None,
-            runtime_port: None,
+            runtime_mode: None,
+            runtime_url: None,
             startup_commands: Vec::new(),
             processes: HashMap::new(),
             source: "missing".to_string(),
             error: None,
-            port_range_start: PORT_RANGE_START,
-            port_range_end: PORT_RANGE_END,
             archived: false,
         }),
         ProjectConfigLookup::Invalid(error) => Ok(ProjectConfigReadSnapshot {
@@ -3479,14 +3823,12 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             config_path: config_path_string,
             config_exists: true,
             config_valid: false,
-            runtime_host: None,
-            runtime_port: None,
+            runtime_mode: None,
+            runtime_url: None,
             startup_commands: Vec::new(),
             processes: HashMap::new(),
             source: "invalid".to_string(),
             error: Some(error),
-            port_range_start: PORT_RANGE_START,
-            port_range_end: PORT_RANGE_END,
             archived: false,
         }),
     }
@@ -3495,8 +3837,6 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
 #[tauri::command]
 fn project_config_write(
     project: String,
-    runtime_host: String,
-    runtime_port: Option<u16>,
     startup_commands: Option<Vec<String>>,
 ) -> Result<ProjectConfigReadSnapshot, String> {
     let project_name = project.trim();
@@ -3504,19 +3844,20 @@ fn project_config_write(
         return Err("project is required".to_string());
     }
 
-    let Some(host) = normalize_runtime_host(&runtime_host) else {
-        return Err("runtime.host is required".to_string());
-    };
-    if let Some(port) = runtime_port {
-        if !is_runtime_port_in_range(port) {
-            return Err(format!(
-                "runtime.port must be in range {PORT_RANGE_START}-{PORT_RANGE_END}"
-            ));
-        }
-    }
-
     let project_dir = resolve_project_dir(project_name)?;
     let existing = read_project_config(&project_dir);
+    let runtime_url = match &existing {
+        ProjectConfigLookup::Valid(config) => config
+            .runtime
+            .url
+            .clone()
+            .unwrap_or_else(|| default_runtime_url_for_project_name(project_name)),
+        ProjectConfigLookup::Invalid(_) => {
+            recover_runtime_url_from_raw_project_config(&project_dir)
+                .unwrap_or_else(|| default_runtime_url_for_project_name(project_name))
+        }
+        ProjectConfigLookup::Missing => default_runtime_url_for_project_name(project_name),
+    };
     let resolved_startup_commands = match startup_commands {
         Some(commands) => normalize_startup_commands(&commands),
         None => match &existing {
@@ -3536,23 +3877,14 @@ fn project_config_write(
         ProjectConfigLookup::Valid(config) => config.archived,
         _ => false,
     };
-    {
-        let _port_guard = project_port_lock()
-            .lock()
-            .map_err(|_| "failed to lock project port allocator".to_string())?;
-        if let Some(port) = runtime_port {
-            let root = weekend_root()?;
-            validate_runtime_port_available_for_project(&root, project_name, port)?;
-        }
-        write_project_config(
-            &project_dir,
-            &host,
-            runtime_port,
-            &resolved_startup_commands,
-            resolved_processes.as_ref(),
-            resolved_archived,
-        )?;
-    }
+
+    write_project_config(
+        &project_dir,
+        &runtime_url,
+        &resolved_startup_commands,
+        resolved_processes.as_ref(),
+        resolved_archived,
+    )?;
 
     project_config_read(project_name.to_string())
 }
@@ -3595,11 +3927,17 @@ fn set_project_archived(project_dir: &Path, archived: bool) -> Result<(), String
         std::fs::write(&config_path, format!("{serialized}\n"))
             .map_err(|error| format!("failed to write {}: {error}", config_path.display()))?;
     } else {
-        // Create minimal config with default host/port + archived flag
+        let runtime_url = default_runtime_url_for_project_name(
+            &project_dir
+                .file_name()
+                .and_then(|value| value.to_str())
+                .unwrap_or("app"),
+        );
+        // Create minimal config with default portless runtime + archived flag
         let config = serde_json::json!({
             "runtime": {
-                "host": DEFAULT_RUNTIME_HOST,
-                "port": null
+                "mode": "portless",
+                "url": runtime_url
             },
             "archived": archived
         });
@@ -4187,6 +4525,13 @@ fn terminal_open<R: Runtime>(
         cmd.cwd(working_dir);
         cmd.arg(login_interactive_flag(&shell));
         cmd.env("TERM", "xterm-256color");
+        cmd.env("WEEKEND_PORTLESS_BIN", "portless");
+        if let Some(portless_cli) = resolve_bundled_portless_cli_path(&app) {
+            cmd.env("WEEKEND_PORTLESS_CLI", portless_cli.display().to_string());
+            cmd.env("WEEKEND_PORTLESS_BUNDLED", "1");
+        } else {
+            cmd.env("WEEKEND_PORTLESS_BUNDLED", "0");
+        }
         {
             let bridge_state: tauri::State<'_, BridgeState> = app.state();
             let bridge_token = bridge_state.connection_token.clone();
@@ -4209,15 +4554,11 @@ fn terminal_open<R: Runtime>(
             let project_dir = resolve_project_dir(project_name)?;
             match read_project_config(&project_dir) {
                 ProjectConfigLookup::Valid(config) => {
-                    let runtime_host = config.runtime.host;
-                    cmd.env("HOST", &runtime_host);
-                    cmd.env("HOSTNAME", &runtime_host);
-                    cmd.env("WEEKEND_RUNTIME_HOST", &runtime_host);
-
-                    if let Some(port) = config.runtime.port {
-                        let runtime_port = port.to_string();
-                        cmd.env("PORT", &runtime_port);
-                        cmd.env("WEEKEND_RUNTIME_PORT", &runtime_port);
+                    if let Some(runtime_mode) = config.runtime.mode {
+                        cmd.env("WEEKEND_RUNTIME_MODE", runtime_mode);
+                    }
+                    if let Some(runtime_url) = config.runtime.url {
+                        cmd.env("WEEKEND_RUNTIME_URL", runtime_url);
                     }
                 }
                 ProjectConfigLookup::Missing => {
@@ -4737,6 +5078,11 @@ fn browser_history_navigate<R: Runtime>(
 }
 
 #[tauri::command]
+fn browser_probe_runtime_url(url: String) -> Result<BrowserRuntimeProbeResult, String> {
+    probe_browser_runtime_url(&url)
+}
+
+#[tauri::command]
 fn browser_push_event<R: Runtime>(
     webview: tauri::Webview<R>,
     app: AppHandle<R>,
@@ -4811,6 +5157,17 @@ fn browser_bridge_ready<R: Runtime>(
         }
     });
     bridge_state.mark_bridge_ready(&label, normalized_version.to_string(), normalized_url);
+    log_backend(
+        "DEBUG",
+        format!(
+            "bridge: browser ready label={label} version={} url={}",
+            normalized_version,
+            webview
+                .url()
+                .map(|value| value.to_string())
+                .unwrap_or_else(|_| "unknown".to_string())
+        ),
+    );
     Ok(())
 }
 
@@ -4830,6 +5187,10 @@ fn browser_eval_result<R: Runtime>(
             .map_err(|_| "failed to lock pending evals".to_string())?;
 
         let Some(existing) = pending.get(&request_id) else {
+            log_backend(
+                "DEBUG",
+                format!("bridge: late eval callback ignored webview={caller_label} request_id={request_id}"),
+            );
             return Ok(());
         };
 
@@ -4847,6 +5208,14 @@ fn browser_eval_result<R: Runtime>(
     let Some(pending_eval) = pending_eval else {
         return Ok(());
     };
+
+    log_backend(
+        "DEBUG",
+        format!(
+            "bridge: eval callback received webview={caller_label} request_id={request_id} payload_bytes={}",
+            payload.len()
+        ),
+    );
 
     pending_eval
         .sender
@@ -5120,6 +5489,7 @@ fn main() {
             terminal_set_custom_name,
             terminal_remove_session,
             browser_history_navigate,
+            browser_probe_runtime_url,
             browser_push_event,
             browser_bridge_ready,
             browser_start_element_grab,
@@ -5129,7 +5499,9 @@ fn main() {
             ui_log_batch,
             logs_read_weekend,
             logs_read_project,
-            shell_name
+            shell_name,
+            find_available_port,
+            probe_runtime_url
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

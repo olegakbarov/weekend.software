@@ -13,9 +13,9 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   type TerminalSessionDescriptor,
+  type PlayState,
   terminalDisplayLabel,
-} from "@/lib/types";
-import type { PlayState } from "@/lib/workspace-controller";
+} from "@/lib/controller";
 
 export function SidebarProjectItem({
   project,

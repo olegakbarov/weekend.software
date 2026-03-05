@@ -15,7 +15,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
-import type { ProjectTreeNode } from "@/lib/workspace-controller";
+import type { ProjectTreeNode } from "@/lib/controller";
 
 const ROOT_DROP_TARGET_KEY = "__ROOT__";
 

@@ -15,13 +15,12 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { SidebarProjectItem } from "@/components/sidebar/sidebar-project-item";
-import type { ActiveView } from "@/lib/types";
-import type { TerminalSessionDescriptor } from "@/lib/types";
+import type { TerminalSessionDescriptor, PlayState } from "@/lib/controller";
 import { cn } from "@/lib/utils";
-import type { PlayState } from "@/lib/workspace-controller";
 
 export function Sidebar({
-  activeView,
+  currentProject,
+  currentRoute,
   activeTerminalId,
   projects,
   terminalSessionsByProject,
@@ -45,7 +44,8 @@ export function Sidebar({
   onToggleShowArchived,
   onUnarchiveProject,
 }: {
-  activeView: ActiveView;
+  currentProject: string | null;
+  currentRoute: string;
   activeTerminalId: string | null;
   projects: string[];
   terminalSessionsByProject: Record<string, TerminalSessionDescriptor[]>;
@@ -69,8 +69,6 @@ export function Sidebar({
   onToggleShowArchived: () => void;
   onUnarchiveProject: (project: string) => Promise<void>;
 }) {
-  const selectedProject =
-    activeView.route === "workspace" ? activeView.project : null;
   const displayedProjects = showArchived ? archivedProjects : projects;
 
   const pointerSensor = useSensor(PointerSensor, {
@@ -170,7 +168,7 @@ export function Sidebar({
               <button
                 className={cn(
                   "mb-[29px] flex w-full items-center gap-2.5 rounded-md border px-2 text-left font-vcr text-[13px] transition-colors",
-                  activeView.route === "home"
+                  currentRoute === "home"
                     ? "border-border/70 text-foreground"
                     : "border-border/30 text-muted-foreground hover:border-border/60 hover:text-foreground/70"
                 )}
@@ -187,8 +185,8 @@ export function Sidebar({
                 {displayedProjects.map((project) => (
                   <SidebarProjectItem
                     activeTerminalId={activeTerminalId}
-                    isActiveProject={selectedProject === project}
-                    isSelected={selectedProject === project}
+                    isActiveProject={currentProject === project}
+                    isSelected={currentProject === project}
                     key={project}
                     onCreateTerminal={onCreateTerminal}
                     onPlay={onPlay}
@@ -216,7 +214,7 @@ export function Sidebar({
       <div className="flex shrink-0 items-center border-border/40 border-t px-2 py-1">
         <div className="flex items-center gap-0.5">
           <FooterIconButton
-            active={activeView.route === "logs"}
+            active={currentRoute === "logs"}
             icon={<FileText className="size-3.5" />}
             onClick={onOpenLogs}
             title="Logs"
@@ -228,7 +226,7 @@ export function Sidebar({
             title={showArchived ? "Show active projects" : "Show archived projects"}
           />
           <FooterIconButton
-            active={activeView.route === "settings"}
+            active={currentRoute === "settings"}
             icon={<Settings className="size-3.5" />}
             onClick={onOpenSettings}
             title="Settings"

@@ -12,7 +12,7 @@ interface WindowApiLike {
   }) => Promise<void>;
 }
 
-function hasTauriRuntime(): boolean {
+export function hasTauriRuntime(): boolean {
   if (typeof window === "undefined") return false;
   const internals = (window as { __TAURI_INTERNALS__?: { invoke?: unknown } })
     .__TAURI_INTERNALS__;

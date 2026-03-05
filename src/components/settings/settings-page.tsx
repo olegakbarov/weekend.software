@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
   type RuntimeDebugSnapshot,
+  type RuntimeTelemetryEvent,
   type SharedAssetSnapshot,
-} from "@/lib/workspace-controller";
+} from "@/lib/controller";
 
 function formatTimestamp(unixMs: number): string {
   if (!Number.isFinite(unixMs) || unixMs <= 0) return "n/a";
@@ -31,6 +32,43 @@ function formatRuntimeDebugDump(snapshot: RuntimeDebugSnapshot): string {
   return lines.join("\n");
 }
 
+function formatRuntimeTelemetryValue(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (value == null) return "null";
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function formatRuntimeTelemetryDump(events: RuntimeTelemetryEvent[]): string {
+  if (events.length === 0) {
+    return "No runtime telemetry events recorded yet.";
+  }
+
+  const lines: string[] = [];
+  for (const entry of events.slice().reverse()) {
+    lines.push(
+      `${formatTimestamp(entry.atUnixMs)} | ${entry.event} | id=${entry.id}`
+    );
+    const payloadEntries = Object.entries(entry.payload);
+    if (payloadEntries.length === 0) {
+      lines.push("  payload: {}");
+    } else {
+      for (const [key, value] of payloadEntries) {
+        lines.push(`  ${key}: ${formatRuntimeTelemetryValue(value)}`);
+      }
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n").trimEnd();
+}
+
 function formatFileSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 0) return "n/a";
   if (bytes < 1024) return `${bytes} B`;
@@ -44,6 +82,7 @@ export type SettingsPageProps = {
   error: string | null;
   isRefreshing: boolean;
   onRefreshRuntimeSnapshot: () => void;
+  runtimeTelemetryEvents: RuntimeTelemetryEvent[];
   isVimModeEnabled: boolean;
   onVimModeEnabledChange: (enabled: boolean) => void;
   sharedAssets: SharedAssetSnapshot[];
@@ -61,6 +100,7 @@ export function SettingsPage({
   error,
   isRefreshing,
   onRefreshRuntimeSnapshot,
+  runtimeTelemetryEvents,
   isVimModeEnabled,
   onVimModeEnabledChange,
   sharedAssets,
@@ -265,6 +305,25 @@ export function SettingsPage({
 
                 <pre className="min-h-0 overflow-auto rounded border border-border/70 bg-[var(--feature-input-body-bg)] p-3 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
                   {snapshot ? formatRuntimeDebugDump(snapshot) : "Loading runtime state..."}
+                </pre>
+              </div>
+
+              {/* Runtime Telemetry */}
+              <div className="space-y-2 rounded border border-border/70 bg-background/60 p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-code text-xs text-foreground">Runtime Telemetry</p>
+                    <p className="font-code text-[11px] text-muted-foreground">
+                      Recent `runtime_*` events emitted by the workspace controller.
+                    </p>
+                  </div>
+                  <p className="font-code text-[11px] text-muted-foreground">
+                    {runtimeTelemetryEvents.length} event(s)
+                  </p>
+                </div>
+
+                <pre className="min-h-0 max-h-64 overflow-auto rounded border border-border/70 bg-[var(--feature-input-body-bg)] p-3 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
+                  {formatRuntimeTelemetryDump(runtimeTelemetryEvents)}
                 </pre>
               </div>
             </div>

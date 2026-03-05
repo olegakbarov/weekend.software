@@ -1,10 +1,28 @@
+import { useMemo } from "react";
 import { AlertTriangle, Archive, Loader2, Play, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { PlayState } from "@/lib/workspace-controller";
+import { Input } from "@/components/ui/input";
+import type {
+  PlayState,
+  ProjectConfigReadSnapshot,
+} from "@/lib/controller";
+
+const DEFAULT_PORTLESS_PROXY_PORT = 1355;
+
+function localRuntimeAddressForProject(project: string): string {
+  const normalized = project
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const slug = normalized || "app";
+  return `http://${slug}.localhost:${DEFAULT_PORTLESS_PROXY_PORT}`;
+}
 
 export type ProjectSettingsPageProps = {
   project: string;
   configPath: string | null;
+  projectConfigSnapshot: ProjectConfigReadSnapshot | null;
   playState: PlayState;
   playError: string | null;
   onPlayProject: () => Promise<void>;
@@ -18,6 +36,7 @@ export type ProjectSettingsPageProps = {
 export function ProjectSettingsPage({
   project,
   configPath,
+  projectConfigSnapshot,
   playState,
   playError,
   onPlayProject,
@@ -30,6 +49,12 @@ export function ProjectSettingsPage({
   const isStarting = playState === "starting";
   const isRunning = playState === "running";
   const isFailed = playState === "failed";
+  const runtimeAddress = useMemo(
+    () =>
+      projectConfigSnapshot?.runtimeUrl?.trim() ||
+      localRuntimeAddressForProject(project),
+    [project, projectConfigSnapshot?.runtimeUrl]
+  );
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-auto p-6">
@@ -38,6 +63,25 @@ export function ProjectSettingsPage({
           <h1 className="font-code text-sm text-foreground">Project Settings</h1>
           <p className="mt-1 font-code text-xs text-muted-foreground">{project}</p>
         </header>
+
+        <div className="rounded-lg border border-border/70 bg-background/60 p-4">
+          <div className="space-y-3">
+            <h2 className="font-code text-xs text-foreground">Runtime Address</h2>
+            <p className="font-code text-xs text-muted-foreground">
+              Weekend runs in portless mode only. Runtime addresses are generated
+              from sanitized project names.
+            </p>
+            <label className="space-y-1">
+              <span className="font-code text-xs text-foreground">Local Address</span>
+              <Input
+                className="h-8 font-code text-xs"
+                readOnly
+                type="text"
+                value={runtimeAddress}
+              />
+            </label>
+          </div>
+        </div>
 
         <div className="rounded-lg border border-border/70 bg-background/60 p-4">
           <div className="space-y-3">

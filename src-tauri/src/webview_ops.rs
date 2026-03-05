@@ -1,4 +1,5 @@
 use crate::bridge_types::{BridgeState, PendingEval};
+use crate::log_backend;
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager, Runtime};
 use tokio::sync::oneshot::{self, error::TryRecvError};
@@ -104,7 +105,70 @@ pub fn eval_js_with_result<R: Runtime>(
     let callback_token_literal = serde_json::to_string(&callback_token)
         .map_err(|e| format!("failed to serialize callback token: {e}"))?;
 
-    let wrapper = format!(
+    let wrapper = build_eval_wrapper(script, &request_id_literal, &callback_token_literal);
+
+    if let Err(error) = webview.eval(&wrapper) {
+        cleanup_pending(&bridge_state.pending_evals, &request_id);
+        log_backend(
+            "WARN",
+            format!("bridge: webview.eval failed label={label} request_id={request_id}: {error}"),
+        );
+        return Err(format!("webview.eval failed: {error}"));
+    }
+
+    let deadline = Instant::now() + EVAL_TIMEOUT;
+    loop {
+        match rx.try_recv() {
+            Ok(data) => return Ok(data),
+            Err(TryRecvError::Closed) => {
+                cleanup_pending(&bridge_state.pending_evals, &request_id);
+                log_backend(
+                    "WARN",
+                    format!(
+                        "bridge: eval result sender dropped label={label} request_id={request_id}"
+                    ),
+                );
+                return Err("eval result sender dropped".to_string());
+            }
+            Err(TryRecvError::Empty) => {}
+        }
+
+        if Instant::now() >= deadline {
+            cleanup_pending(&bridge_state.pending_evals, &request_id);
+            let detail_text = describe_bridge_state(label, bridge_state);
+            log_backend(
+                "WARN",
+                format!(
+                    "bridge: eval timed out label={label} request_id={request_id}; {detail_text}"
+                ),
+            );
+            return Err(format!("eval timed out on {label}; {detail_text}"));
+        }
+
+        std::thread::sleep(EVAL_POLL_INTERVAL);
+    }
+}
+
+fn describe_bridge_state(label: &str, bridge_state: &BridgeState) -> String {
+    if let Some(state) = bridge_state.bridge_state(label) {
+        format!(
+            "ready={} version={} url={} updated_at_ms={}",
+            state.ready,
+            state.version.unwrap_or_else(|| "unknown".to_string()),
+            state.url.unwrap_or_else(|| "unknown".to_string()),
+            state.updated_at_ms
+        )
+    } else {
+        "no bridge state recorded".to_string()
+    }
+}
+
+fn build_eval_wrapper(
+    script: &str,
+    request_id_literal: &str,
+    callback_token_literal: &str,
+) -> String {
+    format!(
         r#"(async function() {{
   const __weekend_request_id = {request_id_literal};
   const __weekend_callback_token = {callback_token_literal};
@@ -176,8 +240,8 @@ pub fn eval_js_with_result<R: Runtime>(
   const __weekend_send = async (payload) => {{
     await __weekend_wait_for_ipc();
     await __weekend_invoke("browser_eval_result", {{
-      request_id: __weekend_request_id,
-      callback_token: __weekend_callback_token,
+      requestId: __weekend_request_id,
+      callbackToken: __weekend_callback_token,
       payload: JSON.stringify(payload),
     }});
   }};
@@ -194,31 +258,7 @@ pub fn eval_js_with_result<R: Runtime>(
   }}
 }})()"#,
         user_script = script,
-    );
-
-    if let Err(error) = webview.eval(&wrapper) {
-        cleanup_pending(&bridge_state.pending_evals, &request_id);
-        return Err(format!("webview.eval failed: {error}"));
-    }
-
-    let deadline = Instant::now() + EVAL_TIMEOUT;
-    loop {
-        match rx.try_recv() {
-            Ok(data) => return Ok(data),
-            Err(TryRecvError::Closed) => {
-                cleanup_pending(&bridge_state.pending_evals, &request_id);
-                return Err("eval result sender dropped".to_string());
-            }
-            Err(TryRecvError::Empty) => {}
-        }
-
-        if Instant::now() >= deadline {
-            cleanup_pending(&bridge_state.pending_evals, &request_id);
-            return Err("eval timed out".to_string());
-        }
-
-        std::thread::sleep(EVAL_POLL_INTERVAL);
-    }
+    )
 }
 
 fn cleanup_pending(pending_evals: &PendingEvalMap, request_id: &str) {
@@ -251,4 +291,18 @@ pub fn get_webview_url<R: Runtime>(app: &AppHandle<R>, label: &str) -> Result<St
         .url()
         .map_err(|e| format!("failed to get URL: {e}"))?
         .to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::build_eval_wrapper;
+
+    #[test]
+    fn eval_wrapper_uses_camel_case_callback_fields() {
+        let wrapper = build_eval_wrapper("return 1 + 1;", "\"req-1\"", "\"cb-1\"");
+        assert!(wrapper.contains("requestId: __weekend_request_id"));
+        assert!(wrapper.contains("callbackToken: __weekend_callback_token"));
+        assert!(!wrapper.contains("request_id: __weekend_request_id"));
+        assert!(!wrapper.contains("callback_token: __weekend_callback_token"));
+    }
 }

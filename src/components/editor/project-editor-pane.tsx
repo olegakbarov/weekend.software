@@ -12,7 +12,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import type { ProjectTreeNode } from "@/lib/workspace-controller";
+import type { ProjectTreeNode } from "@/lib/controller";
 
 const VIM_MODE_LABELS: Record<string, string> = {
   normal: "NORMAL",
