@@ -7,6 +7,7 @@
     "clean:rust": "node scripts/clean-rust.mjs",
     "build": "vite build",
     "preview": "vite preview",
+    "mcp:verify": "node scripts/verify-weekend-browser-mcp.mjs",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"

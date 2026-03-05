@@ -1,6 +1,6 @@
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpStream;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde_json::{json, Value};
 
@@ -62,8 +62,21 @@ fn port_file_path() -> Result<PathBuf, String> {
             return Ok(PathBuf::from(trimmed));
         }
     }
+
+    if let Some(project_name) = project_name_from_context() {
+        let home = std::env::var("HOME").map_err(|_| "HOME not set".to_string())?;
+        let path = project_bridge_port_file_path(Path::new(&home), &project_name)?;
+        if path.is_file() {
+            return Ok(path);
+        }
+        return Err(format!(
+            "failed to find project bridge file {}. Open project '{project_name}' in Weekend so it can publish its bridge info, or launch the MCP server from a Weekend terminal.",
+            path.display()
+        ));
+    }
+
     let home = std::env::var("HOME").map_err(|_| "HOME not set".to_string())?;
-    Ok(PathBuf::from(home).join(".weekend").join("bridge.port"))
+    Ok(global_bridge_port_file_path(Path::new(&home)))
 }
 
 fn read_port_file() -> Result<BridgeConnectionInfo, String> {
@@ -82,6 +95,55 @@ fn read_port_file() -> Result<BridgeConnectionInfo, String> {
         }
     }
     Ok(parsed)
+}
+
+fn global_bridge_port_file_path(home: &Path) -> PathBuf {
+    home.join(".weekend").join("bridge.port")
+}
+
+fn project_bridge_port_file_path(home: &Path, project_name: &str) -> Result<PathBuf, String> {
+    let normalized = normalize_project_name(project_name)
+        .ok_or_else(|| "invalid WEEKEND_PROJECT value".to_string())?;
+    Ok(home
+        .join(".weekend")
+        .join("bridge-projects")
+        .join(format!("{normalized}.port")))
+}
+
+fn normalize_project_name(value: &str) -> Option<String> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() || trimmed.contains('/') || trimmed.contains('\\') {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
+}
+
+fn project_name_from_context() -> Option<String> {
+    if let Ok(value) = std::env::var("WEEKEND_PROJECT") {
+        if let Some(project_name) = normalize_project_name(&value) {
+            return Some(project_name);
+        }
+    }
+
+    let cwd = std::env::current_dir().ok()?;
+    project_name_from_path(&cwd)
+}
+
+fn project_name_from_path(path: &Path) -> Option<String> {
+    for candidate in path.ancestors() {
+        let has_project_marker = candidate.join(".mcp.json").is_file()
+            || candidate.join("weekend.config.json").is_file()
+            || candidate.join("aios.config.json").is_file();
+        if !has_project_marker {
+            continue;
+        }
+        let project_name = candidate.file_name()?.to_str()?;
+        if let Some(normalized) = normalize_project_name(project_name) {
+            return Some(normalized);
+        }
+    }
+    None
 }
 
 fn parse_port_file_contents(content: &str) -> Result<BridgeConnectionInfo, String> {
@@ -145,7 +207,65 @@ fn verify_bridge_identity(stream: &mut TcpStream, token: &str) -> Result<(), Str
 
 #[cfg(test)]
 mod tests {
-    use super::parse_port_file_contents;
+    use super::{
+        global_bridge_port_file_path, parse_port_file_contents, port_file_path,
+        project_bridge_port_file_path, project_name_from_path,
+    };
+    use std::fs;
+    use std::path::Path;
+    use std::sync::{Mutex, OnceLock};
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn env_lock() -> &'static Mutex<()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+    }
+
+    struct EnvGuard {
+        home: Option<String>,
+        weekend_project: Option<String>,
+        weekend_bridge_port_file: Option<String>,
+        cwd: std::path::PathBuf,
+    }
+
+    impl EnvGuard {
+        fn new() -> Self {
+            Self {
+                home: std::env::var("HOME").ok(),
+                weekend_project: std::env::var("WEEKEND_PROJECT").ok(),
+                weekend_bridge_port_file: std::env::var("WEEKEND_BRIDGE_PORT_FILE").ok(),
+                cwd: std::env::current_dir().expect("current dir"),
+            }
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            match &self.home {
+                Some(value) => std::env::set_var("HOME", value),
+                None => std::env::remove_var("HOME"),
+            }
+            match &self.weekend_project {
+                Some(value) => std::env::set_var("WEEKEND_PROJECT", value),
+                None => std::env::remove_var("WEEKEND_PROJECT"),
+            }
+            match &self.weekend_bridge_port_file {
+                Some(value) => std::env::set_var("WEEKEND_BRIDGE_PORT_FILE", value),
+                None => std::env::remove_var("WEEKEND_BRIDGE_PORT_FILE"),
+            }
+            let _ = std::env::set_current_dir(&self.cwd);
+        }
+    }
+
+    fn make_temp_dir(label: &str) -> std::path::PathBuf {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system time")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("weekend-bridge-client-{label}-{unique}"));
+        fs::create_dir_all(&path).expect("create temp dir");
+        path
+    }
 
     #[test]
     fn parses_legacy_bridge_port_file() {
@@ -162,5 +282,54 @@ mod tests {
         .expect("expected parsed bridge file");
         assert_eq!(parsed.port, 19430);
         assert_eq!(parsed.token.as_deref(), Some("a1b2c3-token"));
+    }
+
+    #[test]
+    fn computes_project_bridge_port_file_path() {
+        let home = Path::new("/Users/example");
+        let path = project_bridge_port_file_path(home, "music").expect("project path");
+        assert_eq!(
+            path,
+            Path::new("/Users/example/.weekend/bridge-projects/music.port")
+        );
+        assert_eq!(
+            global_bridge_port_file_path(home),
+            Path::new("/Users/example/.weekend/bridge.port")
+        );
+    }
+
+    #[test]
+    fn resolves_project_name_from_project_root_ancestors() {
+        let root = make_temp_dir("project-root");
+        let project_root = root.join("music");
+        let nested = project_root.join("src/components");
+        fs::create_dir_all(&nested).expect("nested dir");
+        fs::write(project_root.join(".mcp.json"), "{}\n").expect("mcp json");
+
+        let project_name = project_name_from_path(&nested).expect("project name");
+        let _ = fs::remove_dir_all(&root);
+
+        assert_eq!(project_name, "music");
+    }
+
+    #[test]
+    fn prefers_project_bridge_file_when_weekend_project_is_set() {
+        let _guard = env_lock().lock().expect("env lock");
+        let snapshot = EnvGuard::new();
+        let home = make_temp_dir("home");
+        let bridge_dir = home.join(".weekend/bridge-projects");
+        fs::create_dir_all(&bridge_dir).expect("bridge dir");
+        let expected = bridge_dir.join("music.port");
+        fs::write(&expected, "19430\nproject-token\n").expect("bridge file");
+
+        std::env::set_var("HOME", &home);
+        std::env::set_var("WEEKEND_PROJECT", "music");
+        std::env::remove_var("WEEKEND_BRIDGE_PORT_FILE");
+
+        let resolved = port_file_path().expect("resolved path");
+        drop(snapshot);
+        let _ = fs::remove_dir_all(&home);
+
+        assert_eq!(resolved, expected);
     }
 }

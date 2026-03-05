@@ -275,6 +275,7 @@ const PROJECT_CLAUDE_FILE_NAME: &str = "CLAUDE.md";
 const PROJECT_AGENTS_FILE_NAME: &str = "AGENTS.md";
 const PROJECT_GITIGNORE_FILE_NAME: &str = ".gitignore";
 const SHARED_ASSETS_ROOT_DIR_NAME: &str = "shared-assets";
+const PROJECT_BRIDGE_PORT_DIR_NAME: &str = "bridge-projects";
 const PROJECT_SHARED_ASSETS_DIR_NAME: &str = "shared-assets";
 const LOG_ROTATE_MAX_BYTES: u64 = 2 * 1024 * 1024;
 const LOG_ROTATE_ARCHIVE_COUNT: usize = 6;
@@ -388,6 +389,66 @@ fn ensure_shared_assets_root() -> Result<PathBuf, String> {
         )
     })?;
     Ok(path)
+}
+
+fn project_bridge_port_dir() -> Result<PathBuf, String> {
+    Ok(weekend_root()?.join(PROJECT_BRIDGE_PORT_DIR_NAME))
+}
+
+fn project_bridge_port_file_path(project_name: &str) -> Result<PathBuf, String> {
+    if !is_safe_project_name(project_name) {
+        return Err("invalid project name".to_string());
+    }
+    Ok(project_bridge_port_dir()?.join(format!("{project_name}.port")))
+}
+
+fn sync_project_bridge_port_file(
+    project_name: &str,
+    bridge_state: &BridgeState,
+) -> Result<PathBuf, String> {
+    let instance_path = bridge_state
+        .port_file_path
+        .lock()
+        .map_err(|_| "failed to lock bridge port file state".to_string())?
+        .clone()
+        .ok_or_else(|| "bridge instance port file is not ready".to_string())?;
+    let content = std::fs::read_to_string(&instance_path).map_err(|error| {
+        format!(
+            "failed to read bridge instance port file {}: {error}",
+            instance_path.display()
+        )
+    })?;
+    let port = content
+        .lines()
+        .next()
+        .ok_or_else(|| "bridge instance port file is empty".to_string())?
+        .trim()
+        .parse::<u16>()
+        .map_err(|error| format!("invalid TCP port in bridge instance port file: {error}"))?;
+
+    let dir = project_bridge_port_dir()?;
+    std::fs::create_dir_all(&dir)
+        .map_err(|error| format!("failed to create {}: {error}", dir.display()))?;
+
+    let path = project_bridge_port_file_path(project_name)?;
+    let serialized = format!(
+        "{port}\n{}\n{}\n",
+        bridge_state.connection_token,
+        instance_path.display()
+    );
+    std::fs::write(&path, serialized)
+        .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
+    Ok(path)
+}
+
+fn project_name_from_browser_webview_label(label: &str) -> Option<&str> {
+    let suffix = label.strip_prefix("browser-pane:")?;
+    let (project_name, _) = suffix.rsplit_once(':')?;
+    if project_name.is_empty() {
+        None
+    } else {
+        Some(project_name)
+    }
 }
 
 fn project_shared_assets_dir(project_dir: &Path) -> PathBuf {
@@ -1295,15 +1356,39 @@ fn seed_agent_runtime_guidance_files(project_dir: &Path) -> Result<(), String> {
 
 fn seed_mcp_json(project_dir: &Path) -> Result<(), String> {
     let mcp_path = project_dir.join(".mcp.json");
+    let project_name = project_dir
+        .file_name()
+        .and_then(|value| value.to_str())
+        .ok_or_else(|| format!("failed to resolve project name for {}", project_dir.display()))?;
     let binary_path = resolve_mcp_binary_path();
-    let content = serde_json::json!({
-        "mcpServers": {
-            "weekend-browser": {
-                "command": binary_path,
-                "args": []
-            }
+    let weekend_browser_config = serde_json::json!({
+        "command": binary_path,
+        "args": [],
+        "env": {
+            "WEEKEND_PROJECT": project_name
         }
     });
+
+    let mut content = if mcp_path.exists() {
+        serde_json::from_str::<serde_json::Value>(
+            &std::fs::read_to_string(&mcp_path)
+                .map_err(|error| format!("failed to read {}: {error}", mcp_path.display()))?,
+        )
+        .map_err(|error| format!("failed to parse {}: {error}", mcp_path.display()))?
+    } else {
+        serde_json::json!({})
+    };
+
+    let root = content
+        .as_object_mut()
+        .ok_or_else(|| format!("{} must contain a JSON object", mcp_path.display()))?;
+    let mcp_servers = root
+        .entry("mcpServers".to_string())
+        .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()))
+        .as_object_mut()
+        .ok_or_else(|| format!("{}.mcpServers must be a JSON object", mcp_path.display()))?;
+    mcp_servers.insert("weekend-browser".to_string(), weekend_browser_config);
+
     let serialized = serde_json::to_string_pretty(&content)
         .map_err(|error| format!("failed to serialize .mcp.json: {error}"))?;
     std::fs::write(&mcp_path, format!("{serialized}\n"))
@@ -2182,7 +2267,10 @@ fn should_emit_project_tree_change(kind: &EventKind) -> bool {
 }
 
 fn is_reserved_root_entry(name: &str) -> bool {
-    matches!(name, "logs" | SHARED_ASSETS_ROOT_DIR_NAME)
+    matches!(
+        name,
+        "logs" | SHARED_ASSETS_ROOT_DIR_NAME | PROJECT_BRIDGE_PORT_DIR_NAME
+    )
 }
 
 const RUNTIME_NOISE_DIRS: &[&str] = &[
@@ -3036,6 +3124,73 @@ mod config_tests {
 }
 
 #[cfg(test)]
+mod mcp_config_tests {
+    use super::{project_name_from_browser_webview_label, seed_mcp_json};
+    use serde_json::Value;
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn make_temp_project_dir(prefix: &str) -> PathBuf {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock")
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("{prefix}-{unique}"));
+        std::fs::create_dir_all(&dir).expect("create project dir");
+        dir
+    }
+
+    #[test]
+    fn seed_mcp_json_preserves_other_servers_and_sets_weekend_project_env() {
+        let root = make_temp_project_dir("weekend-mcp-config");
+        let project_dir = root.join("rl-lab");
+        std::fs::create_dir_all(&project_dir).expect("project dir");
+        std::fs::write(
+            project_dir.join(".mcp.json"),
+            r#"{
+  "mcpServers": {
+    "other-server": {
+      "command": "node",
+      "args": ["other.js"]
+    }
+  }
+}
+"#,
+        )
+        .expect("write mcp json");
+
+        seed_mcp_json(&project_dir).expect("seed mcp json");
+        let parsed: Value = serde_json::from_str(
+            &std::fs::read_to_string(project_dir.join(".mcp.json")).expect("read mcp json"),
+        )
+        .expect("parse mcp json");
+        let _ = std::fs::remove_dir_all(&root);
+
+        assert_eq!(
+            parsed["mcpServers"]["other-server"]["command"].as_str(),
+            Some("node")
+        );
+        assert_eq!(
+            parsed["mcpServers"]["weekend-browser"]["env"]["WEEKEND_PROJECT"].as_str(),
+            Some("rl-lab")
+        );
+    }
+
+    #[test]
+    fn extracts_project_name_from_browser_label() {
+        assert_eq!(
+            project_name_from_browser_webview_label("browser-pane:rl-lab:3"),
+            Some("rl-lab")
+        );
+        assert_eq!(
+            project_name_from_browser_webview_label("browser-pane:workspace:foo:9"),
+            Some("workspace:foo")
+        );
+        assert_eq!(project_name_from_browser_webview_label("browser-pane:"), None);
+    }
+}
+
+#[cfg(test)]
 mod wrapper_repair_tests {
     use super::replace_legacy_node_modules_paths;
 
@@ -3280,16 +3435,10 @@ fn backfill_mcp_configs() -> Result<(), String> {
             );
         }
 
-        // Only seed .mcp.json if missing
-        let mcp_path = project_dir.join(".mcp.json");
-        if mcp_path.exists() {
-            continue;
-        }
-
         if let Err(error) = seed_mcp_json(&project_dir) {
             log_backend(
                 "WARN",
-                format!("failed to backfill .mcp.json for project={project_name}: {error}"),
+                format!("failed to refresh .mcp.json for project={project_name}: {error}"),
             );
         } else {
             mcp_count += 1;
@@ -3299,7 +3448,7 @@ fn backfill_mcp_configs() -> Result<(), String> {
     if mcp_count > 0 {
         log_backend(
             "INFO",
-            format!("backfilled .mcp.json for {mcp_count} existing project(s)"),
+            format!("refreshed .mcp.json for {mcp_count} existing project(s)"),
         );
     }
     Ok(())
@@ -4551,6 +4700,18 @@ fn terminal_open<R: Runtime>(
             .filter(|value| !value.is_empty())
         {
             cmd.env("WEEKEND_PROJECT", project_name);
+            {
+                let bridge_state: tauri::State<'_, BridgeState> = app.state();
+                if let Err(error) = sync_project_bridge_port_file(project_name, bridge_state.inner())
+                {
+                    log_backend(
+                        "WARN",
+                        format!(
+                            "terminal_open project={project_name}: failed to sync project bridge port file ({error})"
+                        ),
+                    );
+                }
+            }
             let project_dir = resolve_project_dir(project_name)?;
             match read_project_config(&project_dir) {
                 ProjectConfigLookup::Valid(config) => {
@@ -5390,6 +5551,18 @@ fn main() {
                     .browser_webview_labels
                     .lock()
                     .map(|mut set| set.insert(label.clone()));
+                if let Some(project_name) = project_name_from_browser_webview_label(&label) {
+                    if let Err(error) =
+                        sync_project_bridge_port_file(project_name, bridge_state.inner())
+                    {
+                        log_backend(
+                            "WARN",
+                            format!(
+                                "failed to sync project bridge port file for project={project_name}: {error}"
+                            ),
+                        );
+                    }
+                }
 
                 // Mark as not-ready at navigation start and wait for explicit
                 // browser bridge ready callbacks before handling tool actions.
