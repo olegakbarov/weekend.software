@@ -70,7 +70,6 @@ function RootLayout() {
       activeTerminalId={routeInfo.view === "terminal" ? routeInfo.terminalId : null}
       isFullscreen={isFullscreen}
       onCreateTerminal={actions.createTerminal}
-      onOpenHome={() => void navigate({ to: "/home" })}
       onOpenLogs={() => void navigate({ to: "/logs" })}
       onOpenSettings={() => void navigate({ to: "/settings" })}
       onRenameTerminal={(terminalId, newLabel) => {

@@ -79,8 +79,6 @@ export function Sidebar({
   });
   const sensors = useSensors(pointerSensor, keyboardSensor);
   const trafficLightsSafeZonePx = 72;
-  const newProjectButtonHeightPx = 33;
-
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
@@ -95,38 +93,52 @@ export function Sidebar({
 
   return (
     <aside className="flex h-full w-[260px] shrink-0 flex-col border-border border-r bg-background">
-      {!isFullscreen ? (
-        /* ── Header row: traffic lights + archive label/drag area ── */
-        <div className="shrink-0 px-2">
-          <div className="flex h-12 items-center gap-2">
+      <div className="shrink-0 px-2">
+        <div className="flex h-12 items-center">
+          {!isFullscreen ? (
             <div
               className="h-full shrink-0"
               data-tauri-drag-region
               style={{ width: `${trafficLightsSafeZonePx}px` }}
             />
-            {showArchived ? (
-              <div
-                className="flex min-w-0 flex-1 items-center justify-center font-vcr text-[12px] text-muted-foreground/50"
-                data-tauri-drag-region
-              >
-                ARCHIVED PROJECTS
-              </div>
-            ) : (
-              <div className="min-w-0 flex-1" data-tauri-drag-region />
+          ) : null}
+          <div
+            className={cn(
+              "min-w-0 flex-1 px-2",
+              showArchived
+                ? "flex items-center justify-center font-vcr text-[12px] text-muted-foreground/50"
+                : null
             )}
+            data-tauri-drag-region={!isFullscreen || undefined}
+          >
+            {showArchived ? "ARCHIVED PROJECTS" : null}
           </div>
+          <button
+            className={cn(
+              "inline-flex h-8 shrink-0 items-center gap-2 rounded-md border px-3 font-vcr text-[12px] uppercase tracking-wide leading-none shadow-sm transition-colors",
+              currentRoute === "home"
+                ? "border-primary/70 bg-primary text-primary-foreground shadow-primary/20"
+                : "border-primary/35 bg-primary/90 text-primary-foreground shadow-primary/15 hover:bg-primary hover:shadow-primary/20"
+            )}
+            onClick={onOpenHome}
+            title="New project"
+            type="button"
+          >
+            <Plus className="size-3.5 shrink-0" />
+            <span>New</span>
+          </button>
         </div>
-      ) : null}
+      </div>
 
       {/* ── Project list ── */}
       <div className="flex min-h-0 flex-1 flex-col px-1.5">
         {showArchived ? (
-          <div
-            className={cn(
-              "min-h-0 flex-1 space-y-px overflow-auto",
-              isFullscreen ? "pt-2 pb-0.5" : "py-0.5"
-            )}
-          >
+            <div
+              className={cn(
+                "min-h-0 flex-1 space-y-px overflow-auto",
+                "py-0.5"
+              )}
+            >
             {displayedProjects.length === 0 ? (
               <div className="flex items-center justify-center py-8">
                 <p className="font-code text-xs text-muted-foreground/40">
@@ -162,25 +174,9 @@ export function Sidebar({
             <div
               className={cn(
                 "min-h-0 flex-1 space-y-px overflow-auto",
-                isFullscreen ? "pt-2 pb-1" : "py-1"
+                "py-1"
               )}
             >
-              <button
-                className={cn(
-                  "mb-[29px] flex w-full items-center gap-2.5 rounded-md border px-2 text-left font-vcr text-[13px] transition-colors",
-                  currentRoute === "home"
-                    ? "border-border/70 text-foreground"
-                    : "border-border/30 text-muted-foreground hover:border-border/60 hover:text-foreground/70"
-                )}
-                onClick={onOpenHome}
-                style={{ height: `${newProjectButtonHeightPx}px` }}
-                type="button"
-              >
-                <span className="inline-flex size-1.5 shrink-0 items-center justify-center">
-                  <Plus className="size-[0.9rem] shrink-0" />
-                </span>
-                <span className="min-w-0 flex-1 truncate">NEW PROJECT</span>
-              </button>
               <SortableContext items={projects} strategy={verticalListSortingStrategy}>
                 {displayedProjects.map((project) => (
                   <SidebarProjectItem
