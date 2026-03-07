@@ -29,15 +29,12 @@ export function localDevServerMessage(url: string): string {
   }
 }
 
-export function buildIframeSrc(url: string, frameVersion: number): string {
+export function buildBrowserSurfaceUrl(url: string): string {
   try {
     const parsed = new URL(url);
     if (parsed.hostname === "0.0.0.0") {
       parsed.hostname = "localhost";
     }
-    const isLocalDevHost = isLocalDevHostname(parsed.hostname);
-    if (!isLocalDevHost) return parsed.toString();
-    parsed.searchParams.set("__weekend_reload", String(frameVersion));
     return parsed.toString();
   } catch {
     return url;

@@ -130,7 +130,9 @@ export function useBrowserWebview({
     (playState === "starting" && shouldUseStartupRuntimeProbe) ||
     isAwaitingStartupRuntime;
   const displayRuntimeSurfaceUrl =
-    isStartupLoading || startupProbeErrorMessage ? null : runtimeSurfaceUrl;
+    MOCK_MODE || isStartupLoading || startupProbeErrorMessage
+      ? null
+      : runtimeSurfaceUrl;
 
   const clearLoadTimeout = useCallback(() => {
     if (loadTimeoutRef.current === null) return;

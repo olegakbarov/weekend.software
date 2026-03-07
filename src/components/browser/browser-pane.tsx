@@ -12,10 +12,8 @@ import type {
 } from "@/lib/controller";
 import { MOCK_MODE } from "@/lib/tauri-mock";
 import {
-  buildIframeSrc,
+  buildBrowserSurfaceUrl,
   isCrossProjectLocalDevUrl,
-  isLocalDevUrl,
-  localDevServerMessage,
   normalizeNavigableUrl,
 } from "./browser-url-utils";
 import {
@@ -154,10 +152,11 @@ export function BrowserPane({
   const addressBarError = addressBarErrorByProject[projectKey] ?? null;
   const selectedEditorFileName =
     selectedEditorFilePath?.split("/").pop() ?? selectedEditorFilePath;
+  const isEmbeddedBrowserAvailable = !MOCK_MODE;
 
   const runtimeSurfaceUrl = useMemo(
-    () => (navigationUrl ? buildIframeSrc(navigationUrl, frameVersion) : null),
-    [frameVersion, navigationUrl]
+    () => (navigationUrl ? buildBrowserSurfaceUrl(navigationUrl) : null),
+    [navigationUrl]
   );
 
   // --- Stable callbacks for the webview hook ---
@@ -348,7 +347,7 @@ export function BrowserPane({
     storedUrlInputDraft,
   ]);
 
-  const hasBrowserUrl = Boolean(navigationUrl);
+  const hasBrowserUrl = isEmbeddedBrowserAvailable && Boolean(navigationUrl);
   const effectiveBrowserErrorMessage =
     startupProbeErrorMessage ?? frameErrorMessage;
   const showBrowserShell =
@@ -383,7 +382,9 @@ export function BrowserPane({
       />
 
       <div className="relative min-h-0 flex-1 bg-background">
-        {browserTarget.status === "ready" && displayRuntimeSurfaceUrl ? (
+        {isEmbeddedBrowserAvailable &&
+        browserTarget.status === "ready" &&
+        displayRuntimeSurfaceUrl ? (
           <div
             aria-hidden={workspaceMode !== "browser"}
             className={
@@ -392,41 +393,10 @@ export function BrowserPane({
                 : "pointer-events-none absolute inset-0 opacity-0"
             }
           >
-            {MOCK_MODE ? (
-              <iframe
-                className="h-full w-full border-0 bg-background"
-                key={`${projectKey}-${displayRuntimeSurfaceUrl}`}
-                onError={() => {
-                  console.error("[Browser] iframe onError", {
-                    projectKey,
-                    url: navigationUrl,
-                  });
-                }}
-                onLoad={() => {
-                  console.info("[Browser] iframe onLoad", {
-                    projectKey,
-                    url: navigationUrl,
-                  });
-                  if (navigationUrl) {
-                    setCurrentPageUrlByProject((previous) => ({
-                      ...previous,
-                      [projectKey]: navigationUrl,
-                    }));
-                    setUrlInputDraftByProject((previous) => ({
-                      ...previous,
-                      [projectKey]: navigationUrl,
-                    }));
-                  }
-                }}
-                src={displayRuntimeSurfaceUrl}
-                title="weekend-browser"
-              />
-            ) : (
-              <div
-                className="h-full w-full bg-background"
-                ref={nativeWebviewHostRef}
-              />
-            )}
+            <div
+              className="h-full w-full bg-background"
+              ref={nativeWebviewHostRef}
+            />
           </div>
         ) : null}
 
@@ -454,6 +424,17 @@ export function BrowserPane({
               </p>
             </div>
           )
+        ) : browserTarget.status === "ready" && !isEmbeddedBrowserAvailable ? (
+          <div className="flex h-full items-center justify-center px-4">
+            <div className="max-w-xl rounded-md border border-border bg-background p-4 text-center">
+              <p className="font-code text-xs text-foreground">
+                Browser pane is available only in the desktop app.
+              </p>
+              <p className="mt-2 font-code text-xs text-muted-foreground">
+                Run `pnpm tauri:dev` to use the embedded browser.
+              </p>
+            </div>
+          </div>
         ) : showBrowserShell ? (
           <>
             {(isStartupLoading || isFrameLoading) &&
