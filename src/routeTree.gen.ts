@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SharedDropRouteImport } from './routes/shared-drop'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WorkspaceProjectRouteImport } from './routes/workspace.$project'
 
+const SharedDropRoute = SharedDropRouteImport.update({
+  id: '/shared-drop',
+  path: '/shared-drop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof HomeRoute
   '/logs': typeof LogsRoute
   '/settings': typeof SettingsRoute
+  '/shared-drop': typeof SharedDropRoute
   '/workspace/$project': typeof WorkspaceProjectRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/home': typeof HomeRoute
   '/logs': typeof LogsRoute
   '/settings': typeof SettingsRoute
+  '/shared-drop': typeof SharedDropRoute
   '/workspace/$project': typeof WorkspaceProjectRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,34 @@ export interface FileRoutesById {
   '/home': typeof HomeRoute
   '/logs': typeof LogsRoute
   '/settings': typeof SettingsRoute
+  '/shared-drop': typeof SharedDropRoute
   '/workspace/$project': typeof WorkspaceProjectRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/home' | '/logs' | '/settings' | '/workspace/$project'
+  fullPaths:
+    | '/'
+    | '/home'
+    | '/logs'
+    | '/settings'
+    | '/shared-drop'
+    | '/workspace/$project'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/home' | '/logs' | '/settings' | '/workspace/$project'
-  id: '__root__' | '/' | '/home' | '/logs' | '/settings' | '/workspace/$project'
+  to:
+    | '/'
+    | '/home'
+    | '/logs'
+    | '/settings'
+    | '/shared-drop'
+    | '/workspace/$project'
+  id:
+    | '__root__'
+    | '/'
+    | '/home'
+    | '/logs'
+    | '/settings'
+    | '/shared-drop'
+    | '/workspace/$project'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,11 +104,19 @@ export interface RootRouteChildren {
   HomeRoute: typeof HomeRoute
   LogsRoute: typeof LogsRoute
   SettingsRoute: typeof SettingsRoute
+  SharedDropRoute: typeof SharedDropRoute
   WorkspaceProjectRoute: typeof WorkspaceProjectRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/shared-drop': {
+      id: '/shared-drop'
+      path: '/shared-drop'
+      fullPath: '/shared-drop'
+      preLoaderRoute: typeof SharedDropRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -124,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   HomeRoute: HomeRoute,
   LogsRoute: LogsRoute,
   SettingsRoute: SettingsRoute,
+  SharedDropRoute: SharedDropRoute,
   WorkspaceProjectRoute: WorkspaceProjectRoute,
 }
 export const routeTree = rootRouteImport

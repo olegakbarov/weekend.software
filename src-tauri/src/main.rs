@@ -21,7 +21,12 @@ use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
-use tauri::{AppHandle, Emitter, Manager, Runtime, State, Url};
+use tauri::image::Image;
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::{
+    AppHandle, Emitter, Manager, PhysicalPosition, Runtime, State, Url, WebviewUrl, WebviewWindow,
+};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 struct TerminalSession {
@@ -277,6 +282,14 @@ const PROJECT_GITIGNORE_FILE_NAME: &str = ".gitignore";
 const SHARED_ASSETS_ROOT_DIR_NAME: &str = "shared-assets";
 const PROJECT_BRIDGE_PORT_DIR_NAME: &str = "bridge-projects";
 const PROJECT_SHARED_ASSETS_DIR_NAME: &str = "shared-assets";
+const SHARED_DROP_WINDOW_LABEL: &str = "shared-drop";
+const SHARED_DROP_TRAY_ID: &str = "weekend-tray";
+const SHARED_DROP_TRAY_MENU_OPEN_MAIN_ID: &str = "weekend-tray-open-main";
+const SHARED_DROP_TRAY_MENU_OPEN_DROP_ID: &str = "weekend-tray-open-drop";
+const SHARED_DROP_WINDOW_WIDTH: f64 = 372.0;
+const SHARED_DROP_WINDOW_HEIGHT: f64 = 312.0;
+const SHARED_DROP_WINDOW_MARGIN: f64 = 10.0;
+const SHARED_DROP_WINDOW_OFFSET_Y: f64 = 8.0;
 const LOG_ROTATE_MAX_BYTES: u64 = 2 * 1024 * 1024;
 const LOG_ROTATE_ARCHIVE_COUNT: usize = 6;
 const LOG_MESSAGE_MAX_CHARS: usize = 8000;
@@ -389,6 +402,420 @@ fn ensure_shared_assets_root() -> Result<PathBuf, String> {
         )
     })?;
     Ok(path)
+}
+
+fn import_shared_asset_from_path(source_path: &Path, shared_root: &Path) -> Result<String, String> {
+    if !source_path.exists() {
+        return Err(format!(
+            "cannot import shared asset '{}': source file does not exist",
+            source_path.display()
+        ));
+    }
+    if !source_path.is_file() {
+        return Err(format!(
+            "cannot import shared asset '{}': source path is not a file",
+            source_path.display()
+        ));
+    }
+
+    let file_name = source_path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .ok_or_else(|| {
+            format!(
+                "cannot import shared asset '{}': invalid file name",
+                source_path.display()
+            )
+        })?;
+    let file_name = sanitize_shared_asset_file_name(file_name)?;
+    let target_path = shared_root.join(&file_name);
+    std::fs::copy(source_path, &target_path).map_err(|error| {
+        format!(
+            "failed to copy shared asset {} -> {}: {error}",
+            source_path.display(),
+            target_path.display()
+        )
+    })?;
+    Ok(file_name)
+}
+
+fn shared_asset_target_path(
+    shared_root: &Path,
+    file_name: &str,
+) -> Result<(String, PathBuf), String> {
+    let normalized = sanitize_shared_asset_file_name(file_name)?;
+    Ok((normalized.clone(), shared_root.join(normalized)))
+}
+
+fn rename_shared_asset_in_root(
+    shared_root: &Path,
+    file_name: &str,
+    new_file_name: &str,
+) -> Result<(String, String), String> {
+    let (current_name, current_path) = shared_asset_target_path(shared_root, file_name)?;
+    let (next_name, next_path) = shared_asset_target_path(shared_root, new_file_name)?;
+
+    if current_name == next_name {
+        return Ok((current_name, next_name));
+    }
+    if !current_path.exists() {
+        return Err(format!("shared asset '{}' was not found", current_name));
+    }
+    if !current_path.is_file() {
+        return Err(format!("shared asset '{}' is not a file", current_name));
+    }
+
+    let is_case_only_rename =
+        current_name != next_name && current_name.to_lowercase() == next_name.to_lowercase();
+    if is_case_only_rename {
+        let temporary_path =
+            shared_root.join(format!(".shared-asset-rename-{}", uuid::Uuid::new_v4()));
+        std::fs::rename(&current_path, &temporary_path).map_err(|error| {
+            format!(
+                "failed to rename shared asset {} -> {}: {error}",
+                current_path.display(),
+                temporary_path.display()
+            )
+        })?;
+        if let Err(error) = std::fs::rename(&temporary_path, &next_path) {
+            let _ = std::fs::rename(&temporary_path, &current_path);
+            return Err(format!(
+                "failed to rename shared asset {} -> {}: {error}",
+                current_path.display(),
+                next_path.display()
+            ));
+        }
+        return Ok((current_name, next_name));
+    }
+
+    if next_path.exists() {
+        return Err(format!("shared asset '{}' already exists", next_name));
+    }
+
+    std::fs::rename(&current_path, &next_path).map_err(|error| {
+        format!(
+            "failed to rename shared asset {} -> {}: {error}",
+            current_path.display(),
+            next_path.display()
+        )
+    })?;
+
+    Ok((current_name, next_name))
+}
+
+fn shared_drop_window_init_script() -> &'static str {
+    r##"
+window.__WEEKEND_SHARED_DROP_WINDOW__ = true;
+document.documentElement.style.backgroundColor = "transparent";
+const applyWeekendSharedDropTransparency = () => {
+  if (!document.body) {
+    return;
+  }
+  document.body.style.backgroundColor = "transparent";
+  document.body.style.background = "transparent";
+};
+applyWeekendSharedDropTransparency();
+window.addEventListener("DOMContentLoaded", applyWeekendSharedDropTransparency, { once: true });
+if (window.location.hash !== "#/shared-drop") {
+  window.location.hash = "#/shared-drop";
+}
+"##
+}
+
+fn fallback_shared_drop_position<R: Runtime>(app: &AppHandle<R>) -> Result<(f64, f64), String> {
+    if let Some(monitor) = app
+        .primary_monitor()
+        .map_err(|error| format!("failed to read primary monitor: {error}"))?
+    {
+        let x = monitor.position().x as f64 + monitor.size().width as f64
+            - SHARED_DROP_WINDOW_WIDTH
+            - SHARED_DROP_WINDOW_MARGIN;
+        let y = monitor.position().y as f64 + SHARED_DROP_WINDOW_MARGIN + 24.0;
+        return Ok((
+            x.max(SHARED_DROP_WINDOW_MARGIN),
+            y.max(SHARED_DROP_WINDOW_MARGIN),
+        ));
+    }
+
+    Ok((SHARED_DROP_WINDOW_MARGIN, SHARED_DROP_WINDOW_MARGIN))
+}
+
+fn shared_drop_window_position_from_rect<R: Runtime>(
+    app: &AppHandle<R>,
+    rect: tauri::Rect,
+) -> Result<(f64, f64), String> {
+    let rect_position = rect.position.to_physical::<f64>(1.0);
+    let rect_size = rect.size.to_physical::<f64>(1.0);
+    let center_x = rect_position.x + rect_size.width / 2.0;
+    let mut x = center_x - SHARED_DROP_WINDOW_WIDTH / 2.0;
+    let mut y = rect_position.y + rect_size.height + SHARED_DROP_WINDOW_OFFSET_Y;
+
+    if let Some(monitor) = app
+        .monitor_from_point(center_x, rect_position.y)
+        .map_err(|error| format!("failed to resolve tray monitor: {error}"))?
+        .or_else(|| app.primary_monitor().ok().flatten())
+    {
+        let min_x = monitor.position().x as f64 + SHARED_DROP_WINDOW_MARGIN;
+        let max_x = monitor.position().x as f64 + monitor.size().width as f64
+            - SHARED_DROP_WINDOW_WIDTH
+            - SHARED_DROP_WINDOW_MARGIN;
+        if max_x >= min_x {
+            x = x.clamp(min_x, max_x);
+        } else {
+            x = min_x;
+        }
+
+        let min_y = monitor.position().y as f64 + SHARED_DROP_WINDOW_MARGIN;
+        let max_y = monitor.position().y as f64 + monitor.size().height as f64
+            - SHARED_DROP_WINDOW_HEIGHT
+            - SHARED_DROP_WINDOW_MARGIN;
+        if max_y >= min_y {
+            y = y.clamp(min_y, max_y);
+        } else {
+            y = min_y;
+        }
+    }
+
+    Ok((x, y))
+}
+
+fn position_shared_drop_window<R: Runtime>(
+    app: &AppHandle<R>,
+    window: &WebviewWindow<R>,
+    anchor_rect: Option<tauri::Rect>,
+) -> Result<(), String> {
+    let (x, y) = match anchor_rect {
+        Some(rect) => shared_drop_window_position_from_rect(app, rect)?,
+        None => fallback_shared_drop_position(app)?,
+    };
+
+    window
+        .set_position(PhysicalPosition::new(x.round() as i32, y.round() as i32))
+        .map_err(|error| format!("failed to position shared-drop window: {error}"))
+}
+
+fn ensure_shared_drop_window<R: Runtime>(app: &AppHandle<R>) -> Result<WebviewWindow<R>, String> {
+    if let Some(window) = app.get_webview_window(SHARED_DROP_WINDOW_LABEL) {
+        window
+            .set_shadow(false)
+            .map_err(|error| format!("failed to disable shared-drop window shadow: {error}"))?;
+        return Ok(window);
+    }
+
+    WebviewWindow::builder(
+        app,
+        SHARED_DROP_WINDOW_LABEL,
+        WebviewUrl::App("index.html".into()),
+    )
+    .title("Weekend Shared Files")
+    .inner_size(SHARED_DROP_WINDOW_WIDTH, SHARED_DROP_WINDOW_HEIGHT)
+    .visible(false)
+    .focused(false)
+    .resizable(false)
+    .maximizable(false)
+    .minimizable(false)
+    .closable(true)
+    .decorations(false)
+    .transparent(true)
+    .always_on_top(true)
+    .skip_taskbar(true)
+    .visible_on_all_workspaces(true)
+    .accept_first_mouse(true)
+    .shadow(false)
+    .initialization_script(shared_drop_window_init_script())
+    .build()
+    .map_err(|error| format!("failed to create shared-drop window: {error}"))
+}
+
+fn show_shared_drop_window<R: Runtime>(
+    app: &AppHandle<R>,
+    anchor_rect: Option<tauri::Rect>,
+) -> Result<(), String> {
+    let window = ensure_shared_drop_window(app)?;
+    position_shared_drop_window(app, &window, anchor_rect)?;
+    window
+        .show()
+        .map_err(|error| format!("failed to show shared-drop window: {error}"))?;
+    window
+        .set_focus()
+        .map_err(|error| format!("failed to focus shared-drop window: {error}"))?;
+    Ok(())
+}
+
+fn toggle_shared_drop_window<R: Runtime>(
+    app: &AppHandle<R>,
+    anchor_rect: Option<tauri::Rect>,
+) -> Result<(), String> {
+    let window = ensure_shared_drop_window(app)?;
+    if window.is_visible().unwrap_or(false) {
+        window
+            .hide()
+            .map_err(|error| format!("failed to hide shared-drop window: {error}"))?;
+        return Ok(());
+    }
+    show_shared_drop_window(app, anchor_rect)
+}
+
+fn show_shared_drop_window_from_tray<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
+    let anchor_rect = app
+        .tray_by_id(SHARED_DROP_TRAY_ID)
+        .and_then(|tray| tray.rect().ok().flatten());
+    show_shared_drop_window(app, anchor_rect)
+}
+
+fn show_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
+    let Some(window) = app.get_webview_window("main") else {
+        return Ok(());
+    };
+
+    window
+        .show()
+        .map_err(|error| format!("failed to show main window: {error}"))?;
+    let _ = window.unminimize();
+    window
+        .set_focus()
+        .map_err(|error| format!("failed to focus main window: {error}"))
+}
+
+fn set_tray_icon_pixel(rgba: &mut [u8], width: u32, x: i32, y: i32) {
+    if x < 0 || y < 0 {
+        return;
+    }
+    let x = x as u32;
+    let y = y as u32;
+    if x >= width {
+        return;
+    }
+    let height = rgba.len() as u32 / 4 / width;
+    if y >= height {
+        return;
+    }
+    let index = ((y * width + x) * 4) as usize;
+    rgba[index] = 0;
+    rgba[index + 1] = 0;
+    rgba[index + 2] = 0;
+    rgba[index + 3] = 255;
+}
+
+fn stamp_tray_icon_pixel(rgba: &mut [u8], width: u32, x: i32, y: i32, radius: i32) {
+    for offset_x in -radius..=radius {
+        for offset_y in -radius..=radius {
+            set_tray_icon_pixel(rgba, width, x + offset_x, y + offset_y);
+        }
+    }
+}
+
+fn draw_tray_icon_line(
+    rgba: &mut [u8],
+    width: u32,
+    x0: i32,
+    y0: i32,
+    x1: i32,
+    y1: i32,
+    thickness: i32,
+) {
+    let mut x = x0;
+    let mut y = y0;
+    let dx = (x1 - x0).abs();
+    let sx = if x0 < x1 { 1 } else { -1 };
+    let dy = -(y1 - y0).abs();
+    let sy = if y0 < y1 { 1 } else { -1 };
+    let mut err = dx + dy;
+
+    loop {
+        stamp_tray_icon_pixel(rgba, width, x, y, thickness);
+
+        if x == x1 && y == y1 {
+            break;
+        }
+
+        let err2 = err * 2;
+        if err2 >= dy {
+            err += dy;
+            x += sx;
+        }
+        if err2 <= dx {
+            err += dx;
+            y += sy;
+        }
+    }
+}
+
+fn weekend_tray_icon() -> Image<'static> {
+    const WIDTH: u32 = 18;
+    const HEIGHT: u32 = 18;
+    let mut rgba = vec![0u8; (WIDTH * HEIGHT * 4) as usize];
+
+    draw_tray_icon_line(&mut rgba, WIDTH, 9, 3, 9, 10, 1);
+    draw_tray_icon_line(&mut rgba, WIDTH, 6, 7, 9, 10, 1);
+    draw_tray_icon_line(&mut rgba, WIDTH, 12, 7, 9, 10, 1);
+    draw_tray_icon_line(&mut rgba, WIDTH, 4, 12, 6, 14, 1);
+    draw_tray_icon_line(&mut rgba, WIDTH, 14, 12, 12, 14, 1);
+    draw_tray_icon_line(&mut rgba, WIDTH, 6, 14, 12, 14, 1);
+    draw_tray_icon_line(&mut rgba, WIDTH, 4, 12, 14, 12, 1);
+
+    Image::new_owned(rgba, WIDTH, HEIGHT)
+}
+
+fn install_shared_drop_tray<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
+    let open_main_item = MenuItem::with_id(
+        app,
+        SHARED_DROP_TRAY_MENU_OPEN_MAIN_ID,
+        "Open Weekend",
+        true,
+        None::<&str>,
+    )
+    .map_err(|error| format!("failed to create tray menu item: {error}"))?;
+    let open_drop_item = MenuItem::with_id(
+        app,
+        SHARED_DROP_TRAY_MENU_OPEN_DROP_ID,
+        "Shared Files",
+        true,
+        None::<&str>,
+    )
+    .map_err(|error| format!("failed to create tray menu item: {error}"))?;
+    let quit_item = PredefinedMenuItem::quit(app, None)
+        .map_err(|error| format!("failed to create tray quit item: {error}"))?;
+    let menu = Menu::with_items(app, &[&open_main_item, &open_drop_item, &quit_item])
+        .map_err(|error| format!("failed to create tray menu: {error}"))?;
+
+    let tray_icon = TrayIconBuilder::with_id(SHARED_DROP_TRAY_ID)
+        .menu(&menu)
+        .icon(weekend_tray_icon())
+        .icon_as_template(true)
+        .show_menu_on_left_click(false)
+        .on_menu_event(|app, event| {
+            if event.id() == SHARED_DROP_TRAY_MENU_OPEN_MAIN_ID {
+                if let Err(error) = show_main_window(app) {
+                    log_backend("WARN", format!("tray open main failed: {error}"));
+                }
+            } else if event.id() == SHARED_DROP_TRAY_MENU_OPEN_DROP_ID {
+                if let Err(error) = show_shared_drop_window_from_tray(app) {
+                    log_backend("WARN", format!("tray open shared drop failed: {error}"));
+                }
+            }
+        })
+        .on_tray_icon_event(|tray, event| {
+            if let TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                rect,
+                ..
+            } = event
+            {
+                if let Err(error) = toggle_shared_drop_window(&tray.app_handle(), Some(rect)) {
+                    log_backend("WARN", format!("tray toggle shared drop failed: {error}"));
+                }
+            }
+        })
+        .build(app)
+        .map_err(|error| format!("failed to build tray icon: {error}"))?;
+
+    tray_icon
+        .set_icon_as_template(true)
+        .map_err(|error| format!("failed to configure tray icon template mode: {error}"))?;
+
+    Ok(())
 }
 
 fn project_bridge_port_dir() -> Result<PathBuf, String> {
@@ -516,6 +943,34 @@ fn to_unix_ms(time: SystemTime) -> Option<u64> {
         .and_then(|duration| u64::try_from(duration.as_millis()).ok())
 }
 
+fn collect_shared_asset_source_paths(shared_root: &Path) -> Result<Vec<(String, PathBuf)>, String> {
+    if !shared_root.exists() {
+        return Ok(Vec::new());
+    }
+
+    let mut source_paths: Vec<(String, PathBuf)> = std::fs::read_dir(shared_root)
+        .map_err(|error| format!("failed to read {}: {error}", shared_root.display()))?
+        .flatten()
+        .filter_map(|entry| {
+            let file_type = entry.file_type().ok()?;
+            if !file_type.is_file() {
+                return None;
+            }
+            let file_name = entry.file_name().into_string().ok()?;
+            Some((file_name, entry.path()))
+        })
+        .collect();
+
+    source_paths.sort_by(|left, right| {
+        left.0
+            .to_ascii_lowercase()
+            .cmp(&right.0.to_ascii_lowercase())
+            .then_with(|| left.0.cmp(&right.0))
+    });
+
+    Ok(source_paths)
+}
+
 fn list_shared_asset_snapshots(shared_root: &Path) -> Result<Vec<SharedAssetSnapshot>, String> {
     if !shared_root.exists() {
         return Ok(Vec::new());
@@ -551,35 +1006,86 @@ fn list_shared_asset_snapshots(shared_root: &Path) -> Result<Vec<SharedAssetSnap
     Ok(snapshots)
 }
 
-fn sync_shared_assets_into_project(project_dir: &Path, shared_root: &Path) -> Result<u32, String> {
-    if !shared_root.exists() {
-        return Ok(0);
+fn list_user_project_dirs(weekend_root: &Path) -> Result<Vec<PathBuf>, String> {
+    if !weekend_root.exists() {
+        return Ok(Vec::new());
     }
 
-    let source_paths: Vec<(String, PathBuf)> = std::fs::read_dir(shared_root)
-        .map_err(|error| format!("failed to read {}: {error}", shared_root.display()))?
-        .flatten()
-        .filter_map(|entry| {
-            let file_type = entry.file_type().ok()?;
-            if !file_type.is_file() {
-                return None;
-            }
-            let file_name = entry.file_name().into_string().ok()?;
-            Some((file_name, entry.path()))
-        })
+    let entries = std::fs::read_dir(weekend_root)
+        .map_err(|error| format!("failed to read ~/.weekend: {error}"))?;
+
+    let mut project_dirs = Vec::new();
+    for entry in entries.flatten() {
+        let Ok(file_type) = entry.file_type() else {
+            continue;
+        };
+        if !file_type.is_dir() {
+            continue;
+        }
+
+        let project_name = match entry.file_name().into_string() {
+            Ok(name) => name,
+            Err(_) => continue,
+        };
+        if is_reserved_root_entry(&project_name) || !is_safe_project_name(&project_name) {
+            continue;
+        }
+
+        project_dirs.push(entry.path());
+    }
+
+    Ok(project_dirs)
+}
+
+fn sync_shared_assets_into_project(project_dir: &Path, shared_root: &Path) -> Result<u32, String> {
+    let source_paths = collect_shared_asset_source_paths(shared_root)?;
+    let source_names: HashSet<&str> = source_paths
+        .iter()
+        .map(|(file_name, _)| file_name.as_str())
         .collect();
+
+    let project_shared_assets = project_shared_assets_dir(project_dir);
+    if !source_paths.is_empty() {
+        std::fs::create_dir_all(&project_shared_assets).map_err(|error| {
+            format!(
+                "failed to create project shared assets directory {}: {error}",
+                project_shared_assets.display()
+            )
+        })?;
+    }
+
+    if project_shared_assets.exists() {
+        let project_entries = std::fs::read_dir(&project_shared_assets).map_err(|error| {
+            format!(
+                "failed to read project shared assets directory {}: {error}",
+                project_shared_assets.display()
+            )
+        })?;
+        for entry in project_entries.flatten() {
+            let Ok(file_type) = entry.file_type() else {
+                continue;
+            };
+            if !file_type.is_file() {
+                continue;
+            }
+            let Ok(file_name) = entry.file_name().into_string() else {
+                continue;
+            };
+            if source_names.contains(file_name.as_str()) {
+                continue;
+            }
+            std::fs::remove_file(entry.path()).map_err(|error| {
+                format!(
+                    "failed to remove stale shared asset {}: {error}",
+                    entry.path().display()
+                )
+            })?;
+        }
+    }
 
     if source_paths.is_empty() {
         return Ok(0);
     }
-
-    let project_shared_assets = project_shared_assets_dir(project_dir);
-    std::fs::create_dir_all(&project_shared_assets).map_err(|error| {
-        format!(
-            "failed to create project shared assets directory {}: {error}",
-            project_shared_assets.display()
-        )
-    })?;
 
     for (file_name, source_path) in &source_paths {
         let target_path = project_shared_assets.join(file_name);
@@ -599,36 +1105,16 @@ fn sync_shared_assets_into_all_projects(
     weekend_root: &Path,
     shared_root: &Path,
 ) -> Result<u32, String> {
-    if !shared_root.exists() {
-        return Ok(0);
-    }
-
-    let entries = std::fs::read_dir(weekend_root)
-        .map_err(|error| format!("failed to read ~/.weekend: {error}"))?;
-
+    let project_dirs = list_user_project_dirs(weekend_root)?;
     let mut synced_projects = 0u32;
-    for entry in entries.flatten() {
-        let Ok(file_type) = entry.file_type() else {
-            continue;
-        };
-        if !file_type.is_dir() {
-            continue;
-        }
-
-        let project_name = match entry.file_name().into_string() {
-            Ok(name) => name,
-            Err(_) => continue,
-        };
-        if is_reserved_root_entry(&project_name) || !is_safe_project_name(&project_name) {
-            continue;
-        }
-
-        sync_shared_assets_into_project(&entry.path(), shared_root)?;
+    for project_dir in project_dirs {
+        sync_shared_assets_into_project(&project_dir, shared_root)?;
         synced_projects += 1;
     }
 
     Ok(synced_projects)
 }
+
 fn now_unix_ms() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -1359,7 +1845,12 @@ fn seed_mcp_json(project_dir: &Path) -> Result<(), String> {
     let project_name = project_dir
         .file_name()
         .and_then(|value| value.to_str())
-        .ok_or_else(|| format!("failed to resolve project name for {}", project_dir.display()))?;
+        .ok_or_else(|| {
+            format!(
+                "failed to resolve project name for {}",
+                project_dir.display()
+            )
+        })?;
     let binary_path = resolve_mcp_binary_path();
     let weekend_browser_config = serde_json::json!({
         "command": binary_path,
@@ -3186,7 +3677,10 @@ mod mcp_config_tests {
             project_name_from_browser_webview_label("browser-pane:workspace:foo:9"),
             Some("workspace:foo")
         );
-        assert_eq!(project_name_from_browser_webview_label("browser-pane:"), None);
+        assert_eq!(
+            project_name_from_browser_webview_label("browser-pane:"),
+            None
+        );
     }
 }
 
@@ -3885,6 +4379,90 @@ fn shared_assets_upload_batch(
         "INFO",
         format!(
             "uploaded {uploaded_count} shared asset(s) and synced {synced_projects} project(s)"
+        ),
+    );
+
+    list_shared_asset_snapshots(&shared_root)
+}
+
+#[tauri::command]
+fn shared_assets_import_paths(paths: Vec<String>) -> Result<Vec<SharedAssetSnapshot>, String> {
+    if paths.is_empty() {
+        return shared_assets_list();
+    }
+
+    let root = weekend_root()?;
+    std::fs::create_dir_all(&root)
+        .map_err(|error| format!("failed to create ~/.weekend: {error}"))?;
+    let shared_root = ensure_shared_assets_root()?;
+
+    let mut imported_count = 0u32;
+    for raw_path in paths {
+        let trimmed = raw_path.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        import_shared_asset_from_path(Path::new(trimmed), &shared_root)?;
+        imported_count += 1;
+    }
+
+    let synced_projects = sync_shared_assets_into_all_projects(&root, &shared_root)?;
+    log_backend(
+        "INFO",
+        format!(
+            "imported {imported_count} shared asset(s) from paths and synced {synced_projects} project(s)"
+        ),
+    );
+
+    list_shared_asset_snapshots(&shared_root)
+}
+
+#[tauri::command]
+fn shared_assets_delete(file_name: String) -> Result<Vec<SharedAssetSnapshot>, String> {
+    let root = weekend_root()?;
+    std::fs::create_dir_all(&root)
+        .map_err(|error| format!("failed to create ~/.weekend: {error}"))?;
+    let shared_root = ensure_shared_assets_root()?;
+    let (normalized_name, target_path) = shared_asset_target_path(&shared_root, &file_name)?;
+
+    if target_path.exists() {
+        if !target_path.is_file() {
+            return Err(format!("shared asset '{}' is not a file", normalized_name));
+        }
+        std::fs::remove_file(&target_path).map_err(|error| {
+            format!(
+                "failed to remove shared asset {}: {error}",
+                target_path.display()
+            )
+        })?;
+    }
+
+    let synced_projects = sync_shared_assets_into_all_projects(&root, &shared_root)?;
+    log_backend(
+        "INFO",
+        format!("deleted shared asset '{normalized_name}' and synced {synced_projects} project(s)"),
+    );
+
+    list_shared_asset_snapshots(&shared_root)
+}
+
+#[tauri::command]
+fn shared_assets_rename(
+    file_name: String,
+    new_file_name: String,
+) -> Result<Vec<SharedAssetSnapshot>, String> {
+    let root = weekend_root()?;
+    std::fs::create_dir_all(&root)
+        .map_err(|error| format!("failed to create ~/.weekend: {error}"))?;
+    let shared_root = ensure_shared_assets_root()?;
+    let (previous_name, next_name) =
+        rename_shared_asset_in_root(&shared_root, &file_name, &new_file_name)?;
+
+    let synced_projects = sync_shared_assets_into_all_projects(&root, &shared_root)?;
+    log_backend(
+        "INFO",
+        format!(
+            "renamed shared asset '{previous_name}' -> '{next_name}' and synced {synced_projects} project(s)"
         ),
     );
 
@@ -4702,7 +5280,8 @@ fn terminal_open<R: Runtime>(
             cmd.env("WEEKEND_PROJECT", project_name);
             {
                 let bridge_state: tauri::State<'_, BridgeState> = app.state();
-                if let Err(error) = sync_project_bridge_port_file(project_name, bridge_state.inner())
+                if let Err(error) =
+                    sync_project_bridge_port_file(project_name, bridge_state.inner())
                 {
                     log_backend(
                         "WARN",
@@ -5535,6 +6114,19 @@ fn main() {
         .manage(TerminalState::new())
         .manage(BridgeState::new())
         .manage(EventBufferState::new())
+        .on_window_event(|window, event| {
+            if window.label() != SHARED_DROP_WINDOW_LABEL {
+                return;
+            }
+
+            match event {
+                tauri::WindowEvent::CloseRequested { api, .. } => {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+                _ => {}
+            }
+        })
         .on_page_load(|webview, payload| {
             let label = webview.label().to_string();
             let phase = match payload.event() {
@@ -5632,12 +6224,20 @@ fn main() {
             let terminal_state: tauri::State<'_, TerminalState> = app.state();
             spawn_terminal_process_watcher(app.handle().clone(), terminal_state.inner().clone());
 
+            #[cfg(target_os = "macos")]
+            if let Err(error) = install_shared_drop_tray(&app.handle()) {
+                log_backend("WARN", format!("shared-drop tray setup skipped: {error}"));
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             create_new_project,
             shared_assets_list,
             shared_assets_upload_batch,
+            shared_assets_import_paths,
+            shared_assets_rename,
+            shared_assets_delete,
             list_projects,
             project_config_read,
             project_config_write,

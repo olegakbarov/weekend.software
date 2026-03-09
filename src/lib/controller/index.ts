@@ -48,7 +48,9 @@ import {
   toggleShowArchived as toggleShowArchivedImpl,
 } from "./projects";
 import {
+  deleteSharedAsset as deleteSharedAssetImpl,
   refreshSharedAssets as refreshSharedAssetsImpl,
+  renameSharedAsset as renameSharedAssetImpl,
   uploadSharedAssets as uploadSharedAssetsImpl,
 } from "./shared-assets";
 import { setupListeners } from "./listeners";
@@ -461,6 +463,10 @@ export function createWorkspaceController() {
       createProjectImpl(ctx, projectInternals, runtimeInternals, input),
     refreshSharedAssets,
     uploadSharedAssets: (files: File[]) => uploadSharedAssetsImpl(ctx, files),
+    renameSharedAsset: (fileName: string, newFileName: string) =>
+      renameSharedAssetImpl(ctx, fileName, newFileName),
+    deleteSharedAsset: (fileName: string) =>
+      deleteSharedAssetImpl(ctx, fileName),
     updateProjectConfig: (project: string) =>
       updateProjectConfigImpl(ctx, runtimeInternals, project),
     deleteProject: (project: string) =>

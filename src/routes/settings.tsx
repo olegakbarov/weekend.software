@@ -41,6 +41,20 @@ function SettingsRoute() {
     [controller]
   );
 
+  const handleRenameSharedAsset = useCallback(
+    async (fileName: string, newFileName: string) => {
+      await controller.renameSharedAsset(fileName, newFileName);
+    },
+    [controller]
+  );
+
+  const handleDeleteSharedAsset = useCallback(
+    async (fileName: string) => {
+      await controller.deleteSharedAsset(fileName);
+    },
+    [controller]
+  );
+
   return (
     <SettingsPage
       error={state.runtimeDebugError}
@@ -52,6 +66,8 @@ function SettingsRoute() {
       onVimModeEnabledChange={setIsVimModeEnabled}
       onRefreshRuntimeSnapshot={refreshRuntimeSnapshot}
       onUploadSharedAssets={handleUploadSharedAssets}
+      onRenameSharedAsset={handleRenameSharedAsset}
+      onDeleteSharedAsset={handleDeleteSharedAsset}
       runtimeTelemetryEvents={state.runtimeTelemetryEvents}
       sharedAssets={state.sharedAssets}
       sharedAssetsError={state.sharedAssetsError}

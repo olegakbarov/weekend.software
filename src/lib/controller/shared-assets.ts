@@ -70,6 +70,52 @@ export async function uploadSharedAssets(
   const selectedFiles = files.filter((file) => file.name.trim().length > 0);
   if (selectedFiles.length === 0) return;
 
+  const payload = await Promise.all(
+    selectedFiles.map((file) => toSharedAssetUploadPayload(file))
+  );
+
+  await runSharedAssetsMutation(ctx, () =>
+    invoke<SharedAssetSnapshot[]>("shared_assets_upload_batch", {
+      files: payload,
+    })
+  );
+}
+
+export async function renameSharedAsset(
+  ctx: ControllerContext,
+  fileName: string,
+  newFileName: string
+): Promise<void> {
+  const currentName = fileName.trim();
+  const nextName = newFileName.trim();
+  if (!currentName || !nextName || currentName === nextName) return;
+
+  await runSharedAssetsMutation(ctx, () =>
+    invoke<SharedAssetSnapshot[]>("shared_assets_rename", {
+      fileName: currentName,
+      newFileName: nextName,
+    })
+  );
+}
+
+export async function deleteSharedAsset(
+  ctx: ControllerContext,
+  fileName: string
+): Promise<void> {
+  const normalizedName = fileName.trim();
+  if (!normalizedName) return;
+
+  await runSharedAssetsMutation(ctx, () =>
+    invoke<SharedAssetSnapshot[]>("shared_assets_delete", {
+      fileName: normalizedName,
+    })
+  );
+}
+
+async function runSharedAssetsMutation(
+  ctx: ControllerContext,
+  operation: () => Promise<SharedAssetSnapshot[]>
+): Promise<void> {
   ctx.setState((previous) => ({
     ...previous,
     sharedAssetsUploading: true,
@@ -77,16 +123,7 @@ export async function uploadSharedAssets(
   }));
 
   try {
-    const payload = await Promise.all(
-      selectedFiles.map((file) => toSharedAssetUploadPayload(file))
-    );
-    const assets = await invoke<SharedAssetSnapshot[]>(
-      "shared_assets_upload_batch",
-      {
-        files: payload,
-      }
-    );
-
+    const assets = await operation();
     ctx.setState((previous) => ({
       ...previous,
       sharedAssets: assets,

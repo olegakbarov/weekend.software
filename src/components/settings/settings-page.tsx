@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useTheme } from "@/components/theme/use-theme";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
   type RuntimeDebugSnapshot,
@@ -91,6 +92,8 @@ export type SettingsPageProps = {
   isSharedAssetsUploading: boolean;
   onRefreshSharedAssets: () => void;
   onUploadSharedAssets: (files: File[]) => Promise<void>;
+  onRenameSharedAsset: (fileName: string, newFileName: string) => Promise<void>;
+  onDeleteSharedAsset: (fileName: string) => Promise<void>;
 };
 
 const THEME_MODES = ["light", "dark", "system"] as const;
@@ -109,11 +112,15 @@ export function SettingsPage({
   isSharedAssetsUploading,
   onRefreshSharedAssets,
   onUploadSharedAssets,
+  onRenameSharedAsset,
+  onDeleteSharedAsset,
 }: SettingsPageProps) {
   const { mode, setMode } = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [renamingFileName, setRenamingFileName] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState("");
 
   const handleUpload = () => {
     if (selectedFiles.length === 0 || isSharedAssetsUploading) return;
@@ -125,6 +132,44 @@ export function SettingsPage({
         }
       })
       .catch(() => undefined);
+  };
+
+  const startRenameSharedAsset = (fileName: string) => {
+    if (isSharedAssetsUploading) return;
+    setRenamingFileName(fileName);
+    setRenameDraft(fileName);
+  };
+
+  const cancelRenameSharedAsset = () => {
+    setRenamingFileName(null);
+    setRenameDraft("");
+  };
+
+  const submitRenameSharedAsset = (fileName: string) => {
+    if (isSharedAssetsUploading) return;
+    const trimmed = renameDraft.trim();
+    if (!trimmed || trimmed === fileName) {
+      cancelRenameSharedAsset();
+      return;
+    }
+    if (trimmed.includes("/") || trimmed.includes("\\")) {
+      return;
+    }
+
+    void onRenameSharedAsset(fileName, trimmed)
+      .then(() => {
+        cancelRenameSharedAsset();
+      })
+      .catch(() => undefined);
+  };
+
+  const handleDeleteSharedAsset = (fileName: string) => {
+    if (isSharedAssetsUploading) return;
+    const confirmed = window.confirm(
+      `Remove "${fileName}" from Shared Files and every project copy?`
+    );
+    if (!confirmed) return;
+    void onDeleteSharedAsset(fileName).catch(() => undefined);
   };
 
   return (
@@ -245,16 +290,99 @@ export function SettingsPage({
                 <ul className="max-h-64 divide-y divide-border/40 overflow-auto">
                   {sharedAssets.map((asset) => (
                     <li
-                      className="flex items-center justify-between gap-2 px-3 py-2 font-code text-xs"
+                      className="flex items-center justify-between gap-3 px-3 py-2 font-code text-xs"
                       key={asset.fileName}
                     >
-                      <span className="truncate text-foreground">{asset.fileName}</span>
-                      <span className="shrink-0 text-muted-foreground">
-                        {formatFileSize(asset.sizeBytes)} ·{" "}
-                        {asset.modifiedAtUnixMs
-                          ? formatTimestamp(asset.modifiedAtUnixMs)
-                          : "n/a"}
-                      </span>
+                      <div className="min-w-0">
+                        {renamingFileName === asset.fileName ? (
+                          <div className="space-y-2">
+                            <Input
+                              autoFocus
+                              className="h-7 px-2 font-code text-[11px]"
+                              onChange={(event) => {
+                                setRenameDraft(event.currentTarget.value);
+                              }}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                  event.preventDefault();
+                                  submitRenameSharedAsset(asset.fileName);
+                                } else if (event.key === "Escape") {
+                                  event.preventDefault();
+                                  cancelRenameSharedAsset();
+                                }
+                              }}
+                              value={renameDraft}
+                            />
+                            <p className="text-[11px] text-muted-foreground">
+                              {formatFileSize(asset.sizeBytes)} ·{" "}
+                              {asset.modifiedAtUnixMs
+                                ? formatTimestamp(asset.modifiedAtUnixMs)
+                                : "n/a"}
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="truncate text-foreground">{asset.fileName}</p>
+                            <p className="mt-1 text-[11px] text-muted-foreground">
+                              {formatFileSize(asset.sizeBytes)} ·{" "}
+                              {asset.modifiedAtUnixMs
+                                ? formatTimestamp(asset.modifiedAtUnixMs)
+                                : "n/a"}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        {renamingFileName === asset.fileName ? (
+                          <>
+                            <Button
+                              className="h-6 px-2 font-code text-[10px]"
+                              disabled={isSharedAssetsUploading}
+                              onClick={() => {
+                                submitRenameSharedAsset(asset.fileName);
+                              }}
+                              size="sm"
+                              variant="ghost"
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              className="h-6 px-2 font-code text-[10px]"
+                              disabled={isSharedAssetsUploading}
+                              onClick={cancelRenameSharedAsset}
+                              size="sm"
+                              variant="ghost"
+                            >
+                              Cancel
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              className="h-6 px-2 font-code text-[10px]"
+                              disabled={isSharedAssetsUploading}
+                              onClick={() => {
+                                startRenameSharedAsset(asset.fileName);
+                              }}
+                              size="sm"
+                              variant="ghost"
+                            >
+                              Rename
+                            </Button>
+                            <Button
+                              className="h-6 px-2 font-code text-[10px] text-destructive hover:text-destructive"
+                              disabled={isSharedAssetsUploading}
+                              onClick={() => {
+                                handleDeleteSharedAsset(asset.fileName);
+                              }}
+                              size="sm"
+                              variant="ghost"
+                            >
+                              Remove
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>

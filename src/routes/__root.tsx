@@ -20,11 +20,24 @@ export type RouterContext = {
   controller: WorkspaceController;
 };
 
+type CurrentRouteInfo = {
+  route:
+    | "home"
+    | "settings"
+    | "logs"
+    | "workspace"
+    | "index"
+    | "shared-drop";
+  project: string | null;
+  view: string | null;
+  terminalId: string | null;
+};
+
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootLayout,
 });
 
-function useCurrentRouteInfo() {
+function useCurrentRouteInfo(): CurrentRouteInfo {
   return useRouterState({
     select: (s) => {
       const matches = s.matches;
@@ -36,11 +49,12 @@ function useCurrentRouteInfo() {
         terminalId?: string;
       } | undefined;
 
-      let route: "home" | "settings" | "logs" | "workspace" | "index" = "index";
+      let route: CurrentRouteInfo["route"] = "index";
       if (routeId === "/workspace/$project") route = "workspace";
       else if (routeId === "/home") route = "home";
       else if (routeId === "/settings") route = "settings";
       else if (routeId === "/logs") route = "logs";
+      else if (routeId === "/shared-drop") route = "shared-drop";
 
       return {
         route,
@@ -53,13 +67,28 @@ function useCurrentRouteInfo() {
 }
 
 function RootLayout() {
+  const routeInfo = useCurrentRouteInfo();
+
+  if (routeInfo.route === "shared-drop") {
+    return (
+      <main className="h-screen overflow-hidden bg-transparent text-foreground">
+        <ErrorBoundary name="shared-drop-outlet">
+          <Outlet />
+        </ErrorBoundary>
+      </main>
+    );
+  }
+
+  return <WorkspaceRootLayout routeInfo={routeInfo} />;
+}
+
+function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
   const { controller } = Route.useRouteContext();
   const state = useWorkspaceState(controller);
   const navigate = useNavigate();
   const { isFullscreen, isSidebarVisible, setIsSidebarVisible } =
     useFullscreen();
   const actions = useWorkspaceActions(controller, state);
-  const routeInfo = useCurrentRouteInfo();
 
   useKeyboardShortcuts(controller, routeInfo.project, routeInfo.route === "workspace" ? routeInfo.view : null);
 
