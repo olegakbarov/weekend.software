@@ -115,10 +115,8 @@ export function Sidebar({
           </div>
           <button
             className={cn(
-              "inline-flex h-8 shrink-0 items-center gap-2 rounded-md border px-3 font-vcr text-[12px] uppercase tracking-wide leading-none shadow-sm transition-colors",
-              currentRoute === "home"
-                ? "border-primary/70 bg-primary text-primary-foreground shadow-primary/20"
-                : "border-primary/35 bg-primary/90 text-primary-foreground shadow-primary/15 hover:bg-primary hover:shadow-primary/20"
+              "inline-flex h-8 shrink-0 items-center gap-2 rounded-md border px-3 font-vcr text-[12px] uppercase tracking-wide leading-none transition-colors",
+              "border-border bg-transparent text-muted-foreground hover:text-foreground"
             )}
             onClick={onOpenHome}
             title="New project"
