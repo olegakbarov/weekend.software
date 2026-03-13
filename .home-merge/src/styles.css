@@ -1,0 +1,196 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: dark;
+  --background: #0e0e0e;
+  --foreground: #e5e5e5;
+  --card: #1a1a1a;
+  --card-foreground: #e5e5e5;
+  --popover: #1a1a1a;
+  --popover-foreground: #e5e5e5;
+  --primary: #e5e5e5;
+  --primary-foreground: #0e0e0e;
+  --secondary: #262626;
+  --secondary-foreground: #e5e5e5;
+  --muted: #262626;
+  --muted-foreground: #888888;
+  --accent: #333333;
+  --accent-foreground: #e5e5e5;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #252525;
+  --input: #1e1e1e;
+  --ring: #555555;
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --radius: 0.625rem;
+  --sidebar: #141414;
+  --sidebar-foreground: #e5e5e5;
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: #e5e5e5;
+  --sidebar-accent: #262626;
+  --sidebar-accent-foreground: #e5e5e5;
+  --sidebar-border: #252525;
+  --sidebar-ring: #555555;
+  --cal-bg: #0a0a0a;
+  --cal-surface: #171717;
+  --cal-surface-hover: #262626;
+  --cal-dim: #0d0d0d;
+  --cal-border: #262626;
+  --cal-border-strong: #404040;
+  --cal-border-accent: #525252;
+  --cal-text: #f5f5f5;
+  --cal-text-secondary: #d4d4d4;
+  --cal-text-muted: #a3a3a3;
+  --cal-text-dimmed: #737373;
+  --cal-text-faint: #525252;
+  --cal-accent: #ffffff;
+  --cal-accent-text: #171717;
+  --cal-accent-hover: #e5e5e5;
+}
+
+html.light,
+.light {
+  color-scheme: light;
+  --background: #f5f5f2;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #171717;
+  --primary-foreground: #f5f5f2;
+  --secondary: #ecece8;
+  --secondary-foreground: #171717;
+  --muted: #ecece8;
+  --muted-foreground: #6f6f6f;
+  --accent: #deded8;
+  --accent-foreground: #171717;
+  --border: #dadad4;
+  --input: #f0f0eb;
+  --ring: #707070;
+  --sidebar: #efefe9;
+  --sidebar-foreground: #171717;
+  --sidebar-accent: #deded8;
+  --sidebar-accent-foreground: #171717;
+  --sidebar-border: #dadad4;
+  --sidebar-ring: #707070;
+  --cal-bg: #ffffff;
+  --cal-surface: #f5f5f5;
+  --cal-surface-hover: #ebebeb;
+  --cal-dim: #fafafa;
+  --cal-border: #e5e5e5;
+  --cal-border-strong: #d4d4d4;
+  --cal-border-accent: #a3a3a3;
+  --cal-text: #171717;
+  --cal-text-secondary: #525252;
+  --cal-text-muted: #737373;
+  --cal-text-dimmed: #a3a3a3;
+  --cal-text-faint: #d4d4d4;
+  --cal-accent: #171717;
+  --cal-accent-text: #ffffff;
+  --cal-accent-hover: #404040;
+}
+
+@theme inline {
+  --font-sans: "Geist Variable", sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-cal-bg: var(--cal-bg);
+  --color-cal-surface: var(--cal-surface);
+  --color-cal-surface-hover: var(--cal-surface-hover);
+  --color-cal-dim: var(--cal-dim);
+  --color-cal-border: var(--cal-border);
+  --color-cal-border-strong: var(--cal-border-strong);
+  --color-cal-border-accent: var(--cal-border-accent);
+  --color-cal-text: var(--cal-text);
+  --color-cal-text-secondary: var(--cal-text-secondary);
+  --color-cal-text-muted: var(--cal-text-muted);
+  --color-cal-text-dimmed: var(--cal-text-dimmed);
+  --color-cal-text-faint: var(--cal-text-faint);
+  --color-cal-accent: var(--cal-accent);
+  --color-cal-accent-text: var(--cal-accent-text);
+  --color-cal-accent-hover: var(--cal-accent-hover);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  html {
+    @apply font-sans;
+    height: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    min-height: 100%;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  ::selection {
+    background: rgba(100, 100, 255, 0.25);
+    color: #ffffff;
+  }
+}

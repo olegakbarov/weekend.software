@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase V — Postwar Prosperity & Bretton Woods</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #06090d;
+  --bg2:       #090d16;
+  --surface:   #0d1422;
+  --surface2:  #131d32;
+  --border:    #1e2e4a;
+  --border-hi: #2a4060;
+  --gold:      #c9a84c;
+  --gold-dim:  #7a6030;
+  --gold-pale: #e8d9a8;
+  --jade:      #2a8a6a;
+  --jade-hi:   #3ab88a;
+  --jade-dim:  #165840;
+  --slate:     #4a7aaa;
+  --slate-hi:  #6a9aca;
+  --slate-dim: #243a5a;
+  --rust:      #8a4a2a;
+  --rust-hi:   #b06040;
+  --rust-dim:  #4a2010;
+  --text:      #c8c4bb;
+  --text-dim:  #5a6878;
+  --text-hi:   #ece7de;
+  --ink:       #d2cdc5;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Libre Baskerville',Georgia,serif;font-size:16px;line-height:1.85;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");}
+
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);overflow:hidden;position:relative;}
+.hero-left{padding:7rem 5vw 5rem 8vw;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;border-right:1px solid var(--border);}
+.hero-left::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 5% 65%,rgba(42,138,106,0.06) 0%,transparent 60%);}
+.hero-right{padding:7rem 8vw 5rem 5vw;display:flex;flex-direction:column;justify-content:flex-end;background:var(--bg2);position:relative;overflow:hidden;}
+.hero-right::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 75% 25%,rgba(74,122,170,0.06) 0%,transparent 55%),radial-gradient(ellipse at 20% 80%,rgba(42,138,106,0.04) 0%,transparent 50%);}
+.chapter-numeral{font-family:'Cormorant Garamond',serif;font-size:clamp(9rem,18vw,20rem);font-weight:700;color:var(--surface2);line-height:0.85;position:absolute;right:-1.5rem;top:2rem;user-select:none;pointer-events:none;z-index:0;opacity:0;animation:fadeIn 1.8s 0.4s forwards;}
+.breadcrumb{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.25em;color:var(--jade-dim);text-transform:uppercase;margin-bottom:2.5rem;opacity:0;animation:fadeUp 0.6s 0.1s forwards;}
+.breadcrumb a{color:inherit;text-decoration:none;}
+.breadcrumb a:hover{color:var(--jade-hi);}
+.phase-tag{display:inline-flex;align-items:center;gap:0.8rem;margin-bottom:1.5rem;opacity:0;animation:fadeUp 0.6s 0.2s forwards;}
+.phase-tag-num{font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:600;color:var(--jade-hi);border:1px solid var(--jade-dim);padding:0.15rem 0.7rem;letter-spacing:0.1em;}
+.phase-tag-label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,5.5vw,5.5rem);font-weight:300;line-height:1.05;color:var(--text-hi);letter-spacing:-0.02em;opacity:0;animation:fadeUp 0.9s 0.3s forwards;}
+.hero-title em{font-style:italic;color:var(--jade-hi);}
+.hero-dates{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--jade-dim);letter-spacing:0.2em;margin-top:1.5rem;margin-bottom:2.5rem;opacity:0;animation:fadeUp 0.6s 0.5s forwards;}
+.hero-thesis{font-size:1.05rem;font-style:italic;color:var(--text-dim);line-height:1.8;max-width:480px;border-left:2px solid var(--jade-dim);padding-left:1.5rem;opacity:0;animation:fadeUp 0.6s 0.65s forwards;}
+.pull-quote-block{opacity:0;animation:fadeIn 1.2s 0.8s forwards;}
+.pull-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(1.05rem,1.9vw,1.7rem);font-weight:300;font-style:italic;color:var(--text-hi);line-height:1.6;margin-bottom:1rem;}
+.pull-quote-attr{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--jade-dim);text-transform:uppercase;}
+.hero-right-top{flex:1;}
+
+.toc-nav{position:sticky;top:0;z-index:100;background:rgba(6,9,13,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;padding:0 8vw;overflow-x:auto;scrollbar-width:none;}
+.toc-nav::-webkit-scrollbar{display:none;}
+.toc-item{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:1rem 0.9rem;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;text-transform:uppercase;}
+.toc-item:hover{color:var(--jade-hi);border-bottom-color:var(--jade-dim);}
+.toc-item.active{color:var(--jade-hi);border-bottom-color:var(--jade-hi);}
+
+.main-grid{display:grid;grid-template-columns:680px 1fr;max-width:1400px;margin:0 auto;}
+@media(max-width:1100px){.main-grid,.hero{grid-template-columns:1fr;}.hero-right,.sidebar{display:none;}}
+.main-content{padding:5rem 5vw 5rem 8vw;border-right:1px solid var(--border);}
+.sidebar{padding:5rem 4vw 5rem 3vw;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;background:var(--bg2);}
+
+.section-block{margin-bottom:5rem;opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.section-block.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.28em;color:var(--jade-hi);text-transform:uppercase;margin-bottom:1.2rem;display:flex;align-items:center;gap:0.8rem;}
+.section-eyebrow::after{content:'';width:40px;height:1px;background:var(--jade-dim);}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,3vw,2.4rem);font-weight:300;color:var(--text-hi);line-height:1.2;letter-spacing:-0.01em;margin-bottom:2rem;}
+.body-p{font-size:0.97rem;line-height:1.9;color:var(--ink);margin-bottom:1.4rem;}
+.body-p strong{color:var(--text-hi);font-weight:700;}
+.body-p em{color:var(--gold-pale);font-style:italic;}
+.rule{width:100%;height:1px;background:linear-gradient(90deg,var(--jade-dim),transparent);margin:3rem 0;border:none;}
+
+blockquote{margin:2.5rem 0;padding:1.8rem 2rem 1.8rem 2.5rem;background:var(--surface);border-left:3px solid var(--jade-hi);position:relative;}
+blockquote::before{content:'\201C';font-family:'Cormorant Garamond',serif;font-size:5rem;color:var(--jade-dim);position:absolute;top:-0.5rem;left:0.5rem;line-height:1;pointer-events:none;}
+blockquote p{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;color:var(--text-hi);line-height:1.7;position:relative;z-index:1;}
+blockquote cite{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--jade-dim);text-transform:uppercase;margin-top:0.8rem;font-style:normal;}
+
+.event-timeline{margin:2rem 0;position:relative;padding-left:2.5rem;}
+.event-timeline::before{content:'';position:absolute;left:0.6rem;top:0.5rem;bottom:0.5rem;width:1px;background:linear-gradient(to bottom,var(--jade-dim),transparent);}
+.event-item{position:relative;margin-bottom:2rem;}
+.event-item::before{content:'';position:absolute;left:-1.9rem;top:0.45rem;width:8px;height:8px;border-radius:50%;background:var(--jade-dim);border:1px solid var(--jade-hi);}
+.event-item.pivot::before{background:var(--gold);border-color:var(--gold);}
+.event-item.fracture::before{background:var(--rust-hi);border-color:var(--rust-hi);}
+.event-year{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;color:var(--jade-hi);margin-bottom:0.2rem;}
+.event-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.4rem;}
+.event-desc{font-size:0.88rem;color:var(--text-dim);line-height:1.7;}
+
+.detail-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.detail-item{background:var(--bg2);padding:1.4rem 1.8rem;display:grid;grid-template-columns:220px 1fr;gap:1.5rem;align-items:flex-start;transition:background 0.2s;}
+.detail-item:hover{background:var(--surface);}
+.detail-label{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;color:var(--jade-hi);text-transform:uppercase;padding-top:0.15rem;line-height:1.6;}
+.detail-body{font-size:0.88rem;color:var(--text-dim);line-height:1.75;}
+.detail-body strong{color:var(--text);}
+
+.two-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.two-card{background:var(--bg2);padding:2rem;transition:background 0.2s;}
+.two-card:hover{background:var(--surface);}
+.two-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.two-name{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--text-hi);margin-bottom:0.7rem;}
+.two-body{font-size:0.87rem;color:var(--text-dim);line-height:1.75;}
+.two-body strong{color:var(--text);}
+
+.three-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+@media(max-width:800px){.three-grid{grid-template-columns:1fr;}}
+.three-card{background:var(--bg2);padding:1.8rem;transition:background 0.2s;}
+.three-card:hover{background:var(--surface);}
+.three-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.three-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.6rem;}
+.three-body{font-size:0.86rem;color:var(--text-dim);line-height:1.72;}
+.three-body strong{color:var(--text);}
+
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin:2rem 0;}
+.stat-cell{background:var(--bg2);padding:1.8rem 1.5rem;text-align:center;}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:600;line-height:1;margin-bottom:0.4rem;}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);line-height:1.4;}
+.stat-note{font-size:0.78rem;color:var(--text-dim);margin-top:0.4rem;line-height:1.4;}
+
+.fracture-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.frac-item{background:var(--bg2);padding:1.6rem 1.8rem;transition:background 0.2s;border-left:3px solid transparent;}
+.frac-item:hover{background:var(--surface);}
+.frac-item.eco{border-left-color:var(--rust-hi);}
+.frac-item.pol{border-left-color:var(--gold);}
+.frac-item.int{border-left-color:var(--slate-hi);}
+.frac-year{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--jade-hi);margin-bottom:0.3rem;}
+.frac-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.4rem;}
+.frac-body{font-size:0.87rem;color:var(--text-dim);line-height:1.72;}
+.frac-body strong{color:var(--text);}
+
+.frame-box{background:var(--surface);border:1px solid var(--border-hi);padding:2.5rem;margin-top:3rem;position:relative;}
+.frame-box-label{position:absolute;top:-0.6rem;left:1.5rem;background:var(--surface);padding:0 0.8rem;font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:var(--jade-hi);text-transform:uppercase;}
+
+.source-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);}
+.src-card{background:var(--bg2);padding:1.5rem 1.8rem;display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:flex-start;transition:background 0.2s;}
+.src-card:hover{background:var(--surface);}
+.src-type{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.2rem 0.6rem;border:1px solid;white-space:nowrap;margin-top:0.2rem;}
+.src-type.essential{border-color:var(--gold);color:var(--gold);}
+.src-type.primary{border-color:var(--jade-hi);color:var(--jade-hi);}
+.src-type.rec{border-color:var(--border-hi);color:var(--text-dim);}
+.src-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;font-style:italic;color:var(--text-hi);line-height:1.4;}
+.src-author{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.05em;color:var(--text-dim);margin-top:0.3rem;}
+.src-note{font-size:0.85rem;color:var(--text-dim);margin-top:0.4rem;line-height:1.6;}
+
+.sidebar-title{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.25em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border);}
+.sidebar-toc{margin-bottom:3rem;}
+.stoc-item{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;color:var(--text-dim);text-decoration:none;padding:0.5rem 0;border-bottom:1px solid var(--border);transition:color 0.2s,padding-left 0.2s;line-height:1.5;}
+.stoc-item:hover,.stoc-item.active{color:var(--jade-hi);padding-left:0.4rem;}
+.key-figure{margin-bottom:1.5rem;padding:1.2rem;background:var(--surface);border-top:2px solid var(--jade-dim);}
+.key-figure-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin-bottom:0.3rem;}
+.key-figure-role{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--jade-dim);text-transform:uppercase;margin-bottom:0.5rem;}
+.key-figure-note{font-size:0.82rem;color:var(--text-dim);line-height:1.6;}
+.concept-pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;color:var(--text-dim);border:1px solid var(--border-hi);padding:0.25rem 0.7rem;margin:0.2rem 0.2rem 0 0;transition:all 0.2s;text-transform:uppercase;cursor:default;}
+.concept-pill:hover{color:var(--jade-hi);border-color:var(--jade-dim);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+::selection{background:rgba(58,184,138,0.15);color:var(--text-hi);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="breadcrumb">
+      <a href="us_economy_research_plan.html">← Plan</a> &nbsp;/&nbsp;
+      <a href="econ_phase1_colonial.html">I</a> &nbsp;/&nbsp;
+      <a href="econ_phase2_market_revolution.html">II</a> &nbsp;/&nbsp;
+      <a href="econ_phase3_gilded_age.html">III</a> &nbsp;/&nbsp;
+      <a href="econ_phase4_new_deal.html">IV</a> &nbsp;/&nbsp; Phase V
+    </div>
+    <div class="phase-tag">
+      <span class="phase-tag-num">Phase V</span>
+      <span class="phase-tag-label">3 Weeks</span>
+    </div>
+    <h1 class="hero-title">Postwar<br><em>Prosperity</em><br>&amp; Bretton Woods</h1>
+    <div class="hero-dates">1945 &nbsp;—&nbsp; 1973</div>
+    <p class="hero-thesis">The postwar golden age was the most broadly shared economic expansion in American history — and the most anomalous. It required a unique convergence of institutional architecture, geopolitical circumstance, and distributional norms that has never been replicated. Understanding exactly why it worked is essential for understanding why it ended, and why the end was not a policy failure but the structural exhaustion of conditions that were always temporary.</p>
+  </div>
+  <div class="hero-right">
+    <span class="chapter-numeral">V</span>
+    <div class="hero-right-top"></div>
+    <div class="pull-quote-block">
+      <div class="pull-quote">"The ideas of economists and political philosophers, both when they are right and when they are wrong, are more powerful than is commonly understood. Indeed the world is ruled by little else. Practical men, who believe themselves to be quite exempt from any intellectual influences, are usually the slaves of some defunct economist."</div>
+      <div class="pull-quote-attr">John Maynard Keynes · The General Theory · 1936</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ NAV ═══ -->
+<nav class="toc-nav">
+  <a class="toc-item active" href="#context">Overview</a>
+  <a class="toc-item" href="#bretton-woods">Bretton Woods System</a>
+  <a class="toc-item" href="#golden-age">The Golden Age</a>
+  <a class="toc-item" href="#treaty-detroit">Treaty of Detroit</a>
+  <a class="toc-item" href="#keynesian-consensus">Keynesian Consensus</a>
+  <a class="toc-item" href="#great-society">Great Society</a>
+  <a class="toc-item" href="#racial-exclusion">Prosperity's Racial Limits</a>
+  <a class="toc-item" href="#cold-war">Cold War Political Economy</a>
+  <a class="toc-item" href="#contradictions">Why It Ended</a>
+  <a class="toc-item" href="#nixon-shock">Nixon Shock — 1971</a>
+  <a class="toc-item" href="#sources">Reading List</a>
+</nav>
+
+<!-- ═══ BODY ═══ -->
+<div class="main-grid">
+<main class="main-content">
+
+  <!-- OVERVIEW -->
+  <div class="section-block" id="context">
+    <div class="section-eyebrow">Overview</div>
+    <h2 class="section-title">The Anomalous Golden Age</h2>
+
+    <p class="body-p">The twenty-eight years between the end of World War II and the oil shock of 1973 represent the most sustained and broadly shared economic expansion in American — and arguably world — history. Real GDP grew at an average of 4% annually. Median family income roughly doubled in real terms. Union membership peaked at 35% of the non-agricultural workforce in the mid-1950s, giving organized labor genuine wage-setting power. The productivity-wage link — workers sharing in the gains from rising output — operated more consistently than at any other period before or since. Inequality, measured by the Gini coefficient or by income share of the top 1%, fell to its lowest recorded level by the late 1960s.</p>
+
+    <p class="body-p">The temptation — reflected in much popular and political discourse — is to treat this period as the normal condition of American capitalism that was disrupted by specific policy failures in the 1970s and after. This temptation should be firmly resisted. <strong>The golden age was the anomaly, not the subsequent period.</strong> It required a uniquely favorable convergence of conditions: the institutional architecture of Bretton Woods providing monetary stability; the New Deal's domestic institutions channeling productivity gains into wages; the geopolitical dominance of the United States providing access to global markets without competitive pressure from rebuilt industrial competitors; and a labor-capital bargain (the "Treaty of Detroit") that traded labor peace for wage growth and employer-provided benefits. Each of these conditions was historically specific and structurally temporary.</p>
+
+    <p class="body-p">The analytical framework for this phase comes from three overlapping literatures. The "varieties of capitalism" literature (Hall and Soskice) explains how the postwar American "liberal market economy" differed from the coordinated market economies of Germany and Japan and what those institutional differences meant for distribution. The political economy literature on the "embedded liberalism" compromise (Ruggie) explains how Bretton Woods reconciled international economic openness with domestic economic management. And the labor economics literature on the postwar wage-setting system (Piketty, Goldin and Katz) explains how the union-based wage structure produced the compression of earnings distribution that made the golden age's prosperity broadly shared. Understanding all three is necessary for understanding both why the golden age worked and why its end was structurally determined rather than contingent.</p>
+
+    <div class="stat-row">
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--jade-hi)">4.0%</div>
+        <div class="stat-label">Average Annual GDP Growth</div>
+        <div class="stat-note">1948–1973; vs. 2.5% in 1973–2023</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--gold)">2×</div>
+        <div class="stat-label">Real Median Family Income</div>
+        <div class="stat-note">Doubled between 1947 and 1973</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--slate-hi)">35%</div>
+        <div class="stat-label">Union Density Peak</div>
+        <div class="stat-note">c.1954; vs. 10% today</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--rust-hi)">11%</div>
+        <div class="stat-label">Top 1% Income Share</div>
+        <div class="stat-note">1970 low; vs. 22% in 2020</div>
+      </div>
+    </div>
+
+    <div class="event-timeline">
+      <div class="event-item pivot">
+        <div class="event-year">1944</div>
+        <div class="event-title">Bretton Woods Conference — Designing the Postwar Order</div>
+        <div class="event-desc">44 nations meet at Bretton Woods, NH. Keynes proposes a symmetric international clearing system (the "bancor"); Harry Dexter White's dollar-centered system wins because U.S. financial dominance makes it the only credible reserve currency anchor. The IMF and World Bank are created. The dollar-gold standard ($35/oz) and fixed exchange rates define the monetary architecture of the next 27 years.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1947</div>
+        <div class="event-title">Marshall Plan — Rebuilding Europe</div>
+        <div class="event-desc">$13 billion (roughly $150 billion today) in U.S. aid to rebuild Western European economies — the most successful foreign aid program in history. The Marshall Plan served simultaneously as geopolitical strategy (preventing Soviet expansion into economically desperate Western Europe), as Keynesian demand stimulus for American exports, and as the foundation for the European economic integration that would eventually produce the EU. It also established the template for the postwar international economic order: U.S. hegemony underwriting global economic stability.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1947</div>
+        <div class="event-title">Taft-Hartley Act — Labor's Postwar Constraint</div>
+        <div class="event-desc">The Republican Congress passes the Taft-Hartley Act over Truman's veto — restricting labor's rights in ways the Wagner Act had not: prohibiting secondary boycotts (solidarity strikes), permitting states to pass "right-to-work" laws eliminating union security agreements, requiring union officers to sign anti-communist affidavits. Taft-Hartley's most consequential provision: it authorized states to weaken union organizing, creating the regional divide between heavily unionized Northern industrial states and the largely non-union South that determined the distribution of the golden age's prosperity.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1950</div>
+        <div class="event-title">Treaty of Detroit — the Labor-Capital Bargain</div>
+        <div class="event-desc">The General Motors–United Auto Workers contract establishes the template for the postwar labor settlement: wages linked to productivity plus a cost-of-living adjustment, employer-provided health insurance and pensions, and union security — in exchange for management's exclusive authority over investment, production, and technology decisions. Labor peace in exchange for a share of productivity growth. This contract was copied across American industry; by the mid-1950s it governed wages and benefits for the core of the American industrial working class.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1953–1961</div>
+        <div class="event-title">Eisenhower's "Military Keynesianism"</div>
+        <div class="event-desc">Eisenhower maintains high defense spending — roughly 10% of GDP throughout the 1950s — that functions as permanent fiscal stimulus while avoiding the political controversy of civilian public investment. His farewell address warning about the "military-industrial complex" acknowledges that this arrangement has created a self-perpetuating institutional interest in military spending whose political power is independent of actual security needs. The Interstate Highway System (1956) — nominally justified by military logistics — is the period's largest civilian public investment, transforming American economic geography and suburban development.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1957</div>
+        <div class="event-title">Sputnik and the Knowledge Economy's Origins</div>
+        <div class="event-desc">The Soviet satellite launch triggers massive U.S. investment in science and education: the National Defense Education Act (1958) funds science, math, and foreign language education; NASA's creation (1958) begins the space program that produces spillover technologies across the economy. Federal R&D spending rises sharply throughout the late 1950s and 1960s, creating the scientific and technological infrastructure that underlies the subsequent knowledge economy. The internet (ARPANET, 1969) and GPS are among the most consequential direct products of this public investment.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1962–1966</div>
+        <div class="event-title">Kennedy Tax Cut and the New Economics</div>
+        <div class="event-desc">Walter Heller's Council of Economic Advisers — the first explicitly Keynesian CEA — persuades Kennedy and then Johnson to use tax cuts as deliberate demand management: the Revenue Act of 1964 cuts income taxes to stimulate a mildly sluggish expansion. The economy responds as the Keynesian model predicts; unemployment falls below 4% by 1966. The episode marks the high point of Keynesian confidence — the belief that fiscal fine-tuning could maintain full employment indefinitely. The hubris would contribute to the inflationary errors of the late 1960s.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1964–1965</div>
+        <div class="event-title">Great Society — Medicare, Medicaid, Civil Rights Act</div>
+        <div class="event-desc">LBJ's Great Society expands the New Deal welfare state significantly: Medicare and Medicaid (1965) create universal health insurance for the elderly and poor; the Economic Opportunity Act (1964) launches the War on Poverty; the Civil Rights Act (1964) and Voting Rights Act (1965) formally dismantle Jim Crow. For the first time, the federal welfare state's benefits are extended to Black Americans on a formally equal basis — but decades of exclusion from the New Deal's wealth-building mechanisms mean formal equality cannot immediately produce substantive economic equality.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1965–1968</div>
+        <div class="event-title">Guns and Butter — Johnson's Fiscal Error</div>
+        <div class="event-desc">Johnson refuses to raise taxes to finance simultaneously the Vietnam War and the Great Society — "guns and butter" — creating a structural deficit that feeds inflationary pressure. Milton Friedman's presidential address to the American Economic Association (December 1967) predicts that the resulting inflation will accelerate rather than trade off against unemployment — the "accelerating inflation" argument that would frame the 1970s stagflation debate. Johnson's fiscal error plants the seeds of the Bretton Woods system's collapse.</div>
+      </div>
+      <div class="event-item fracture">
+        <div class="event-year">August 15, 1971</div>
+        <div class="event-title">Nixon Shock — the End of Bretton Woods</div>
+        <div class="event-desc">Nixon unilaterally suspends dollar-gold convertibility, imposes a 10% import surcharge, and institutes wage and price controls — simultaneously abandoning the international monetary architecture of the postwar order, the free trade commitment of postwar U.S. trade policy, and the laissez-faire wage policy of the postwar consensus. The "Nixon Shock" ends the Bretton Woods era. By 1973, all major currencies are floating; the postwar monetary system is gone. Phase VI begins.</div>
+      </div>
+      <div class="event-item fracture">
+        <div class="event-year">October 1973</div>
+        <div class="event-title">OPEC Oil Embargo — the External Shock</div>
+        <div class="event-desc">Arab OPEC members embargo oil exports to the U.S. and other nations supporting Israel in the Yom Kippur War; oil prices quadruple within months. The embargo reveals the structural vulnerability of a high-energy-consumption economy built on cheap oil — and exposes the limits of Keynesian demand management in responding to supply shocks. Simultaneously raising prices and reducing output, the oil shock produces stagflation: inflation AND unemployment rising together, a combination the Keynesian framework had not adequately theorized and could not cure through standard demand management tools.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- BRETTON WOODS -->
+  <div class="section-block" id="bretton-woods">
+    <div class="section-eyebrow">The Monetary Architecture</div>
+    <h2 class="section-title">Bretton Woods: Dollar Hegemony and the "Embedded Liberalism" Compromise</h2>
+
+    <p class="body-p">The Bretton Woods monetary system was not simply a technical arrangement for managing exchange rates — it was an institutional expression of a specific political-economic philosophy that John Ruggie called "embedded liberalism": the reconciliation of international economic openness with domestic economic management authority. Understanding this architecture is essential for understanding both the golden age's stability and the reasons its end was structurally determined.</p>
+
+    <p class="body-p">The interwar period had demonstrated two incompatible approaches to international monetary order, both of which failed. The gold standard (restored in the 1920s) provided exchange rate stability but required sacrificing domestic employment policy to maintain gold convertibility — the "golden fetters" that prevented the policy responses the Depression required. Competitive devaluations and protectionism (the 1930s alternative) eliminated the discipline of the gold standard but produced a vicious cycle of beggar-thy-neighbor policies that collapsed world trade. <strong>Bretton Woods's intellectual achievement was designing a system that provided exchange rate stability and maintained open trade while preserving governments' authority to manage domestic employment — the impossible trinity partially solved.</strong></p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">The Dollar-Gold Standard</div>
+        <div class="detail-body">The dollar was pegged to gold at $35/oz; all other currencies were pegged to the dollar at fixed but adjustable rates. The U.S. committed to convert dollars held by foreign central banks into gold on demand. This created a dollar-centered reserve system: the dollar was "as good as gold" for international transactions, and the U.S. was obligated to maintain sufficient gold reserves to back its dollar obligations. <strong>The system worked as long as dollar liabilities held by foreigners did not exceed U.S. gold reserves</strong> — a condition that eroded progressively through the 1960s as U.S. balance of payments deficits accumulated and foreign dollar holdings grew. The Triffin Dilemma identified this structural contradiction in 1960; it took eleven more years for the contradiction to force the system's abandonment.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Embedded Liberalism</div>
+        <div class="detail-body">Ruggie's "embedded liberalism" concept captures the Bretton Woods compromise's political philosophy: liberalism (open trade and capital flows) embedded in a social framework (domestic welfare states, managed wages, full employment commitments) that made openness politically sustainable. Free trade creates winners and losers; the losers accept the arrangement only if compensated through domestic social insurance, retraining, and redistribution. <strong>The postwar welfare state was not an obstacle to international economic integration — it was its political precondition.</strong> This insight, which Ruggie developed from the Bretton Woods architects' explicit intentions, is the essential frame for understanding why the subsequent erosion of the welfare state has produced political backlash against globalization, and why the "you can have globalization or welfare states but not both" position misreads the historical relationship between them.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Capital Controls</div>
+        <div class="detail-body">Bretton Woods was explicitly designed to permit — indeed, require — controls on capital flows, in sharp contrast to the late 20th century's capital account liberalization. Keynes and White both believed that unrestricted capital mobility was incompatible with domestic economic management: speculative capital flows would force countries to raise interest rates to defend exchange rates, sacrificing domestic employment. <strong>Capital controls meant that domestic monetary and fiscal policy could target full employment without being constrained by exchange rate defense obligations.</strong> The subsequent removal of capital controls (largely complete by the 1980s) restored exactly the conflict between domestic policy autonomy and exchange rate stability that Bretton Woods had been designed to eliminate — Dani Rodrik's "globalization trilemma" in its most concrete historical form.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Triffin Dilemma</div>
+        <div class="detail-body">Robert Triffin's 1960 testimony to Congress identified the structural contradiction at the heart of the Bretton Woods system: the global economy needed dollars for liquidity (reserves, trade finance, investment); the only way to supply them was through U.S. balance of payments deficits; but persistent deficits would eventually undermine confidence in the dollar's gold backing. <strong>The system required the U.S. to run deficits to supply global liquidity, but those deficits eventually destroyed the gold backing that gave the dollar its reserve currency status.</strong> This was not a policy error — it was a structural impossibility embedded in the system's design. Triffin predicted in 1960 that the system would collapse; it did, in 1971.</div>
+      </div>
+    </div>
+
+    <p class="body-p">The IMF and World Bank — the Bretton Woods institutions — were designed as international financial firefighters and development financiers, respectively. The IMF would provide short-term balance of payments financing to countries in deficit, preventing the competitive devaluations of the 1930s. The World Bank would provide long-term development financing to reconstructing and developing economies. In practice, <strong>both institutions evolved in ways their founders did not intend</strong>: the IMF became the instrument of austerity conditionality (the "Washington Consensus" of Phase VI), requiring deficit countries to cut spending rather than providing unconditioned financing; the World Bank shifted from infrastructure lending to policy conditionality. The distance between Keynes's original vision for these institutions and their subsequent operation is itself one of the period's most instructive institutional histories.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- GOLDEN AGE -->
+  <div class="section-block" id="golden-age">
+    <div class="section-eyebrow">What Made It Work</div>
+    <h2 class="section-title">The Golden Age's Economic Foundations: Why Prosperity Was Broadly Shared</h2>
+
+    <p class="body-p">The golden age's broadly shared prosperity was not the natural result of economic growth — it was the product of specific institutional arrangements that directed the gains from growth toward wages rather than profits, compressed the earnings distribution between high- and low-paid workers, and provided a social insurance floor that prevented the most extreme poverty. When those institutional arrangements eroded (Phase VI), the broadly shared character of growth eroded with them — demonstrating that distribution is an institutional outcome, not an economic given.</p>
+
+    <p class="body-p">Three mechanisms were primary. First, union wage-setting: at 35% density, unions directly set wages for a large fraction of the workforce and indirectly constrained wages for non-union workers (employers paid "union wages" to avoid organizing). The industrial union contracts — pattern bargaining in which the "Treaty of Detroit" template spread across autos, steel, rubber, and manufacturing generally — linked wages to productivity growth and inflation, compressing the distribution between skilled and unskilled workers and between production workers and managers. <strong>The ratio of CEO to median worker pay was approximately 20:1 in 1965; it is approximately 350:1 today.</strong> The change is not primarily explained by CEO productivity increasing relative to workers' — it is explained by the collapse of the institutional constraints that limited executive compensation.</p>
+
+    <p class="body-p">Second, tax structure: the Revenue Act of 1944 established a top marginal income tax rate of 94% on incomes over $200,000; the postwar rate remained at 91–92% until the Kennedy tax cut of 1964, which reduced it to 70%. These rates did not eliminate high incomes, but they substantially reduced the after-tax return to extreme income concentration — which reduced its pursuit. Combined with a corporate tax structure that made retained earnings and investment more tax-advantaged than dividend distribution, the tax structure systematically directed corporate surplus toward reinvestment in productive capacity and worker compensation rather than shareholder returns.</p>
+
+    <p class="body-p">Third, the normative framework: Claudia Goldin and Lawrence Katz document what they call the "compression" of the wage distribution during this period — skilled workers' wages rose, but less-skilled workers' wages rose faster, narrowing the earnings gap. This compression reflected not only union bargaining power but a broader social norm about the legitimate range of earnings inequality that constrained both corporate pay-setting and public acceptance of inequality. <strong>The norm was not neutral — it was racially constructed, applying primarily within the white industrial working class and excluding Black workers who remained outside the core of the union economy.</strong></p>
+
+    <div class="three-grid">
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--jade-hi)">Mechanism I</div>
+        <div class="three-name">Union Wage Compression</div>
+        <div class="three-body">Industrial unions practicing pattern bargaining — identical wage increases across an industry's firms — prevented wage competition between firms by setting industry-wide floors. <strong>Pattern bargaining transferred the gains from productivity growth into wages across the entire industrial sector</strong>, compressing the distribution between skilled and unskilled workers. The postwar union movement's greatest economic achievement was not the wages it won for members (significant) but the wage floor it established for non-union workers who benefited from the threat effect — employers paying competitive wages to avoid organizing campaigns.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--gold)">Mechanism II</div>
+        <div class="three-name">Tax Structure & Surplus Direction</div>
+        <div class="three-body">Top marginal rates of 91% on incomes over $200,000 did not eliminate incentives for executive performance — executives still earned far more than workers — but they substantially reduced the after-tax return to extreme compensation relative to alternative uses of corporate surplus. <strong>When the tax code makes excessive executive pay tax-disadvantaged relative to capital reinvestment and worker compensation</strong>, corporate governance norms shift. The relationship between tax structure and earnings distribution is not mechanical — it operates through the norms and incentives that tax rules create, not only through their direct effects.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--slate-hi)">Mechanism III</div>
+        <div class="three-name">U.S. Global Dominance</div>
+        <div class="three-body">American firms in the 1950s and 1960s faced essentially no serious foreign competition in their domestic markets — European and Japanese industries were rebuilding from wartime destruction; developing economies had not yet industrialized. This protected market position gave American corporations the pricing power to absorb rising labor costs without competitive pressure to automate, offshore, or suppress wages. <strong>The productivity-wage link was sustainable partly because American workers had no foreign competitors</strong>. As European and Japanese competitors rebuilt through the 1960s, this competitive insulation eroded — one of the structural reasons the golden age's wage-setting norms became less sustainable.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- TREATY OF DETROIT -->
+  <div class="section-block" id="treaty-detroit">
+    <div class="section-eyebrow">The Labor-Capital Bargain</div>
+    <h2 class="section-title">The Treaty of Detroit: How Capital and Labor Divided the Surplus</h2>
+
+    <p class="body-p">The "Treaty of Detroit" — the informal name for the 1950 General Motors–UAW contract and the industrial relations system it represented — was the postwar economy's defining institutional bargain. It settled, for a generation, the conflict between capital and labor that had produced the violent confrontations of the Gilded Age and the organizing drives of the late 1930s. Its terms: management received labor peace and uncontested authority over investment, technology, and production decisions; labor received wages linked to productivity growth and inflation, employer-provided health insurance and pensions, seniority protections, and grievance procedures.</p>
+
+    <p class="body-p">The contract's architect on the labor side, Walter Reuther of the UAW, had originally demanded something more radical: union participation in management's investment and pricing decisions, and profit-sharing that would give workers a direct stake in corporate performance. General Motors refused. Reuther accepted the narrower bargain — wages, benefits, and job security, but not participation in corporate governance — because it was achievable in 1950 and because it provided genuine material gains for the workers he represented. <strong>The trade-off was economically successful for twenty years and structurally limiting forever:</strong> by ceding corporate governance to management, labor accepted a bargain that was entirely dependent on management's willingness to honor it — a willingness that evaporated when international competition and the ideological shift of the 1970s changed management's calculation.</p>
+
+    <div class="two-grid">
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--jade-hi)">What Labor Got</div>
+        <div class="two-name">The Wage-Benefit Package</div>
+        <div class="two-body">
+          <p style="margin-bottom:0.8rem">For the industrial working class covered by the Treaty's template, the postwar bargain delivered genuine material improvement at a rate previously unimaginable:</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--jade-dim)"><strong>Annual Improvement Factor:</strong> a 3% annual wage increase representing the "presumed trend rate of progress" — productivity gains automatically shared with workers regardless of annual corporate performance.</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--jade-dim)"><strong>COLA:</strong> Cost-of-living adjustment automatically raising wages with the CPI — protecting real wages from inflation and eliminating a major source of industrial conflict.</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--jade-dim)"><strong>Health insurance and pensions:</strong> employer-provided benefits that gave working-class families economic security previously available only to the professional class — and that tied workers to their employers in ways that complicated subsequent labor mobility.</p>
+          <p style="font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--jade-dim)"><strong>Seniority rights and grievance procedures:</strong> just-cause protection from arbitrary dismissal and a formal process for resolving workplace disputes — constituting a form of economic citizenship in the workplace.</p>
+        </div>
+      </div>
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--rust-hi)">What Labor Gave Up</div>
+        <div class="two-name">The Management Prerogative</div>
+        <div class="two-body">
+          <p style="margin-bottom:0.8rem">The Treaty's price — ceding management's "prerogatives" over corporate governance — determined the bargain's long-run fragility:</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--rust-dim)"><strong>Investment decisions:</strong> where to build plants, how much to invest in automation, whether to outsource production — all exclusively management decisions. When management chose to move production to the South, then Mexico, then China, labor had no contractual standing to object.</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--rust-dim)"><strong>Pricing authority:</strong> unions agreed not to contest corporate pricing decisions. The 1950s pattern of GM raising car prices by more than wage increases — extracting monopoly rents from consumers — was outside the Treaty's reach.</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--rust-dim)"><strong>Technology choices:</strong> automation that eliminated jobs was a management prerogative, not a subject for bargaining. The Treaty's implicit promise — productivity growth shared as wage increases — would not hold if automation enabled productivity growth without workers.</p>
+          <p style="font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--rust-dim)"><strong>No seat at the table:</strong> Reuther's original demand for codetermination (worker representation on corporate boards) — already operating in Germany — was rejected and not revived. The U.S. never developed the institutional forms that gave German unions structural power in corporate governance rather than merely contractual power at the bargaining table.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="body-p">The comparative dimension is essential here: Germany developed a codetermination system (Mitbestimmung) in which workers held half the seats on supervisory boards of large corporations. The long-run consequences of this institutional difference — American shareholder primacy versus German stakeholder governance — are among the most consequential institutional divergences in postwar capitalism. <strong>German workers retained a structural voice in corporate governance that American workers had bargained away in 1950; when globalization and automation threatened industrial employment, German unions had institutional mechanisms to negotiate adjustment that American unions lacked.</strong> The erosion of the Treaty of Detroit in the 1980s was not only an economic story — it was the consequence of a governance structure that had never given workers structural power, only contractual rights that management could eventually refuse to honor.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- KEYNESIAN CONSENSUS -->
+  <div class="section-block" id="keynesian-consensus">
+    <div class="section-eyebrow">The Governing Ideology</div>
+    <h2 class="section-title">The Keynesian Consensus: Fine-Tuning, Full Employment, and the New Economics</h2>
+
+    <p class="body-p">By the late 1950s, Keynesianism had become the governing economic ideology of the American state — not in Keynes's more radical original formulation but in the "neoclassical synthesis" version developed by Paul Samuelson, James Tobin, and the MIT-Harvard economists who staffed Kennedy's Council of Economic Advisers. This consensus held that the economy could be managed near full employment through fiscal and monetary fine-tuning, that recessions were policy failures rather than market necessities, and that the business cycle had been effectively tamed by the New Deal's institutional innovations and the Keynesian management framework.</p>
+
+    <p class="body-p">The Phillips Curve was the consensus's operative tool: the empirical relationship between unemployment and inflation (lower unemployment → higher inflation) mapped out by A.W. Phillips in 1958 appeared to give policymakers a stable menu of tradeoffs. <strong>The implication: fiscal and monetary policy could choose any desired combination of unemployment and inflation by moving along the Phillips Curve — a menu of tradeoffs rather than a binding constraint.</strong> The Kennedy-Johnson CEA used this framework to justify the 1964 tax cut (stimulate to reduce unemployment at modest inflation cost) and, disastrously, to justify continued expansion in the late 1960s when the economy was already at full employment.</p>
+
+    <blockquote>
+      <p>We are all Keynesians now.</p>
+      <cite>Milton Friedman · Time Magazine · December 31, 1965<br><span style="font-size:0.75em;opacity:0.7">(often misquoted; what Friedman actually said was more nuanced — but the headline captured a real consensus)</span></cite>
+    </blockquote>
+
+    <p class="body-p">The Keynesian consensus's limitations became apparent as the 1960s ended. Milton Friedman's 1967 AEA presidential address — "The Role of Monetary Policy" — argued that the Phillips Curve was not a stable long-run tradeoff but a temporary relationship that would break down as workers and firms adjusted their inflation expectations. Once workers expected inflation, they would demand higher wages to maintain real purchasing power; this would shift the Phillips Curve upward, producing higher inflation at any given unemployment rate. <strong>The implication: there was a "natural rate of unemployment" at which inflation was stable, and attempts to push unemployment below it through demand stimulus would produce accelerating inflation, not a sustainable low-unemployment equilibrium.</strong> The 1970s stagflation would appear to confirm Friedman's prediction — though whether it confirmed the theory or merely reflected specific supply shocks is a debate that has never been fully resolved.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">The Neoclassical Synthesis</div>
+        <div class="detail-body">Samuelson's "neoclassical synthesis" — the framework of his enormously influential textbook <em>Economics</em> (1948, eventually sold 4 million copies) — reconciled Keynesian macroeconomics with neoclassical microeconomics: governments should use fiscal and monetary policy to maintain full employment (Keynesian); once full employment was achieved, markets would allocate resources efficiently (neoclassical). <strong>This synthesis was less radical than the original Keynes:</strong> it accepted the efficiency of market allocation at full employment while legitimizing government intervention to achieve it. Its political consequence: it made Keynesian economics compatible with American liberal anticommunism, removing the radical edge that had made it politically suspect in the early Cold War period.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The New Economics in Practice</div>
+        <div class="detail-body">Walter Heller's CEA under Kennedy was the most explicitly Keynesian economic policymaking body in American history — staffed by academic economists who believed that rigorous macroeconomic modeling could guide fiscal policy with precision. The Kennedy-Johnson tax cut of 1964 was their paradigm case: a deliberate fiscal expansion to move a mildly underperforming economy to full employment, producing exactly the predicted results. <strong>The episode's success bred the overconfidence that produced the subsequent error:</strong> the belief that fiscal fine-tuning could maintain full employment indefinitely, without risking inflation, led to the failure to restrain demand when the economy overheated in 1965–68 under the combined stimulus of Vietnam spending and Great Society programs.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Monetarist Challenge</div>
+        <div class="detail-body">Friedman's monetarist challenge to Keynesian consensus rested on three propositions: that monetary policy was more powerful than fiscal policy; that the money supply was the primary determinant of nominal income; and that discretionary stabilization policy tended to destabilize rather than stabilize the economy because of lags in policy effects. His prescription: a constant money growth rule (the "k-percent rule") rather than discretionary stabilization. <strong>Friedman was wrong about the k-percent rule's practicability</strong> but right about the Phillips Curve's instability and the dangers of exploiting it beyond the economy's productive capacity. The stagflation of the 1970s validated his Phillips Curve critique while discrediting his specific policy prescriptions — leaving macroeconomic policy in the intellectual vacuum that Phase VI's Volcker shock would partially fill.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- GREAT SOCIETY -->
+  <div class="section-block" id="great-society">
+    <div class="section-eyebrow">The Welfare State's Expansion</div>
+    <h2 class="section-title">The Great Society: The Welfare State Completed and Its Political Cost</h2>
+
+    <p class="body-p">Lyndon Johnson's Great Society (1964–1968) was the most ambitious domestic policy program since the New Deal — and in some respects more ambitious, because it attempted to extend the welfare state's benefits to the populations the New Deal had systematically excluded. Its achievements were genuine and durable: Medicare and Medicaid created near-universal health insurance for the elderly and poor that remains the foundation of American healthcare; the civil rights legislation formally dismantled the legal architecture of racial subordination; the Elementary and Secondary Education Act brought federal funding to public schools for the first time; the Voting Rights Act protected Black Americans' political rights for the first time since Reconstruction.</p>
+
+    <p class="body-p">The Great Society's political economy was as important as its policy achievements. By formally extending the welfare state's benefits to Black Americans, it fractured the New Deal coalition that had sustained Democratic political dominance since 1932. The "Southern Strategy" that Nixon employed in 1968 and 1972 — appealing to white Southern and working-class voters who felt that the Democratic Party had abandoned their economic interests in favor of Black and minority beneficiaries — was the political consequence of the Great Society's racial inclusion. <strong>The political coalition that had built and sustained the welfare state became the political coalition that would dismantle it, once the welfare state's beneficiaries were no longer perceived as "people like us" by enough white working-class voters.</strong></p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Medicare & Medicaid — 1965</div>
+        <div class="detail-body">Medicare (federal health insurance for those 65 and over) and Medicaid (joint federal-state health insurance for the poor) were the Great Society's most consequential and most durable programs. Together they represent the largest expansion of social insurance since Social Security itself. <strong>Medicare's passage over the AMA's fierce opposition — the AMA spent $50 million in 1965 opposing it</strong> and called it "socialized medicine" — established the federal government's permanent role in health care financing. The subsequent evolution of both programs — their expansion (SCHIP, ACA) and contraction attempts (multiple Republican budget proposals) — dominates American fiscal politics from 1965 to the present.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Civil Rights Act & Voting Rights Act</div>
+        <div class="detail-body">The Civil Rights Act of 1964 (prohibiting racial discrimination in employment, public accommodations, and federally funded programs) and the Voting Rights Act of 1965 (prohibiting discriminatory voting practices and providing federal enforcement) were the most important expansions of legal equality since the 14th and 15th Amendments. Their economic significance: formal legal equality was the necessary but not sufficient condition for economic equality. <strong>Formal nondiscrimination could not undo decades of differential wealth accumulation produced by the New Deal's exclusions</strong> — a point that motivated the subsequent debate about affirmative action, which attempted to accelerate the catch-up that formal nondiscrimination alone could not produce.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">War on Poverty — Results and Limits</div>
+        <div class="detail-body">The Economic Opportunity Act (1964) — the legislative vehicle for Johnson's War on Poverty — created Head Start, the Job Corps, community action programs, VISTA (domestic Peace Corps), and legal services for the poor. The poverty rate fell from 22.4% in 1959 to 11.1% by 1973 — the sharpest sustained poverty reduction in American history. <strong>The War on Poverty "worked" by the metrics available:</strong> poverty fell sharply during the period of its operation, driven by a combination of direct program benefits, tight labor markets (unemployment below 4%), and the expansion of Social Security and food stamps. Its subsequent political discrediting — Reagan's "We fought a War on Poverty and poverty won" — reflected political strategy more than honest evaluation of the evidence.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Fiscal Overreach — Guns and Butter</div>
+        <div class="detail-body">Johnson's refusal to raise taxes to finance simultaneously Vietnam escalation and Great Society expansion was the golden age's defining fiscal error — the choice that loaded the inflationary pressure whose interaction with the 1973 oil shock would produce the stagflation of Phase VI. The Council of Economic Advisers, the Federal Reserve, and academic economists all recommended a tax increase in 1965–66; Johnson refused, fearing that Congress would eliminate Great Society programs as the price of the tax increase. <strong>The resulting budget deficit fed inflationary expectations that eroded the Phillips Curve's stability</strong> and validated Friedman's 1967 prediction of accelerating inflation. The macroeconomic error was partly a political failure — choosing between the guns of Vietnam and the butter of domestic programs was a choice Johnson refused to make.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- RACIAL EXCLUSION -->
+  <div class="section-block" id="racial-exclusion">
+    <div class="section-eyebrow">Prosperity's Structural Limits</div>
+    <h2 class="section-title">The Racial Limits of the Golden Age: Two Americas</h2>
+
+    <p class="body-p">The golden age's broadly shared prosperity was shared within the white American working class in ways that it was not shared with Black Americans — and this is not a qualification or footnote to the period's achievements but a structural feature of its institutional design. The New Deal's racial exclusions (Phase IV) meant that Black Americans entered the postwar period without the wealth-building institutional access — FHA mortgages, GI Bill benefits, Social Security coverage, union membership — that built the white middle class. The golden age's prosperity was built on a foundation that had systematically excluded Black workers; the resulting gap compounded throughout the period.</p>
+
+    <p class="body-p">The specific mechanisms through which racial exclusion operated in the postwar period differed from the New Deal's explicit exclusions but were no less effective. Residential segregation — enforced by FHA redlining, restrictive covenants, and exclusionary zoning — prevented Black families from accessing the suburban homeownership that was the primary wealth-building mechanism of the postwar period. <strong>The suburbs built by Levittown and its imitators were federally subsidized through FHA mortgage insurance and the mortgage interest deduction — and were explicitly restricted to white purchasers.</strong> The wealth accumulated in these homes, passed to subsequent generations, is a primary source of today's racial wealth gap.</p>
+
+    <div class="two-grid">
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--jade-hi)">White Working Class Experience</div>
+        <div class="two-name">The Postwar Middle Class</div>
+        <div class="two-body">For white industrial workers, the postwar era delivered a transformation in material life previously confined to the professional class: homeownership in new suburbs (federally subsidized), college education for children (GI Bill and expanding public universities), employer-provided health insurance and pensions (Treaty of Detroit), Social Security old-age security, and steadily rising real wages. <strong>The suburban single-family home was simultaneously a consumption good, an investment asset, and a form of racial segregation</strong> — its wealth-building capacity and its racial exclusivity were not separable features but aspects of the same institutional design. By 1973, the median white family had accumulated wealth primarily in home equity that represented decades of federally subsidized appreciation in racially exclusive communities.</div>
+      </div>
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--rust-hi)">Black America's Different Experience</div>
+        <div class="two-name">Exclusion from the Boom</div>
+        <div class="two-body">For Black Americans, the postwar period was defined by the intersection of formal exclusion from wealth-building institutions and the Great Migration's transformation of urban political economy. The Great Migration — 6 million Black Americans moving from the rural South to Northern and Western cities between 1910 and 1970 — created the Black urban working class. But <strong>arriving in Northern cities to find segregated housing (redlining), segregated unions (AFL craft unions), and discriminatory employers, Black migrants built economic lives largely outside the institutional structures that produced white working-class prosperity.</strong> The urban uprisings of 1965–68 (Watts, Detroit, Newark) reflected not random violence but the accumulated frustration of communities that had participated in the postwar economy's productive expansion while being systematically excluded from its wealth-building mechanisms.</div>
+      </div>
+    </div>
+
+    <p class="body-p">The Kerner Commission (1968), appointed by Johnson to investigate the urban uprisings, concluded that the U.S. was "moving toward two societies, one black, one white — separate and unequal." Its economic analysis was straightforward: the proximate causes of the uprisings were police brutality and specific grievances; the structural cause was the systematic exclusion of Black Americans from the economic institutions — jobs, housing, credit, education — that defined the American opportunity structure. <strong>The Commission's recommendation — massive public investment in urban employment, housing, and education — was not implemented.</strong> Nixon's Southern Strategy, which won the 1968 election in part by mobilizing white backlash against the urban uprisings, foreclosed the political space for the structural response the Kerner Commission had identified as necessary.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- COLD WAR -->
+  <div class="section-block" id="cold-war">
+    <div class="section-eyebrow">Geopolitics and Economics</div>
+    <h2 class="section-title">Cold War Political Economy: How Geopolitics Structured Economic Policy</h2>
+
+    <p class="body-p">The Cold War was not merely a geopolitical conflict that ran in parallel with the postwar economy — it was a structural feature of the economy itself, shaping public investment priorities, trade policy, foreign aid, and the institutional forms through which Keynesian demand management was politically acceptable. Understanding the Cold War's economic dimensions is essential for understanding both the golden age's specific institutional forms and the constraints that shaped its evolution.</p>
+
+    <p class="body-p">The most consequential Cold War economic institution was what Eisenhower called the "military-industrial complex": the permanent defense establishment — the Pentagon, the defense contractors, the research universities funded by defense contracts — that consumed roughly 8–10% of GDP throughout the 1950s and provided the macroeconomic stimulus that maintained near-full-employment without requiring politically controversial civilian public investment. <strong>"Military Keynesianism" solved the postwar political economy problem of maintaining aggregate demand without the redistribution that civilian public investment would require:</strong> defense spending was universally acceptable (anti-communism), geographically dispersed (defense contracts in every congressional district), and technically advanced (driving innovation in aerospace, electronics, and computing).</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Defense Spending as Stimulus</div>
+        <div class="detail-body">Federal defense spending averaged roughly 10% of GDP in the 1950s — a massive fiscal stimulus that maintained aggregate demand at levels near full employment. The political logic: civilian public investment in housing, health care, or education would require redistributive taxation and would benefit the poor and working class more than the wealthy. Defense spending could be financed by broadly-based taxes and distributed across income levels without explicit redistribution. <strong>Military Keynesianism thus resolved the political problem of using government spending to maintain full employment without the class conflict that explicitly redistributive programs would generate.</strong> Eisenhower was aware of the compromise's costs — his farewell address is a warning about the political economy of a permanent war establishment, not merely a military caution.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Cold War and Free Trade</div>
+        <div class="detail-body">U.S. trade policy during the Cold War was shaped as much by geopolitical as by economic considerations. The U.S. deliberately opened its markets to European and Japanese goods — accepting trade deficits — partly to support the economic recovery of Cold War allies whose political stability depended on prosperity. <strong>The GATT rounds (Geneva 1947, Annecy 1949, Torquay 1951, Dillon 1960–61, Kennedy 1964–67) systematically reduced tariffs</strong> under U.S. leadership, rebuilding the liberal trading order that the interwar period had destroyed. The political economy of free trade during this period differed fundamentally from later periods: the U.S. accepted trade concessions that disadvantaged domestic industries because the geopolitical benefits (stable allies, contained Soviet influence) outweighed the economic costs.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Marshall Plan and Development Aid</div>
+        <div class="detail-body">The Marshall Plan was simultaneously an economic reconstruction program, a Keynesian demand stimulus for U.S. exports, and an anti-communist geopolitical strategy. Its success — European GDP fully recovered to pre-war trend within five years — was extraordinary by any standard and established the template for subsequent development assistance. <strong>The Marshall Plan worked because it provided unrestricted grants</strong> (not loans with conditionality) at a scale sufficient to restart self-sustaining growth — very different from the IMF conditionality programs that replaced it as the international community's preferred development tool. The contrast between the Marshall Plan's success and subsequent IMF structural adjustment programs' mixed record is directly traceable to the difference between grants and conditional loans.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- CONTRADICTIONS -->
+  <div class="section-block" id="contradictions">
+    <div class="section-eyebrow">The Structural Exhaustion</div>
+    <h2 class="section-title">Why the Golden Age Ended: Six Converging Contradictions</h2>
+
+    <p class="body-p">The golden age did not end because of policy mistakes alone — though the "guns and butter" fiscal error and the Fed's delayed response to inflation contributed. It ended because the specific conditions that had made it possible were exhausted by their own success. Understanding the exhaustion mechanism is essential for understanding why the subsequent neoliberal turn was not simply an ideological choice but a response to real structural pressures that the Keynesian framework could not adequately address.</p>
+
+    <div class="fracture-stack">
+      <div class="frac-item eco">
+        <div class="frac-year">1965–1973</div>
+        <div class="frac-title">Profit Squeeze — Labor's Success Creating Capital's Problem</div>
+        <div class="frac-body">The Marxist economists Glyn and Sutcliffe identified a "profit squeeze" in the late 1960s: the combination of rising wages (from tight labor markets and strong unions) and rising input costs squeezed corporate profit margins. The profit rate in U.S. manufacturing fell from roughly 25% in the early 1960s to 15% by the early 1970s. <strong>Corporate investment slowed as returns fell;</strong> productivity growth decelerated. The labor movement's very success in maintaining the wage-productivity link had eroded the profit conditions that made continued investment — and thus continued productivity growth — viable. This was not a corporate conspiracy; it was a structural contradiction in the Keynesian full-employment regime.</div>
+      </div>
+      <div class="frac-item int">
+        <div class="frac-year">1960–1973</div>
+        <div class="frac-title">Triffin Dilemma — Dollar Overhang</div>
+        <div class="frac-body">The structural contradiction Triffin identified in 1960 worked itself out through the 1960s: U.S. balance of payments deficits (from Vietnam spending, foreign investment, and trade deficits) steadily increased foreign dollar holdings. By 1971, foreign central banks held dollars worth more than twice the U.S. gold stock at $35/oz. <strong>The dollar was technically inconvertible long before Nixon admitted it:</strong> if France (which was converting dollars to gold throughout the late 1960s under de Gaulle) had been joined by other central banks, the gold stock would have been exhausted within months. Nixon's August 1971 announcement was not a surprise policy shift — it was the formal acknowledgment of a structural reality that had been visible for a decade.</div>
+      </div>
+      <div class="frac-item eco">
+        <div class="frac-year">1965–1973</div>
+        <div class="frac-title">European and Japanese Competition</div>
+        <div class="frac-body">The European and Japanese industrial recoveries, which the Marshall Plan and Korean War procurement had accelerated, eventually produced competitors in the markets where American industry had operated with monopoly-like pricing power. By the late 1960s, German steel was cheaper than American steel; Japanese automobiles were beginning to compete in the U.S. market. <strong>The competitive insulation that had allowed American corporations to absorb rising labor costs without competitive pressure disappeared</strong> — and with it, the structural precondition for the Treaty of Detroit's wage-productivity link. Management could no longer simply raise prices to cover rising wages when foreign competitors could not be similarly compelled.</div>
+      </div>
+      <div class="frac-item pol">
+        <div class="frac-year">1966–1973</div>
+        <div class="frac-title">Inflation Expectations — the Phillips Curve's Breakdown</div>
+        <div class="frac-body">Johnson's "guns and butter" fiscal policy fed inflationary expectations that, once established, proved difficult to extinguish. The wage-setting system that had linked wages to productivity and CPI was not designed for an environment of persistent inflation — it became an engine for wage-price spirals as workers demanded wage increases to compensate for past inflation, which raised costs, which raised prices, which required further wage increases. <strong>The Keynesian framework had no adequate theory of inflationary expectations</strong> and no policy prescription for supply-side inflation that was not also contractionary for employment. The stagflation of 1973–75 would expose this gap definitively.</div>
+      </div>
+      <div class="frac-item pol">
+        <div class="frac-year">1968–1972</div>
+        <div class="frac-title">Political Coalition Fracture — the New Deal Coalition's Collapse</div>
+        <div class="frac-body">The Civil Rights revolution — the most important moral achievement of the postwar period — fractured the New Deal coalition that had sustained the Keynesian welfare state. White working-class voters in the South and in Northern industrial cities increasingly voted against the Democratic Party's racial liberalism, splitting the coalition between its economic interests (shared by all working-class voters) and its racial politics (divisive). <strong>Nixon's 1968 and 1972 victories demonstrated that a conservative coalition could be built by separating white working-class voters from their economic interests</strong> through racial appeals — the "Southern Strategy" that Atwater and Ailes would refine into the dominant form of American conservative politics for the next fifty years.</div>
+      </div>
+      <div class="frac-item eco">
+        <div class="frac-year">1973</div>
+        <div class="frac-title">The Oil Shock — Supply-Side Disruption</div>
+        <div class="frac-body">The OPEC oil embargo quadrupled oil prices within months, simultaneously raising production costs across the entire economy (stagflation's inflation component) and reducing real incomes (stagflation's demand-contraction component). <strong>Keynesian demand management had no adequate response to a supply shock that raised prices and reduced output simultaneously:</strong> expansionary policy would address the unemployment but worsen the inflation; contractionary policy would address the inflation but deepen the recession. The oil shock did not cause the golden age's end — that was already structurally determined — but it provided the specific precipitating event and exposed the Keynesian consensus's policy limitations in a way that set the stage for Phase VI's monetarist turn.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- NIXON SHOCK -->
+  <div class="section-block" id="nixon-shock">
+    <div class="section-eyebrow">The Structural Break</div>
+    <h2 class="section-title">The Nixon Shock: August 15, 1971 and the End of the Postwar Order</h2>
+
+    <p class="body-p">On the evening of August 15, 1971, Nixon appeared on national television to announce that the United States was suspending the dollar's convertibility into gold, imposing a 10% surcharge on all imports, and instituting 90-day wage and price controls. In fifteen minutes, he simultaneously ended the Bretton Woods monetary system that had governed international finance for 27 years, abandoned the free trade principles that had defined postwar U.S. trade policy, and imposed the direct government intervention in wage and price setting that postwar economic orthodoxy had rejected as incompatible with market economics.</p>
+
+    <p class="body-p">The weekend before the announcement, Nixon convened a secret meeting at Camp David with his economic advisers — Treasury Secretary John Connally, Fed Chairman Arthur Burns, CEA Chairman Herbert Stein, and others — to develop the package. Connally reportedly told Nixon: "We're broke but powerful, and we're going to act like it." The gold window's closure was not accompanied by a new monetary system to replace Bretton Woods; <strong>the world would float to whatever exchange rate arrangement markets and governments negotiated.</strong> By 1973, with European currencies all floating against the dollar, the Bretton Woods era was definitively over.</p>
+
+    <p class="body-p">The Nixon Shock's economic consequences were immediate and long-lasting. The dollar depreciated sharply, improving U.S. competitiveness but reducing the purchasing power of dollar-denominated savings. The Smithsonian Agreement (December 1971) attempted to negotiate new fixed exchange rates within wider bands — "the greatest monetary agreement in the history of the world," Nixon called it; it lasted fourteen months. By March 1973, generalized floating was the de facto international monetary system. <strong>The transition from fixed to floating exchange rates removed the external anchor for monetary policy discipline that Bretton Woods had provided</strong> — leaving the Federal Reserve free to pursue whatever monetary policy domestic politics demanded, and making the inflationary excesses of 1971–73 considerably easier than they would have been under Bretton Woods's discipline.</p>
+
+    <div class="frame-box">
+      <div class="frame-box-label">The Nixon Shock's Long-Run Architecture</div>
+      <p class="body-p">The Nixon Shock did not merely end Bretton Woods — it created the institutional architecture of the subsequent financial order. Floating exchange rates created the currency markets whose daily volume now exceeds $7 trillion. The removal of capital controls, accelerating through the 1970s and 1980s, created the global capital mobility that defines contemporary finance. The dollar's maintenance as the world's primary reserve currency despite gold decoupling — "dollar hegemony without the gold constraint" — gave the U.S. what Valéry Giscard d'Estaing had called the "exorbitant privilege": the ability to run persistent current account deficits financed by foreign willingness to hold dollar assets.</p>
+      <p class="body-p" style="margin-bottom:0">The political economy of this new dollar system: the U.S. could finance trade deficits by issuing dollar-denominated assets that foreigners wanted to hold — U.S. Treasury securities, the world's safest store of value. This meant that U.S. domestic consumption could exceed domestic production indefinitely, as long as foreigners were willing to hold the resulting dollar liabilities. <strong>The current account deficits that financialized the U.S. economy, deindustrialized the Midwest, and accumulated global imbalances that contributed to the 2008 financial crisis were all enabled by the post-Bretton Woods dollar system that Nixon created in August 1971.</strong> The golden age ended in fifteen minutes of presidential television; the financial order that replaced it is still operating.</p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SOURCES -->
+  <div class="section-block" id="sources">
+    <div class="section-eyebrow">Reading List</div>
+    <h2 class="section-title">Phase V Sources</h2>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Primary Sources</div>
+    <div class="source-stack" style="margin-bottom:2rem">
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Eisenhower's Farewell Address — "The Military-Industrial Complex"</div>
+          <div class="src-author">Dwight D. Eisenhower · January 17, 1961</div>
+          <div class="src-note">One of the most consequential and most misread presidential addresses in American history. The famous "military-industrial complex" warning is often extracted from its context: Eisenhower was warning against both military overreach AND the potential "domination of the nation's scholars by Federal employment, project allocations, and the power of money" — a warning about the capture of scientific research by government funding that is rarely quoted alongside the military-industrial complex passage. Read the full text: it is a sophisticated analysis of the political economy of permanent mobilization by the general who had built the military establishment he was warning against.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">The Role of Monetary Policy (AEA Presidential Address)</div>
+          <div class="src-author">Milton Friedman · American Economic Review, 1968</div>
+          <div class="src-note">Friedman's most important and most prescient paper — the argument that the Phillips Curve is not a stable long-run tradeoff, that there is a "natural rate of unemployment," and that attempts to exploit the inflation-unemployment tradeoff beyond the natural rate will produce accelerating rather than stable inflation. Read before the 1970s stagflation appears in Phase VI, because the stagflation is most clearly understood as the empirical confirmation of this 1967 argument. Friedman's presidential address is also a model of how to use economic theory to make falsifiable predictions — the paper's rhetorical power comes from its willingness to be proven wrong, which made it all the more devastating when it appeared to be proven right.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Report of the National Advisory Commission on Civil Disorders (Kerner Report)</div>
+          <div class="src-author">Kerner Commission · 1968</div>
+          <div class="src-note">The essential government document on the racial limits of the golden age — a comprehensive analysis of the urban uprisings of 1965–68 that combines honest structural analysis with specific policy recommendations. Its central finding — "Our nation is moving toward two societies, one black, one white — separate and unequal" — was the most honest official statement about racial inequality in postwar American history. The chapters on employment, housing, education, and the welfare system document in granular detail how Black Americans were structurally excluded from the postwar prosperity's institutional foundations. Read alongside Katznelson to understand the mechanisms that produced the conditions the Kerner Commission analyzed.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin:2rem 0 1rem">Secondary Sources</div>
+    <div class="source-stack">
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Golden Fetters: The Gold Standard and the Great Depression (Epilogue) AND Globalizing Capital: A History of the International Monetary System</div>
+          <div class="src-author">Barry Eichengreen · 1992 / 1996</div>
+          <div class="src-note">Eichengreen's two books provide the essential framework for the international monetary history of both the New Deal era (Golden Fetters) and the Bretton Woods period (Globalizing Capital). Read Globalizing Capital for Phase V: its account of how Bretton Woods worked, why it was superior to the gold standard, and why the Triffin Dilemma made its collapse structurally inevitable is the clearest available. Eichengreen combines institutional analysis with political economy — explaining not only how the system functioned technically but why the political coalitions that sustained it eroded. Essential for understanding both what Bretton Woods achieved and why no comparable system has been negotiated since.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The New Industrial State</div>
+          <div class="src-author">John Kenneth Galbraith · 1967</div>
+          <div class="src-note">Galbraith's analysis of the postwar industrial economy — the "technostructure" of large corporations that had superseded the market's price mechanism with administrative planning — was the golden age's most important internal critique from the left. His argument: the large corporation had become a planning institution, setting prices rather than responding to them, managing demand through advertising rather than satisfying given preferences, and pursuing organizational goals (growth, stability, the technostructure's power) rather than profit maximization. Read as both economic analysis and political economy: Galbraith's "countervailing power" thesis (unions, government, and consumer organizations as checks on corporate power) is the institutional theory underlying the Treaty of Detroit's logic.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Color of Law: A Forgotten History of How Our Government Segregated America</div>
+          <div class="src-author">Richard Rothstein · 2017</div>
+          <div class="src-note">The essential account of how the federal government — through FHA redlining, public housing siting, highway routing, and local zoning support — created and enforced residential segregation throughout the postwar period. Rothstein's contribution is to demonstrate that American residential segregation was not the product of private choices or market discrimination alone — it was de jure segregation, created by government policy, with the same constitutional implications as Southern Jim Crow. His argument: if residential segregation is government-created, government has an obligation to remedy it — a conclusion with direct implications for housing policy debates that have never been resolved. Read alongside Katznelson for the most complete account of how postwar prosperity was institutionally structured to exclude Black Americans.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Race Between Education and Technology</div>
+          <div class="src-author">Claudia Goldin &amp; Lawrence Katz · 2008</div>
+          <div class="src-note">Goldin and Katz's economic history of American education and inequality over the 20th century provides the essential quantitative framework for understanding the golden age's wage compression and its subsequent reversal. Their argument: the compression of the wage distribution in the postwar period reflected the rapid expansion of education (the "human capital revolution") outpacing the skill-biased technological change that would otherwise increase inequality. When educational attainment growth slowed after 1980, skill-biased technological change dominated and inequality rose. The "race between education and technology" metaphor organizes the entire inequality debate in a form that is both rigorous and politically legible.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Has Globalization Gone Too Far?</div>
+          <div class="src-author">Dani Rodrik · 1997</div>
+          <div class="src-note">Rodrik's "globalization trilemma" — that a nation cannot simultaneously maintain deep international economic integration, national sovereignty in economic policy, and democratic governance; it can have any two but not all three — is the essential analytical framework for understanding both the Bretton Woods compromise and its subsequent erosion. Bretton Woods chose national sovereignty and democratic governance over deep integration (hence capital controls). The post-1973 order chose deep integration and national sovereignty over democratic governance (monetary policy constrained by international capital mobility, regardless of domestic democratic preferences). Read alongside Ruggie's "embedded liberalism" for the full framework.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type rec">Recommended</div>
+        <div>
+          <div class="src-title">The Fifties</div>
+          <div class="src-author">David Halberstam · 1993</div>
+          <div class="src-note">The best narrative account of the golden age's social and cultural dimensions — a book about what the postwar prosperity felt like to live in, from the perspective of the white suburban America that was its primary beneficiary. Halberstam's portraits of the corporate culture, the consumer economy, the television industry, the civil rights movement's early years, and the political class of the Eisenhower era are vivid and economically perceptive without being primarily an economic history. Read for texture and social context that the analytical literature cannot provide; read critically for its perspective — Halberstam's "fifties" is largely the experience of white middle-class America, which is the story the period's white beneficiaries told about themselves.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-toc">
+    <div class="sidebar-title">In This Chapter</div>
+    <a class="stoc-item active" href="#context">Overview & Timeline</a>
+    <a class="stoc-item" href="#bretton-woods">Bretton Woods System</a>
+    <a class="stoc-item" href="#golden-age">Golden Age's Foundations</a>
+    <a class="stoc-item" href="#treaty-detroit">Treaty of Detroit</a>
+    <a class="stoc-item" href="#keynesian-consensus">Keynesian Consensus</a>
+    <a class="stoc-item" href="#great-society">Great Society</a>
+    <a class="stoc-item" href="#racial-exclusion">Prosperity's Racial Limits</a>
+    <a class="stoc-item" href="#cold-war">Cold War Political Economy</a>
+    <a class="stoc-item" href="#contradictions">Six Converging Contradictions</a>
+    <a class="stoc-item" href="#nixon-shock">Nixon Shock — 1971</a>
+    <a class="stoc-item" href="#sources">Reading List</a>
+  </div>
+
+  <div>
+    <div class="sidebar-title">Key Figures</div>
+    <div class="key-figure">
+      <div class="key-figure-name">Walter Reuther</div>
+      <div class="key-figure-role">UAW President · Treaty of Detroit's Architect</div>
+      <div class="key-figure-note">The postwar labor movement's most consequential figure — the architect of the Treaty of Detroit and the union leader who did most to translate productivity growth into working-class wages. His original demand for union participation in corporate governance — rejected in 1950 — would have created a more durable institutional foundation for labor's power than the purely contractual arrangement he accepted. His assassination (1970, in a plane crash that investigators called suspicious) removed the labor movement's most creative leader at the moment it most needed strategic reinvention.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Harry Dexter White</div>
+      <div class="key-figure-role">U.S. Treasury · Bretton Woods Architect</div>
+      <div class="key-figure-note">White's victory over Keynes at Bretton Woods — a dollar-centered system over Keynes's symmetric bancor system — reflected U.S. financial dominance and produced both the golden age's monetary stability and the Triffin Dilemma that would eventually destroy it. White was subsequently accused of being a Soviet spy (the charges remain disputed) and died of a heart attack in 1948, shortly after testifying before HUAC. The architect of the postwar monetary order's personal trajectory illustrates the Cold War's pervasive impact on the period's institutional development.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Walter Heller</div>
+      <div class="key-figure-role">CEA Chairman · The New Economics</div>
+      <div class="key-figure-note">Kennedy's CEA chairman — the figure who translated Keynesian economics into executive branch policy and persuaded Kennedy and Johnson to use fiscal policy as a deliberate macroeconomic management instrument. The 1964 tax cut was his paradigmatic achievement; the failure to recommend a tax increase in 1965–66 when the economy overheated was his corresponding failure. His confidence in Keynesian fine-tuning — justified by the 1964 success — contributed to the overconfidence that produced the guns-and-butter fiscal error.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Milton Friedman</div>
+      <div class="key-figure-role">Economist · The Monetarist Challenge</div>
+      <div class="key-figure-note">The postwar period's most consequential intellectual critic of the Keynesian consensus — his 1967 AEA address predicting the Phillips Curve's breakdown was among the most successful predictions in the history of economics. His monetarist framework provided the intellectual foundation for the Volcker shock of Phase VI. But Friedman's policy prescriptions — the k-percent money growth rule, the negative income tax as welfare state substitute — were less successful than his analytical framework, illustrating the gap between theoretical critique and practical policy design.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Robert Triffin</div>
+      <div class="key-figure-role">Economist · The Dilemma Identifier</div>
+      <div class="key-figure-note">Belgian-American economist whose 1960 testimony identified the structural contradiction at the heart of the Bretton Woods system — the impossibility of simultaneously providing global liquidity through dollar deficits and maintaining gold convertibility — with a precision that proved exactly correct eleven years later. Triffin's dilemma was one of the 20th century's most successful economic predictions, and its non-resolution (the dollar retains reserve currency status without gold backing, and Triffin-like tensions persist) suggests that international monetary arrangements face structural instability that no technical fix can permanently resolve.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Key Concepts</div>
+    <span class="concept-pill">Bretton Woods</span>
+    <span class="concept-pill">Dollar-Gold Standard</span>
+    <span class="concept-pill">Triffin Dilemma</span>
+    <span class="concept-pill">Embedded Liberalism</span>
+    <span class="concept-pill">Capital Controls</span>
+    <span class="concept-pill">Golden Age</span>
+    <span class="concept-pill">Treaty of Detroit</span>
+    <span class="concept-pill">Pattern Bargaining</span>
+    <span class="concept-pill">Management Prerogative</span>
+    <span class="concept-pill">Codetermination</span>
+    <span class="concept-pill">Phillips Curve</span>
+    <span class="concept-pill">Natural Rate of Unemployment</span>
+    <span class="concept-pill">Neoclassical Synthesis</span>
+    <span class="concept-pill">Military Keynesianism</span>
+    <span class="concept-pill">Marshall Plan</span>
+    <span class="concept-pill">Medicare / Medicaid</span>
+    <span class="concept-pill">War on Poverty</span>
+    <span class="concept-pill">FHA Redlining</span>
+    <span class="concept-pill">Great Migration</span>
+    <span class="concept-pill">Kerner Commission</span>
+    <span class="concept-pill">Profit Squeeze</span>
+    <span class="concept-pill">Nixon Shock</span>
+    <span class="concept-pill">Stagflation</span>
+    <span class="concept-pill">Globalization Trilemma</span>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Duration</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:600;color:var(--jade-hi);line-height:1">3</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-top:0.3rem">Weeks</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);margin-top:0.8rem;line-height:1.6">Read Eichengreen (Globalizing Capital) first for the monetary architecture; Galbraith for the industrial economy's internal logic; Rothstein for the racial exclusion mechanism. Friedman's 1967 AEA address immediately before starting Phase VI — it is the intellectual bridge between the golden age and the stagflation era.</div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Navigation</div>
+    <a href="econ_phase4_new_deal.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:0.6rem 0;border-bottom:1px solid var(--border);transition:color 0.2s;text-transform:uppercase" onmouseover="this.style.color='var(--jade-hi)'" onmouseout="this.style.color='var(--text-dim)'">← Phase IV · New Deal</a>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin:1rem 0 0.3rem">Phase VI · Stagflation, Neoliberalism &amp; Financialization</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);line-height:1.6">1973–2008 · The Volcker shock, Reagan revolution, and the financialization of everything — how the golden age's institutional architecture was dismantled and what replaced it.</div>
+  </div>
+</aside>
+</div>
+
+<footer style="padding:2.5rem 8vw;border-top:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase">U.S. Economy Research Plan · Phase V of VII</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-style:italic;color:var(--text-dim)">Postwar Prosperity &amp; Bretton Woods, 1945–1973</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(
+  entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold:0.07 }
+);
+document.querySelectorAll('.section-block').forEach(el => observer.observe(el));
+const navLinks = document.querySelectorAll('.toc-item,.stoc-item');
+const navObs = new IntersectionObserver(
+  entries => entries.forEach(e => {
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      document.querySelectorAll(`[href="#${e.target.id}"]`).forEach(l=>l.classList.add('active'));
+    }
+  }),
+  { threshold:0.3 }
+);
+document.querySelectorAll('[id]').forEach(s=>navObs.observe(s));
+</script>
+</body>
+</html>

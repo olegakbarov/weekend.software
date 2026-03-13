@@ -1,4 +1,4 @@
-import { Archive, FileText, Plus, Settings } from "lucide-react";
+import { Archive, FileText, PanelLeftClose, Plus, Settings } from "lucide-react";
 import { useCallback } from "react";
 import {
   DndContext,
@@ -43,6 +43,7 @@ export function Sidebar({
   archivedProjects,
   onToggleShowArchived,
   onUnarchiveProject,
+  onToggleSidebar,
 }: {
   currentProject: string | null;
   currentRoute: string;
@@ -68,6 +69,7 @@ export function Sidebar({
   archivedProjects: string[];
   onToggleShowArchived: () => void;
   onUnarchiveProject: (project: string) => Promise<void>;
+  onToggleSidebar?: () => void;
 }) {
   const displayedProjects = showArchived ? archivedProjects : projects;
 
@@ -205,7 +207,7 @@ export function Sidebar({
       </div>
 
       {/* ── Footer ── */}
-      <div className="flex shrink-0 items-center border-border/40 border-t px-2 py-1">
+      <div className="flex shrink-0 items-center justify-between border-border/40 border-t px-2 py-1">
         <div className="flex items-center gap-0.5">
           <FooterIconButton
             active={currentRoute === "logs"}
@@ -226,6 +228,13 @@ export function Sidebar({
             title="Settings"
           />
         </div>
+        {onToggleSidebar && (
+          <FooterIconButton
+            icon={<PanelLeftClose className="size-3.5" />}
+            onClick={onToggleSidebar}
+            title="Collapse sidebar (⌘B)"
+          />
+        )}
       </div>
     </aside>
   );

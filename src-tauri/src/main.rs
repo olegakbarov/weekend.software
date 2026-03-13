@@ -5818,6 +5818,23 @@ fn browser_history_navigate<R: Runtime>(
 }
 
 #[tauri::command]
+fn browser_close_stale_webviews<R: Runtime>(
+    app: AppHandle<R>,
+    active_label: Option<String>,
+) -> Result<Vec<String>, String> {
+    if let Some(label) = active_label.as_deref() {
+        if !label.starts_with("browser-pane:") {
+            return Err(format!("invalid browser webview label: {label}"));
+        }
+    }
+
+    Ok(webview_ops::close_stale_browser_webviews(
+        &app,
+        active_label.as_deref(),
+    ))
+}
+
+#[tauri::command]
 fn browser_probe_runtime_url(url: String) -> Result<BrowserRuntimeProbeResult, String> {
     probe_browser_runtime_url(&url)
 }
@@ -6262,6 +6279,7 @@ fn main() {
             terminal_set_custom_name,
             terminal_remove_session,
             browser_history_navigate,
+            browser_close_stale_webviews,
             browser_probe_runtime_url,
             browser_push_event,
             browser_bridge_ready,

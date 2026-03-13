@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase VII — Financial Crisis & Contemporary Economy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:         #07090c;
+  --bg2:        #0a0d14;
+  --surface:    #0e1520;
+  --surface2:   #141e2e;
+  --border:     #1c2a42;
+  --border-hi:  #253a58;
+  --violet:     #7a60c0;
+  --violet-hi:  #9a80e0;
+  --violet-dim: #3a2870;
+  --gold:       #c9a84c;
+  --gold-dim:   #7a6030;
+  --gold-pale:  #e8d9a8;
+  --steel:      #4a7aaa;
+  --steel-hi:   #6a9aca;
+  --steel-dim:  #243a5a;
+  --ember:      #b06030;
+  --ember-hi:   #d08050;
+  --ember-dim:  #5a2810;
+  --text:       #c8c4bb;
+  --text-dim:   #566070;
+  --text-hi:    #ece7de;
+  --ink:        #d2cdc5;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Libre Baskerville',Georgia,serif;font-size:16px;line-height:1.85;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");}
+
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);overflow:hidden;position:relative;}
+.hero-left{padding:7rem 5vw 5rem 8vw;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;border-right:1px solid var(--border);}
+.hero-left::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 5% 65%,rgba(122,96,192,0.07) 0%,transparent 60%);}
+.hero-right{padding:7rem 8vw 5rem 5vw;display:flex;flex-direction:column;justify-content:flex-end;background:var(--bg2);position:relative;overflow:hidden;}
+.hero-right::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 75% 25%,rgba(74,122,170,0.06) 0%,transparent 55%),radial-gradient(ellipse at 20% 80%,rgba(122,96,192,0.04) 0%,transparent 50%);}
+.chapter-numeral{font-family:'Cormorant Garamond',serif;font-size:clamp(9rem,18vw,20rem);font-weight:700;color:var(--surface2);line-height:0.85;position:absolute;right:-1.5rem;top:2rem;user-select:none;pointer-events:none;z-index:0;opacity:0;animation:fadeIn 1.8s 0.4s forwards;}
+.breadcrumb{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.25em;color:var(--violet-dim);text-transform:uppercase;margin-bottom:2.5rem;opacity:0;animation:fadeUp 0.6s 0.1s forwards;}
+.breadcrumb a{color:inherit;text-decoration:none;}
+.breadcrumb a:hover{color:var(--violet-hi);}
+.phase-tag{display:inline-flex;align-items:center;gap:0.8rem;margin-bottom:1.5rem;opacity:0;animation:fadeUp 0.6s 0.2s forwards;}
+.phase-tag-num{font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:600;color:var(--violet-hi);border:1px solid var(--violet-dim);padding:0.15rem 0.7rem;letter-spacing:0.1em;}
+.phase-tag-label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,5.5vw,5.5rem);font-weight:300;line-height:1.05;color:var(--text-hi);letter-spacing:-0.02em;opacity:0;animation:fadeUp 0.9s 0.3s forwards;}
+.hero-title em{font-style:italic;color:var(--violet-hi);}
+.hero-dates{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--violet-dim);letter-spacing:0.2em;margin-top:1.5rem;margin-bottom:2.5rem;opacity:0;animation:fadeUp 0.6s 0.5s forwards;}
+.hero-thesis{font-size:1.05rem;font-style:italic;color:var(--text-dim);line-height:1.8;max-width:480px;border-left:2px solid var(--violet-dim);padding-left:1.5rem;opacity:0;animation:fadeUp 0.6s 0.65s forwards;}
+.pull-quote-block{opacity:0;animation:fadeIn 1.2s 0.8s forwards;}
+.pull-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(1.05rem,1.9vw,1.7rem);font-weight:300;font-style:italic;color:var(--text-hi);line-height:1.6;margin-bottom:1rem;}
+.pull-quote-attr{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--violet-dim);text-transform:uppercase;}
+.hero-right-top{flex:1;}
+
+.toc-nav{position:sticky;top:0;z-index:100;background:rgba(7,9,12,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;padding:0 8vw;overflow-x:auto;scrollbar-width:none;}
+.toc-nav::-webkit-scrollbar{display:none;}
+.toc-item{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:1rem 0.9rem;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;text-transform:uppercase;}
+.toc-item:hover{color:var(--violet-hi);border-bottom-color:var(--violet-dim);}
+.toc-item.active{color:var(--violet-hi);border-bottom-color:var(--violet-hi);}
+
+.main-grid{display:grid;grid-template-columns:680px 1fr;max-width:1400px;margin:0 auto;}
+@media(max-width:1100px){.main-grid,.hero{grid-template-columns:1fr;}.hero-right,.sidebar{display:none;}}
+.main-content{padding:5rem 5vw 5rem 8vw;border-right:1px solid var(--border);}
+.sidebar{padding:5rem 4vw 5rem 3vw;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;background:var(--bg2);}
+
+.section-block{margin-bottom:5rem;opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.section-block.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.28em;color:var(--violet-hi);text-transform:uppercase;margin-bottom:1.2rem;display:flex;align-items:center;gap:0.8rem;}
+.section-eyebrow::after{content:'';width:40px;height:1px;background:var(--violet-dim);}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,3vw,2.4rem);font-weight:300;color:var(--text-hi);line-height:1.2;letter-spacing:-0.01em;margin-bottom:2rem;}
+.body-p{font-size:0.97rem;line-height:1.9;color:var(--ink);margin-bottom:1.4rem;}
+.body-p strong{color:var(--text-hi);font-weight:700;}
+.body-p em{color:var(--gold-pale);font-style:italic;}
+.rule{width:100%;height:1px;background:linear-gradient(90deg,var(--violet-dim),transparent);margin:3rem 0;border:none;}
+
+blockquote{margin:2.5rem 0;padding:1.8rem 2rem 1.8rem 2.5rem;background:var(--surface);border-left:3px solid var(--violet-hi);position:relative;}
+blockquote::before{content:'\201C';font-family:'Cormorant Garamond',serif;font-size:5rem;color:var(--violet-dim);position:absolute;top:-0.5rem;left:0.5rem;line-height:1;pointer-events:none;}
+blockquote p{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;color:var(--text-hi);line-height:1.7;position:relative;z-index:1;}
+blockquote cite{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--violet-dim);text-transform:uppercase;margin-top:0.8rem;font-style:normal;}
+
+.event-timeline{margin:2rem 0;position:relative;padding-left:2.5rem;}
+.event-timeline::before{content:'';position:absolute;left:0.6rem;top:0.5rem;bottom:0.5rem;width:1px;background:linear-gradient(to bottom,var(--violet-dim),transparent);}
+.event-item{position:relative;margin-bottom:2rem;}
+.event-item::before{content:'';position:absolute;left:-1.9rem;top:0.45rem;width:8px;height:8px;border-radius:50%;background:var(--violet-dim);border:1px solid var(--violet-hi);}
+.event-item.pivot::before{background:var(--gold);border-color:var(--gold);}
+.event-item.shock::before{background:var(--ember-hi);border-color:var(--ember-hi);}
+.event-item.open::before{background:var(--steel-hi);border-color:var(--steel-hi);}
+.event-year{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;color:var(--violet-hi);margin-bottom:0.2rem;}
+.event-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.4rem;}
+.event-desc{font-size:0.88rem;color:var(--text-dim);line-height:1.7;}
+
+.detail-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.detail-item{background:var(--bg2);padding:1.4rem 1.8rem;display:grid;grid-template-columns:220px 1fr;gap:1.5rem;align-items:flex-start;transition:background 0.2s;}
+.detail-item:hover{background:var(--surface);}
+.detail-label{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;color:var(--violet-hi);text-transform:uppercase;padding-top:0.15rem;line-height:1.6;}
+.detail-body{font-size:0.88rem;color:var(--text-dim);line-height:1.75;}
+.detail-body strong{color:var(--text);}
+
+.two-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.two-card{background:var(--bg2);padding:2rem;transition:background 0.2s;}
+.two-card:hover{background:var(--surface);}
+.two-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.two-name{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--text-hi);margin-bottom:0.7rem;}
+.two-body{font-size:0.87rem;color:var(--text-dim);line-height:1.75;}
+.two-body strong{color:var(--text);}
+
+.three-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+@media(max-width:800px){.three-grid{grid-template-columns:1fr;}}
+.three-card{background:var(--bg2);padding:1.8rem;transition:background 0.2s;}
+.three-card:hover{background:var(--surface);}
+.three-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.three-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.6rem;}
+.three-body{font-size:0.86rem;color:var(--text-dim);line-height:1.72;}
+.three-body strong{color:var(--text);}
+
+.four-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.four-card{background:var(--bg2);padding:1.8rem;transition:background 0.2s;}
+.four-card:hover{background:var(--surface);}
+.four-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.four-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.6rem;}
+.four-body{font-size:0.86rem;color:var(--text-dim);line-height:1.72;}
+.four-body strong{color:var(--text);}
+
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin:2rem 0;}
+.stat-cell{background:var(--bg2);padding:1.8rem 1.5rem;text-align:center;}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:600;line-height:1;margin-bottom:0.4rem;}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);line-height:1.4;}
+.stat-note{font-size:0.78rem;color:var(--text-dim);margin-top:0.4rem;line-height:1.4;}
+
+.tension-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.tension-item{background:var(--bg2);padding:1.6rem 1.8rem;border-left:3px solid transparent;transition:background 0.2s;}
+.tension-item:hover{background:var(--surface);}
+.tension-item.structural{border-left-color:var(--violet-hi);}
+.tension-item.political{border-left-color:var(--gold);}
+.tension-item.global{border-left-color:var(--steel-hi);}
+.tension-item.tech{border-left-color:var(--ember-hi);}
+.tension-label{font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.18em;color:var(--violet-hi);text-transform:uppercase;margin-bottom:0.3rem;}
+.tension-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.4rem;}
+.tension-body{font-size:0.87rem;color:var(--text-dim);line-height:1.72;}
+.tension-body strong{color:var(--text);}
+
+.frame-box{background:var(--surface);border:1px solid var(--border-hi);padding:2.5rem;margin-top:3rem;position:relative;}
+.frame-box-label{position:absolute;top:-0.6rem;left:1.5rem;background:var(--surface);padding:0 0.8rem;font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:var(--violet-hi);text-transform:uppercase;}
+
+.source-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);}
+.src-card{background:var(--bg2);padding:1.5rem 1.8rem;display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:flex-start;transition:background 0.2s;}
+.src-card:hover{background:var(--surface);}
+.src-type{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.2rem 0.6rem;border:1px solid;white-space:nowrap;margin-top:0.2rem;}
+.src-type.essential{border-color:var(--gold);color:var(--gold);}
+.src-type.primary{border-color:var(--violet-hi);color:var(--violet-hi);}
+.src-type.rec{border-color:var(--border-hi);color:var(--text-dim);}
+.src-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;font-style:italic;color:var(--text-hi);line-height:1.4;}
+.src-author{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.05em;color:var(--text-dim);margin-top:0.3rem;}
+.src-note{font-size:0.85rem;color:var(--text-dim);margin-top:0.4rem;line-height:1.6;}
+
+.sidebar-title{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.25em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border);}
+.sidebar-toc{margin-bottom:3rem;}
+.stoc-item{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;color:var(--text-dim);text-decoration:none;padding:0.5rem 0;border-bottom:1px solid var(--border);transition:color 0.2s,padding-left 0.2s;line-height:1.5;}
+.stoc-item:hover,.stoc-item.active{color:var(--violet-hi);padding-left:0.4rem;}
+.key-figure{margin-bottom:1.5rem;padding:1.2rem;background:var(--surface);border-top:2px solid var(--violet-dim);}
+.key-figure-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin-bottom:0.3rem;}
+.key-figure-role{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--violet-dim);text-transform:uppercase;margin-bottom:0.5rem;}
+.key-figure-note{font-size:0.82rem;color:var(--text-dim);line-height:1.6;}
+.concept-pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;color:var(--text-dim);border:1px solid var(--border-hi);padding:0.25rem 0.7rem;margin:0.2rem 0.2rem 0 0;transition:all 0.2s;text-transform:uppercase;cursor:default;}
+.concept-pill:hover{color:var(--violet-hi);border-color:var(--violet-dim);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+::selection{background:rgba(154,128,224,0.15);color:var(--text-hi);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-left">
+    <div class="breadcrumb">
+      <a href="us_economy_research_plan.html">← Plan</a> &nbsp;/&nbsp;
+      <a href="econ_phase1_colonial.html">I</a> &nbsp;/&nbsp;
+      <a href="econ_phase2_market_revolution.html">II</a> &nbsp;/&nbsp;
+      <a href="econ_phase3_gilded_age.html">III</a> &nbsp;/&nbsp;
+      <a href="econ_phase4_new_deal.html">IV</a> &nbsp;/&nbsp;
+      <a href="econ_phase5_postwar.html">V</a> &nbsp;/&nbsp;
+      <a href="econ_phase6_neoliberalism.html">VI</a> &nbsp;/&nbsp; Phase VII
+    </div>
+    <div class="phase-tag">
+      <span class="phase-tag-num">Phase VII</span>
+      <span class="phase-tag-label">3–4 Weeks · Final Chapter</span>
+    </div>
+    <h1 class="hero-title">Financial Crisis<br>&amp; the <em>Contemporary</em><br>Economy</h1>
+    <div class="hero-dates">2008 &nbsp;—&nbsp; Present</div>
+    <p class="hero-thesis">The 2008 financial crisis was not the end of an era but the beginning of a reckoning that has not yet concluded. The inadequate policy response — rescuing finance while abandoning workers — compounded the inequalities of the neoliberal era and produced the political ruptures of 2016 and after. Since then, COVID, the inflation shock of 2021–23, AI, and the resurgence of industrial policy have forced a reexamination of the economic frameworks that governed the previous half century. We are living inside an unresolved interregnum.</p>
+  </div>
+  <div class="hero-right">
+    <span class="chapter-numeral">VII</span>
+    <div class="hero-right-top"></div>
+    <div class="pull-quote-block">
+      <div class="pull-quote">"We stand again at the crossroads. But this time, the map has been burned."</div>
+      <div class="pull-quote-attr">Adam Tooze · Crashed · 2018 · on the post-2008 political economy</div>
+    </div>
+  </div>
+</section>
+
+<nav class="toc-nav">
+  <a class="toc-item active" href="#context">Overview</a>
+  <a class="toc-item" href="#crisis-mechanics">Crisis Mechanics</a>
+  <a class="toc-item" href="#bailout">The Bailout & Its Politics</a>
+  <a class="toc-item" href="#recovery">The Long Slump</a>
+  <a class="toc-item" href="#dodd-frank">Dodd-Frank & Its Limits</a>
+  <a class="toc-item" href="#secular-stagnation">Secular Stagnation</a>
+  <a class="toc-item" href="#political-rupture">Political Rupture</a>
+  <a class="toc-item" href="#covid">COVID & the Pandemic Economy</a>
+  <a class="toc-item" href="#inflation">The Inflation Shock 2021–23</a>
+  <a class="toc-item" href="#new-washington">The New Washington Consensus</a>
+  <a class="toc-item" href="#ai-economy">AI & the Next Economy</a>
+  <a class="toc-item" href="#synthesis">Synthesis: Where We Stand</a>
+  <a class="toc-item" href="#sources">Reading List</a>
+</nav>
+
+<div class="main-grid">
+<main class="main-content">
+
+  <!-- OVERVIEW -->
+  <div class="section-block" id="context">
+    <div class="section-eyebrow">Overview</div>
+    <h2 class="section-title">The Unfinished Reckoning</h2>
+
+    <p class="body-p">The period from 2008 to the present is not yet settled history — it is the unresolved culmination of every tension, contradiction, and structural problem that the preceding six phases of American economic development have generated. The 2008 financial crisis was the largest economic disruption since the Great Depression; the policy response, while preventing a second Depression, also prevented the structural reckoning that the Depression had forced. The result: an economy rescued from immediate collapse but not reformed at its foundations, producing a decade of sluggish recovery, compounding inequality, political radicalization, and ultimately the populist ruptures of 2016.</p>
+
+    <p class="body-p">Since 2016, three additional shocks have forced further rethinking. COVID-19 (2020) revealed the fragility of supply chains built for efficiency rather than resilience and demonstrated — through the unprecedented fiscal response — that the "there is no money" argument for austerity was always political rather than economic. The inflation shock of 2021–23 forced a painful relearning of the relationship between demand, supply, and price stability after a generation in which low inflation had seemed a permanent achievement. And the emergence of transformative AI technology has opened the largest questions about the structure of labor markets and the distribution of productivity gains that the American economy has faced since the industrial revolution.</p>
+
+    <p class="body-p">The period is also defined by a genuine ideological reorientation — what some economists call the "new Washington Consensus" or the "new economic thinking" — in which the assumptions of the neoliberal era are being systematically questioned from within the mainstream. Industrial policy, previously dismissed as inevitably captured and inefficient, is back in the form of the CHIPS Act, the Inflation Reduction Act, and explicit supply chain resilience planning. Antitrust enforcement, dormant for decades, has been revived against the tech platforms. The Federal Reserve's 2020 framework revision explicitly elevated employment relative to inflation in its dual mandate. <strong>Whether these represent a genuine paradigm shift or a temporary policy adjustment that will be reversed when the political winds change is the period's central unresolved question.</strong></p>
+
+    <div class="stat-row">
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--violet-hi)">$700B</div>
+        <div class="stat-label">TARP — Initial Bailout Authorization</div>
+        <div class="stat-note">October 2008; eventual cost to taxpayers: net positive after repayment</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--gold)">10yr</div>
+        <div class="stat-label">Below-Trend Recovery</div>
+        <div class="stat-note">2009–2019; slowest recovery since WWII</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--steel-hi)">$5T</div>
+        <div class="stat-label">COVID Fiscal Response</div>
+        <div class="stat-note">2020–2021; 23% of GDP — largest peacetime stimulus in history</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--ember-hi)">9.1%</div>
+        <div class="stat-label">Peak Inflation</div>
+        <div class="stat-note">June 2022 CPI; highest since 1981</div>
+      </div>
+    </div>
+
+    <div class="event-timeline">
+      <div class="event-item shock">
+        <div class="event-year">March 2008</div>
+        <div class="event-title">Bear Stearns — The First Domino</div>
+        <div class="event-desc">Bear Stearns, the fifth-largest U.S. investment bank, collapses after a run on its repo funding — becoming the first major financial institution to fail in the crisis. The Fed arranges an emergency sale to JPMorgan Chase for $2/share (later raised to $10), with the Fed assuming $29 billion in Bear's toxic assets. The rescue establishes the template for subsequent interventions: large institutions deemed too systemically important to fail would be rescued; shareholders would be punished but creditors protected. Bear's collapse marks the moment when a housing correction becomes a systemic financial crisis.</div>
+      </div>
+      <div class="event-item shock">
+        <div class="event-year">September 2008</div>
+        <div class="event-title">Lehman Brothers, AIG, and the Frozen World</div>
+        <div class="event-desc">The most consequential weekend in American finance since 1933: Treasury Secretary Paulson declines to rescue Lehman Brothers (September 14–15), which files for the largest bankruptcy in American history ($639 billion in assets). AIG, whose credit default swap portfolio had insured the entire financial system against mortgage defaults, requires a $185 billion government bailout to prevent cascading counterparty failures. The Reserve Primary Money Market Fund "breaks the buck" — its net asset value falls below $1 — triggering a run on money market funds that threatens to freeze the short-term credit markets on which the entire real economy depends. Global financial markets seize; interbank lending essentially stops.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">October–December 2008</div>
+        <div class="event-title">TARP and the Emergency Stabilization</div>
+        <div class="event-desc">Congress passes the Emergency Economic Stabilization Act, authorizing $700 billion in Troubled Asset Relief Program (TARP) funds. The Fed, under Bernanke, undertakes unprecedented emergency actions: loans to broker-dealers, commercial paper facilities, money market guarantees, and ultimately the purchase of mortgage-backed securities (quantitative easing). The emergency stabilization "works" in the narrow sense — the financial system does not collapse — but its design determines who bears the cost of the crisis: financial institutions are rescued; homeowners facing foreclosure are largely not.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">February 2009</div>
+        <div class="event-title">American Recovery and Reinvestment Act — the Inadequate Stimulus</div>
+        <div class="event-desc">Obama's $787 billion stimulus package — the largest fiscal expansion since WWII at the time — is passed with no Republican support. Christina Romer's CEA estimated the output gap required $1.8 trillion; the package was roughly half that, and one-third consisted of tax cuts included to attract Republican votes that never materialized. The inadequate stimulus produced an inadequate recovery: the "longest recovery on record" was also the weakest, with employment not recovering to pre-crisis levels until 2016.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">2010</div>
+        <div class="event-title">Dodd-Frank — the Incomplete Reform</div>
+        <div class="event-desc">The Dodd-Frank Wall Street Reform and Consumer Protection Act is the most comprehensive financial regulation since Glass-Steagall — creating the Consumer Financial Protection Bureau, requiring systemically important institutions to hold more capital, mandating central clearing for derivatives, and establishing the Financial Stability Oversight Council. Critics from the left argued it was insufficient (it did not reinstate Glass-Steagall, did not break up too-big-to-fail institutions, and gave regulators enormous discretion that industry lobbying would erode). They were largely right — Dodd-Frank's partial rollback under Trump (2018) and the regional bank crisis of 2023 (SVB, Signature, First Republic) demonstrated the inadequacy of the reform.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">2010–2014</div>
+        <div class="event-title">Eurozone Crisis — Austerity's Laboratory</div>
+        <div class="event-desc">The European sovereign debt crisis — Greece, Ireland, Portugal, Spain, Italy — provides the period's most important natural experiment in fiscal austerity versus stimulus. The ECB and German-led troika impose austerity as the condition of bailouts; the result in Greece is a 25% GDP contraction — worse than the U.S. Great Depression — and a decade of lost output. The contrast with the U.S., which maintained stimulus longer, and with Iceland, which rejected austerity and recovered faster, provides powerful empirical evidence that austerity in a demand-constrained economy is self-defeating.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">2016</div>
+        <div class="event-title">The Political Rupture — Brexit and Trump</div>
+        <div class="event-desc">Brexit (June 2016) and Trump's election (November 2016) represent the political culmination of the economic grievances produced by the crisis's inadequate response: the decade of sluggish recovery, the rescue of financial institutions while homeowners lost their houses and workers lost their jobs, the opioid epidemic devastating deindustrialized communities, and the perception that the system's winners had captured its institutions. The geographic concentration of Trump's margin — the China Shock communities, the opioid epidemic's counties, the deindustrialized Rust Belt — was not coincidental. It was the political expression of specific economic injuries that the post-2008 policy response had failed to address.</div>
+      </div>
+      <div class="event-item shock">
+        <div class="event-year">March 2020</div>
+        <div class="event-title">COVID-19 — the Economy Stops</div>
+        <div class="event-desc">The COVID-19 pandemic produces the sharpest economic contraction in recorded history: GDP falls 32.9% annualized in Q2 2020; 22 million jobs disappear in March and April. The policy response — $5 trillion in fiscal support, including the CARES Act ($2.2 trillion), the Consolidated Appropriations Act ($900 billion), and the American Rescue Plan ($1.9 trillion) — is the largest peacetime fiscal expansion in American history and demonstrates that the political constraints on fiscal policy are contingent rather than structural. Crucially, the bottom quintile of the income distribution saw income rise during the pandemic recession — the first recession in which poverty fell rather than rose, due to the unprecedented scale of income support.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">2021–2023</div>
+        <div class="event-title">The Inflation Shock — A Reckoning with Demand Management</div>
+        <div class="event-desc">Post-pandemic inflation reaches 9.1% in June 2022 — the highest since 1981 — driven by the interaction of supply chain disruptions (the pandemic's legacy), fiscal stimulus (the American Rescue Plan's demand boost), energy price shocks (the Ukraine war), and corporate pricing power (the "sellers' inflation" debate). The Fed raises rates from 0.25% to 5.5% in the fastest tightening cycle since Volcker — and achieves a "soft landing" (inflation falls to ~3% with unemployment remaining below 4%), defying predictions of a recession and vindicating, somewhat, the Federal Reserve's institutional competence. The episode reignites the debate between demand-pull and cost-push interpretations of inflation that has never been resolved.</div>
+      </div>
+      <div class="event-item open">
+        <div class="event-year">2022–Present</div>
+        <div class="event-title">The New Industrial Policy — CHIPS, IRA, and Beyond</div>
+        <div class="event-desc">The CHIPS and Science Act ($52 billion for semiconductor manufacturing) and the Inflation Reduction Act ($369 billion in climate and energy investments) represent the most significant departure from neoliberal economic orthodoxy since the New Deal — explicit industrial policy directing investment into specific sectors through subsidies, tax credits, and domestic content requirements. The IRA's design (tax credits rather than grants, market-based implementation rather than command and control) reflects both Democratic political constraints and genuine lessons about how to make industrial policy work in a market economy. The policy revolution is contested — its implementation, longevity, and ultimate effectiveness remain open questions.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- CRISIS MECHANICS -->
+  <div class="section-block" id="crisis-mechanics">
+    <div class="section-eyebrow">The Crash</div>
+    <h2 class="section-title">Crisis Mechanics: How the Financial System Imploded</h2>
+
+    <p class="body-p">The 2008 financial crisis is the most thoroughly documented economic event in history — the subject of the Financial Crisis Inquiry Commission's 662-page report, hundreds of academic papers, dozens of books by participants and journalists, and congressional testimony by virtually every major actor. The mechanics are well understood; what remains contested is the interpretation: was this a failure of specific regulations and regulators, or the systemic consequence of the deregulatory ideology that had governed financial policy for thirty years?</p>
+
+    <p class="body-p">The crisis propagated through three interlocking mechanisms. The first was the housing bubble's deflation — U.S. house prices peaked in April 2006 and began declining, ultimately falling 33% nationally and more in the most bubble-affected markets (Phoenix, Las Vegas, Miami, California). For institutions holding mortgage-backed securities, the decline in underlying asset values began eroding the capital buffers that had been calculated on the assumption that national house prices could not fall simultaneously.</p>
+
+    <p class="body-p">The second mechanism was the shadow banking system's vulnerability to runs. The conventional banking system — deposit-funded, FDIC-insured, Fed-supervised — had been made run-resistant by Depression-era reforms. But the shadow banking system — investment banks funded by overnight repo agreements, money market mutual funds, structured investment vehicles — had no equivalent protection. When confidence in the underlying assets collapsed, the repo market — on which the investment banks depended for daily funding — froze. Investment banks leveraged 30:1 had no capacity to absorb the resulting losses without immediate insolvency. <strong>This was Diamond and Dybvig's bank run model applied to institutions that New Deal regulation had never reached.</strong></p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">The Repo Run</div>
+        <div class="detail-body">Investment banks funded themselves in the overnight repurchase agreement (repo) market — posting securities as collateral in exchange for cash, repaying the next day with interest. When counterparties began questioning the value of mortgage-backed securities as collateral, repo haircuts increased (lenders demanded more collateral per dollar lent) and eventually repo funding disappeared entirely for institutions suspected of holding bad assets. <strong>Bear Stearns lost $18 billion in repo funding in four days in March 2008 — a classic bank run conducted entirely in the wholesale funding markets</strong>, invisible to the deposit guarantee system that protected conventional banks. The run mechanism was identical to 1930s bank runs; only the institutional form had changed.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The AIG Catastrophe</div>
+        <div class="detail-body">AIG Financial Products had written $441 billion in credit default swaps — essentially insurance policies against bond default — without holding remotely adequate capital against potential losses. When the securities they had insured began defaulting, AIG faced margin calls it could not meet: the CDS contracts required collateral posting when the insured securities' value declined, draining AIG's liquidity in real time. <strong>AIG's failure would have meant the simultaneous default on $441 billion in insurance contracts held by virtually every major financial institution in the world</strong> — Goldman Sachs ($12.9 billion exposure), Société Générale, Deutsche Bank, Barclays. The interconnection that derivatives had created meant AIG's failure threatened the entire global financial system. The $185 billion bailout was not a gift to AIG — it was the price of preventing a complete global financial collapse.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Lehman Decision</div>
+        <div class="detail-body">The decision not to rescue Lehman Brothers — allowing it to file for bankruptcy on September 15, 2008 — remains the most contested policy decision of the crisis. Paulson subsequently claimed the Fed lacked legal authority to rescue Lehman without a private sector buyer; Bernanke has suggested the authority existed but the political environment made using it impossible. <strong>The consequences of the decision were immediate and global:</strong> Lehman's bankruptcy froze $600 billion in counterparty claims across the financial system, triggered the money market fund run, and caused interbank lending rates to spike to levels that threatened all commercial credit. Whether "letting Lehman fail" was a principled stand against moral hazard or a catastrophic policy error remains disputed — but its consequences made the subsequent policy choices far more costly and constrained.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Real Economy Transmission</div>
+        <div class="detail-body">The financial crisis transmitted to the real economy through multiple channels: the credit crunch (banks, desperately conserving capital, stopped lending to businesses and households); the wealth effect (the collapse of housing and equity values reduced household net worth by $13 trillion, forcing sharp consumption cutbacks); and the business investment collapse (uncertainty about demand and access to credit produced the sharpest investment contraction since the Depression). <strong>By the trough of the recession (June 2009), 8.7 million jobs had been lost and GDP had contracted 4.3%</strong> — the worst economic performance since the 1930s. The recession's severity was concentrated among the workers with the least financial cushion: those without college education, without savings, with mortgages they could not refinance after losing their jobs.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- BAILOUT -->
+  <div class="section-block" id="bailout">
+    <div class="section-eyebrow">The Policy Response</div>
+    <h2 class="section-title">The Bailout and Its Politics: Who Was Rescued and Who Was Not</h2>
+
+    <p class="body-p">The policy response to the 2008 financial crisis rescued the financial system with remarkable speed and technical competence — and failed to rescue the workers, homeowners, and communities devastated by the recession with comparable urgency. This asymmetry — TARP for Wall Street, inadequate modification programs for Main Street — is the central political fact of the post-crisis decade and the proximate cause of the political ruptures of 2016. Understanding why the asymmetry occurred requires understanding both the technical constraints on housing rescue and the political choices that determined its scale and design.</p>
+
+    <div class="two-grid">
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--violet-hi)">What Was Done — Financial Rescue</div>
+        <div class="two-name">TARP, QE, and the System Saved</div>
+        <div class="two-body">
+          <p style="margin-bottom:0.8rem">The financial rescue's technical execution was, within its own terms, remarkably effective. The key interventions:</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--violet-dim)"><strong>TARP capital injections:</strong> $245 billion injected into banks as preferred equity — not gifts but investments that were ultimately repaid with profit to taxpayers.</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--violet-dim)"><strong>Fed emergency facilities:</strong> TALF, CPFF, MMIFF, PDCF — an alphabet soup of emergency liquidity facilities that provided backstop funding to the shadow banking system without which the credit system would have remained frozen.</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--violet-dim)"><strong>Quantitative easing (QE1, QE2, QE3):</strong> the Fed purchases $3.5 trillion in Treasury and mortgage-backed securities, keeping long-term interest rates near zero and preventing the deflation spiral that had deepened the Great Depression.</p>
+          <p style="font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--violet-dim)"><strong>Stress tests (SCAP, 2009):</strong> the "stress tests" that forced banks to raise capital or accept government equity — the most important single step in restoring confidence in the banking system's solvency. Geithner's decision to publish results publicly (against Wall Street preferences) was the rescue's most consequential communication choice.</p>
+        </div>
+      </div>
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--ember-hi)">What Was Not Done — Homeowner Rescue</div>
+        <div class="two-name">HAMP and the Foreclosure Wave</div>
+        <div class="two-body">
+          <p style="margin-bottom:0.8rem">The contrast between the financial system's rescue and the homeowner assistance programs' failure is the period's most politically consequential asymmetry:</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--ember-dim)"><strong>HAMP's failure:</strong> the Home Affordable Modification Program, designed to modify 3–4 million mortgages, modified approximately 1.2 million by 2016 — while 5 million households lost their homes to foreclosure. The program was voluntary for servicers, inadequately funded, and poorly designed.</p>
+          <p style="margin-bottom:0.5rem;font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--ember-dim)"><strong>The political choice not to use TARP for housing:</strong> Sheila Bair (FDIC chair) repeatedly proposed using TARP funds to directly purchase and modify mortgages — which would have been both more effective and legally cleaner than the servicer-dependent HAMP structure. Treasury Secretary Geithner blocked it. <strong>The decision was a political calculation about protecting bank capital, not a technical impossibility.</strong></p>
+          <p style="font-size:0.87rem;color:var(--text-dim);padding-left:1rem;border-left:2px solid var(--ember-dim)"><strong>The racial dimension of foreclosure:</strong> subprime lending had been concentrated in communities of color through predatory marketing; the resulting foreclosure wave was correspondingly concentrated, destroying wealth that Black and Hispanic families had accumulated over decades in the one asset class accessible to them: home equity.</p>
+        </div>
+      </div>
+    </div>
+
+    <blockquote>
+      <p>We saved the economy, but we kind of lost the country doing it.</p>
+      <cite>Timothy Geithner · Treasury Secretary 2009–2013 · reflecting on the political consequences of the bailout strategy</cite>
+    </blockquote>
+
+    <p class="body-p">The prosecution record — or rather its absence — is the bailout's most politically damaging legacy. The savings and loan crisis of the 1980s produced more than 1,000 criminal convictions of financial executives. The 2008 crisis, which involved demonstrably fraudulent mortgage origination, misrepresentation in securities offerings, and manipulation of ratings processes on a far larger scale, produced one significant criminal conviction of a financial executive: Kareem Serageldin of Credit Suisse, sentenced to 30 months. <strong>The failure to prosecute was not a technical legal impossibility — it was a political choice about whose interests the Department of Justice would prioritize.</strong> Its consequences for legitimacy are incalculable: the perception that the financial system's executives faced no accountability for the damage they caused is the single most corrosive element of the post-crisis political environment.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- RECOVERY -->
+  <div class="section-block" id="recovery">
+    <div class="section-eyebrow">The Lost Decade</div>
+    <h2 class="section-title">The Long Slump: Why Recovery Was So Slow and What It Left Behind</h2>
+
+    <p class="body-p">The recovery from the 2008 recession was the weakest in the postwar period — slower than recovery from any postwar recession, including the early 1980s double-dip that the Volcker shock produced. GDP did not recover its pre-crisis trend until 2016; employment not until the same year. The "recovery" was also extraordinarily unequal: the stock market recovered to pre-crisis levels by 2013, while median household income did not recover until 2016. The top 1% captured 91% of income growth in the first three years of the recovery.</p>
+
+    <p class="body-p">The slow recovery's causes are analytically important because they illuminate the constraints on economic policy — and the choices within those constraints. The primary mechanism: balance sheet recession. Richard Koo's analysis — that the crisis produced a private sector "balance sheet recession" in which households and businesses were simultaneously paying down debt rather than borrowing and spending — explains why conventional monetary policy (low interest rates) was inadequate. When private sector actors are collectively deleveraging, no interest rate low enough to induce additional borrowing exists; the effective lower bound on nominal interest rates (zero, approximately) was hit rapidly, and monetary policy was impotent as the primary recovery tool. <strong>What was needed was sustained fiscal expansion to replace private sector demand destruction — the precise policy that the 2010 turn to austerity foreclosed.</strong></p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">The Austerity Turn — 2010</div>
+        <div class="detail-body">The political shift from stimulus to austerity in 2010 — the Tea Party wave, the deficit hysteria, the obsession with the debt-to-GDP ratio — was among the most consequential and most analytically unjustified policy reversals in American economic history. The evidence that fiscal expansion was appropriate was overwhelming: the output gap (the difference between actual and potential GDP) was estimated at $800 billion annually; unemployment was 9.5%; interest rates were zero; government borrowing costs were at historical lows as investors fled to safe assets. <strong>Cutting spending in this environment was contractionary by definition</strong> — it reduced aggregate demand when private sector demand was collapsing. The IMF subsequently estimated that fiscal consolidation in advanced economies reduced GDP by 1.5 times the fiscal adjustment, confirming the Keynesian prediction that the austerity advocates had confidently denied.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Opioids and the Human Cost</div>
+        <div class="detail-body">The opioid epidemic — which killed 500,000 Americans between 1999 and 2019, with deaths accelerating through the 2010s — is inseparable from the economic story of this period. Princeton economists Anne Case and Angus Deaton documented "deaths of despair" — mortality from suicide, drug overdose, and alcohol-related disease — rising sharply among white Americans without college degrees, concentrated geographically in the deindustrialized communities most severely affected by the China Shock and the financial crisis's foreclosure wave. <strong>The causal mechanism was not purely economic</strong> — the opioid crisis involved deliberate marketing of OxyContin by Purdue Pharma to high-risk communities — but the economic devastation created the conditions of hopelessness and economic insecurity that made opioid addiction epidemic. Deaths of despair represent the most direct human cost of the slow recovery's failure to reach deindustrialized communities.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Racial Wealth Gap's Widening</div>
+        <div class="detail-body">The crisis and its aftermath widened the already-vast racial wealth gap that the previous phases have documented building over centuries. The subprime mortgage bubble had disproportionately targeted Black and Hispanic communities — not because minority borrowers were riskier but because subprime lending was aggressively marketed in communities that had been redlined out of conventional mortgage access. <strong>When the bubble burst, the foreclosure wave concentrated in these same communities</strong>, destroying the home equity that many families had spent decades accumulating — their primary (often only) wealth-holding vehicle. The Federal Reserve's 2019 Survey of Consumer Finances documented that the median Black family's wealth was $24,100 — 13% of the median white family's $188,200 — and that the gap had widened since 2007 despite the recovery.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- DODD-FRANK -->
+  <div class="section-block" id="dodd-frank">
+    <div class="section-eyebrow">The Reform and Its Limits</div>
+    <h2 class="section-title">Dodd-Frank: What Was Fixed, What Wasn't, and the 2023 Warning</h2>
+
+    <p class="body-p">The Dodd-Frank Wall Street Reform and Consumer Protection Act (2010) was the most significant financial regulation since Glass-Steagall — and substantially less significant than either the crisis's causes or its consequences warranted. Its achievements were real: the Consumer Financial Protection Bureau has returned billions of dollars to consumers defrauded by financial institutions; the derivatives central clearing requirement reduced the opacity of the OTC market; the Volcker Rule (imperfectly implemented) restricted the most egregious proprietary trading; the Financial Stability Oversight Council created an institutional framework for monitoring systemic risk.</p>
+
+    <p class="body-p">Its failures were equally real. Glass-Steagall was not reinstated — commercial and investment banking remained combined. Too-big-to-fail was addressed through resolution authority rather than size limits, leaving the determination of systemic importance to regulators who would face political pressure from the institutions they regulated. The Volcker Rule was compromised in implementation by financial industry lobbying into a complex, loophole-ridden rule that cost billions to comply with while providing modest actual constraint. <strong>And the 2018 Economic Growth, Regulatory Relief, and Consumer Protection Act (the "bank deregulation bill") rolled back key provisions for banks with assets under $250 billion — setting the stage for the regional bank crisis of 2023.</strong></p>
+
+    <div class="frame-box">
+      <div class="frame-box-label">The 2023 Regional Bank Crisis — Dodd-Frank's Unfinished Business</div>
+      <p class="body-p">Silicon Valley Bank's failure in March 2023 — the second-largest bank failure in U.S. history — was a direct consequence of the 2018 deregulation that had relieved banks with assets under $250 billion of Dodd-Frank's stress testing requirements and enhanced capital rules. SVB had concentrated its assets in long-duration Treasury and mortgage-backed securities; when the Fed's 2022–23 rate hikes depressed those securities' market value, SVB faced a mark-to-market loss that exceeded its equity capital. A Twitter-coordinated run by the tech startup community (SVB's concentrated depositor base) triggered a collapse in 40 hours that regulators had not seen coming — because they no longer had the regulatory framework to see it.</p>
+      <p class="body-p" style="margin-bottom:0">The FDIC's decision to invoke the "systemic risk exception" and guarantee all SVB deposits — including those above the $250,000 FDIC limit — to prevent contagion to other regional banks was simultaneously necessary and proof that too-big-to-fail had not been solved: it had merely been extended to a larger class of institutions. <strong>The 2023 banking crisis was not 2008 — it did not threaten the global financial system — but it demonstrated that Dodd-Frank's compromise design had left enough regulatory gaps to allow a new generation of bank failures fifteen years after the crisis it was supposed to prevent.</strong></p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SECULAR STAGNATION -->
+  <div class="section-block" id="secular-stagnation">
+    <div class="section-eyebrow">The Macroeconomic Diagnosis</div>
+    <h2 class="section-title">Secular Stagnation: The Theoretical Framework for the Long Slump</h2>
+
+    <p class="body-p">Lawrence Summers's 2013 revival of Alvin Hansen's 1938 "secular stagnation" hypothesis provided the most influential macroeconomic framework for understanding the post-crisis economy — and implicitly, the case for sustained fiscal expansion over austerity. The argument: the advanced economies may have entered a condition of persistent excess saving over investment at full employment, meaning that the interest rate required to equilibrate saving and investment at full employment is negative — lower than the zero lower bound on nominal rates permits. If this is true, monetary policy alone cannot produce full employment; fiscal policy (public investment funded by deficit spending at near-zero interest rates) is the required instrument.</p>
+
+    <p class="body-p">The secular stagnation hypothesis has both structural and cyclical dimensions. The structural case: declining population growth reduces investment demand (fewer workers means less new capital required per worker); rising inequality concentrates income among high-saving households (the wealthy save more than the poor, so redistribution upward raises the aggregate saving rate); the "dematerialization" of the modern economy (software companies require far less physical capital than steel mills) reduces investment demand for any given level of output. <strong>These trends, combined, produce a structural excess of desired saving over desired investment that depresses the natural interest rate — potentially into negative territory.</strong></p>
+
+    <div class="two-grid">
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--violet-hi)">The Summers-Krugman View</div>
+        <div class="two-name">Structural Demand Deficiency</div>
+        <div class="two-body">Summers and Krugman argued that secular stagnation justified a sustained program of public investment — financed by deficit spending at near-zero interest rates, whose low cost made the fiscal arithmetic favorable regardless of deficit levels. The "fiscal space" argument: with real interest rates below growth rates (r &lt; g), the debt-to-GDP ratio is self-stabilizing even without primary surpluses. <strong>The investment case: public capital — infrastructure, research, education — has high social returns</strong> precisely when private returns are depressed by excess saving. The Summers-Krugman case against austerity rested not just on short-run Keynesian stabilization but on the long-run argument that public investment in a secular stagnation environment is the highest-return available use of public funds.</div>
+      </div>
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--gold)">The r &lt; g Revolution</div>
+        <div class="two-name">Piketty's Capital and Inequality</div>
+        <div class="two-body">Thomas Piketty's <em>Capital in the Twenty-First Century</em> (2013) provided the period's most influential analysis of the long-run dynamics of wealth inequality. His central argument: when the rate of return on capital (r) exceeds the growth rate of the economy (g), wealth concentration tends to increase because capital owners reinvest their returns faster than overall income grows. The postwar era's relative equality was anomalous — produced by the destruction of wealth in two world wars and the Depression, and by exceptional growth rates that temporarily made g &gt; r. <strong>The return to r &gt; g in the late 20th century is the structural driver of the Great Divergence's wealth concentration</strong> — a dynamic that can be reversed only by political choice (progressive wealth taxation) rather than market forces.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- POLITICAL RUPTURE -->
+  <div class="section-block" id="political-rupture">
+    <div class="section-eyebrow">Economics Becoming Politics</div>
+    <h2 class="section-title">Political Rupture: From the Tea Party to Trumpism to the Left's Revival</h2>
+
+    <p class="body-p">The decade between the financial crisis and the 2016 election produced the most dramatic political realignment in American politics since the New Deal coalition's fracture in 1968 — and this realignment is, at its core, an economic story. The Tea Party, Occupy Wall Street, Bernie Sanders's socialism, and Donald Trump's economic nationalism all drew their energy from the same source: a perception that the economic system was rigged against ordinary people, that the financial crisis's rescue had demonstrated the capture of the state by financial elites, and that the mainstream parties had no adequate response to the economic injuries produced by three decades of neoliberalism.</p>
+
+    <div class="tension-stack">
+      <div class="tension-item structural">
+        <div class="tension-label">2009–2010</div>
+        <div class="tension-title">The Tea Party — Austerity's Political Vehicle</div>
+        <div class="tension-body">The Tea Party movement — nominally a populist revolt against big government, bailouts, and deficits — was functionally the vehicle through which economic anxiety among white working- and middle-class voters was channeled into opposition to the federal government rather than the financial system that had produced the crisis. Its principal legislative achievement, the 2011 debt ceiling standoff and subsequent sequestration, imposed the austerity that prolonged the recovery. <strong>The Tea Party's direction of economic populism toward government rather than finance was not accidental</strong> — it was facilitated by Koch brother funding, Fox News amplification, and the strategic deployment of racial resentment (anti-Obama sentiment) to prevent a cross-racial economic populism that would have threatened financial sector interests.</div>
+      </div>
+      <div class="tension-item political">
+        <div class="tension-label">2011</div>
+        <div class="tension-title">Occupy Wall Street — the Class Analysis</div>
+        <div class="tension-body">Occupy Wall Street's "We are the 99%" framing provided, for the first time in a generation, a political language that accurately described the economic structure of post-crisis America — a 1% that had captured essentially all income growth, a financial sector that had been rescued at public expense without accountability, and a political system unresponsive to the majority's economic interests. Occupy had no electoral strategy and produced no lasting organizational infrastructure — its contribution was conceptual: it made income and wealth inequality a legitimate political topic, shifted the Overton window, and created the intellectual space for Bernie Sanders's 2016 campaign. <strong>The "99% vs. 1%" frame is now so embedded in political discourse that its radical origin is forgotten.</strong></div>
+      </div>
+      <div class="tension-item political">
+        <div class="tension-label">2016</div>
+        <div class="tension-title">Trump — Economic Nationalism and Its Contradictions</div>
+        <div class="tension-body">Trump's economic program — trade protection, hostility to immigration, infrastructure spending, opposition to entitlement cuts — addressed the economic grievances of the communities most harmed by neoliberalism's distributional consequences in a way no previous Republican had. His margin in the 2016 election came disproportionately from the China Shock counties, the opioid epidemic's geography, and the communities whose manufacturing employment had collapsed. <strong>The contradiction: Trump's economic nationalism diagnosed a real problem but proposed solutions</strong> — tariffs, immigration restriction, corporate tax cuts, deregulation — that addressed its symptoms without its causes and whose actual distributional consequences (the 2017 tax cut disproportionately benefited the wealthy) reproduced the neoliberal pattern he had campaigned against.</div>
+      </div>
+      <div class="tension-item structural">
+        <div class="tension-label">2016–2020</div>
+        <div class="tension-title">Sanders and the Left's Revival</div>
+        <div class="tension-body">Bernie Sanders's 2016 primary campaign — and his stronger 2020 run — demonstrated that Medicare for All, free public college, wealth taxation, and Green New Deal investments had majority support in Democratic primaries, reflecting a genuine shift in the party's economic agenda after decades of Third Way centrism. The policy agenda that had seemed fringe in 2000 became mainstream Democratic platform discussion by 2020. <strong>Biden's economic program — the American Rescue Plan, the Infrastructure Investment and Jobs Act, the CHIPS Act, and the IRA — was substantially more progressive than anything a Democratic president had proposed since LBJ</strong>, reflecting both the Sanders-left's influence on the party and the intellectual reconsideration of neoliberal orthodoxy that the crisis had catalyzed among mainstream economists.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- COVID -->
+  <div class="section-block" id="covid">
+    <div class="section-eyebrow">The Pandemic Economy</div>
+    <h2 class="section-title">COVID-19: What the Pandemic Proved About Economic Policy</h2>
+
+    <p class="body-p">The COVID-19 pandemic was simultaneously the worst economic shock since the Depression and the most important natural experiment in economic policy in the postwar period. It proved, beyond reasonable doubt, several propositions that mainstream economics had treated as uncertain or politically unacceptable: that fiscal policy at scale is achievable, that the money for ambitious social programs exists when political will to deploy it exists, that robust income support can prevent poverty from rising even in the worst recession since the Depression, and that supply chain resilience requires deliberate policy rather than pure market efficiency optimization.</p>
+
+    <p class="body-p">The comparison with the 2008 crisis is essential. In 2008–09, the fiscal response was $787 billion — considered audaciously large at the time and subsequently criticized as inadequate. In 2020–21, three rounds of legislation deployed approximately $5 trillion — six times larger, deployed in a fraction of the time. The political constraint that had limited 2009 stimulus ("we can't afford it") was simply absent in 2020 — suggesting that the constraint was always political rather than economic. <strong>If $5 trillion in deficit spending was possible in 2020, $1.8 trillion was possible in 2009 — and the choice to deploy less was a political choice whose consequence was a decade of unnecessary unemployment and deprivation.</strong></p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">CARES Act & Enhanced UI</div>
+        <div class="detail-body">The CARES Act's $600/week supplemental unemployment benefit — on top of state UI benefits, bringing many workers to or above pre-COVID income — was the most generous income support in American history and the subject of fierce conservative criticism (the "disincentive to work" argument). The empirical research on its effects refuted the critics: <strong>states that cut the enhanced benefits early did not see faster employment recovery than states that maintained them</strong>. The poverty rate fell from 11.8% in 2018 to 9.2% in 2020 — the first decline in poverty during a recession in recorded history — due entirely to income transfers. The demonstration that poverty is a political choice, not an economic inevitability, is the pandemic period's most important policy lesson.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Supply Chain Crisis — Efficiency vs. Resilience</div>
+        <div class="detail-body">The pandemic's disruption of global supply chains — semiconductors, pharmaceuticals, personal protective equipment, baby formula — revealed the fragility of supply chains built on just-in-time principles and extreme geographic concentration. The just-in-time model optimizes for efficiency under normal conditions but creates catastrophic fragility under supply shocks: no inventory buffer, no alternative suppliers, no slack capacity. <strong>The semiconductor shortage's effect on auto production — reducing output by 7.7 million vehicles over 2021–22 and costing the industry $210 billion</strong> — was the most vivid demonstration. The subsequent bipartisan support for the CHIPS Act was the direct policy consequence: supply chain resilience for strategically critical inputs requires deliberate industrial policy, not market efficiency optimization.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Great Resignation — Labor's Unexpected Leverage</div>
+        <div class="detail-body">The pandemic produced an unexpected labor market development: the "Great Resignation" — elevated quit rates (workers voluntarily leaving jobs at historically unprecedented levels throughout 2021–22) — reflecting a fundamental reassessment of work conditions, compensation, and employment relationships. The resulting labor market tightness gave workers bargaining power they had not possessed since the early 1970s: <strong>real wages at the bottom of the distribution rose faster than at any point since the 1960s</strong> — a direct consequence of labor scarcity. The Great Resignation demonstrated that the low wages that had characterized service sector employment for decades were not market equilibria but power relationships — and that when workers could exercise exit options, employers had to improve compensation. The episode was the labor market equivalent of the Treaty of Detroit's lesson: bargaining power determines outcomes.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- INFLATION -->
+  <div class="section-block" id="inflation">
+    <div class="section-eyebrow">The Reckoning</div>
+    <h2 class="section-title">The Inflation Shock 2021–23: What It Proved and What It Didn't</h2>
+
+    <p class="body-p">The 9.1% inflation peak of June 2022 — the highest since 1981 — was the most intellectually consequential macroeconomic event of the post-2008 period: it simultaneously challenged secular stagnation theory (if the economy was structurally demand-deficient, why did demand overshoot so dramatically?), revived the debate about the relationship between fiscal deficits and inflation (was the American Rescue Plan's $1.9 trillion too large?), and forced a reassessment of the Federal Reserve's 2020 "average inflation targeting" framework that had signaled prolonged near-zero rates.</p>
+
+    <p class="body-p">The inflation's causes are genuinely contested among serious economists — not a manufactured controversy but a real empirical disagreement with significant policy implications. The demand-pull interpretation (Summers, Blanchard): the American Rescue Plan was too large for the economy's productive capacity, creating excess demand that bid up prices — a replay of the 1966–68 "guns and butter" overheating. The cost-push/supply-side interpretation (Bivens, Stiglitz, Weber): inflation was primarily driven by supply chain disruptions, energy price shocks from the Ukraine war, and pandemic-specific sectoral imbalances — with fiscal stimulus playing a secondary role and corporate profit margins playing a larger role than standard models acknowledge.</p>
+
+    <div class="three-grid">
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--violet-hi)">Demand-Pull Argument</div>
+        <div class="three-name">The Overheating View</div>
+        <div class="three-body">Summers's argument: the ARP's $1.9 trillion deployed into an economy already recovering exceeded the output gap by a factor of 3, creating the demand-pull inflation that he had predicted in advance. The evidence: broad-based inflation across all sectors (not just supply-shocked ones), tight labor markets producing wage pressure, and the historically observed relationship between fiscal deficits and inflation (the "guns and butter" parallel). <strong>The policy implication: fiscal restraint earlier would have produced lower inflation and a smaller Fed tightening, reducing the unemployment cost of disinflation.</strong> The Fed's "soft landing" achievement does not refute this — it shows the Fed contained the damage, not that the stimulus was appropriately sized.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--gold)">Sellers' Inflation</div>
+        <div class="three-name">The Corporate Pricing View</div>
+        <div class="three-body">Isabella Weber's "sellers' inflation" argument: the pandemic created specific supply shocks in specific sectors (semiconductors, energy, food); corporations with market power used the cover of generalized inflation to raise prices beyond their cost increases, expanding profit margins. <strong>Corporate profits rose 25% in 2021 — the largest increase in modern history</strong> — while wages rose less. If sellers' inflation contributed significantly, demand restraint (higher interest rates, fiscal contraction) was the wrong tool: it reduces everyone's purchasing power to address price increases that reflect market power rather than excess demand. The policy implication would be sectoral price intervention — strategically targeted price controls in concentrated markets, as the Biden administration attempted with oil company "windfall profits" rhetoric.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--steel-hi)">The Soft Landing</div>
+        <div class="three-name">What Actually Happened</div>
+        <div class="three-body">The Federal Reserve's 525 basis point tightening cycle (March 2022–July 2023) — the fastest since Volcker — achieved an outcome that most economists considered unlikely: inflation fell from 9.1% to ~3% while unemployment remained below 4%. The "soft landing" confounded both sides: it suggested the inflation was more transitory than the Summers view implied (requiring less unemployment to tame) and more demand-driven than the sellers' inflation view implied (responding to rate hikes rather than requiring price controls). <strong>Whether the soft landing represents skillful Fed policy, good luck (energy prices fell as Ukraine supply shock unwound), or vindication of a specific inflation theory remains genuinely contested.</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- NEW WASHINGTON CONSENSUS -->
+  <div class="section-block" id="new-washington">
+    <div class="section-eyebrow">The Ideological Shift</div>
+    <h2 class="section-title">The New Washington Consensus: Industrial Policy, Antitrust, and the Remaking of Economic Orthodoxy</h2>
+
+    <p class="body-p">The most consequential intellectual development of the post-2008 period is the partial collapse of the Washington Consensus within mainstream economics itself — a shift driven not by left-wing critics but by the accumulation of empirical evidence that the neoliberal framework's predictions were not borne out. Industrial policy that was supposed to be inevitably captured and inefficient has produced the South Korean and Taiwanese semiconductor industries, the Chinese electric vehicle sector, and now the Biden administration's CHIPS and IRA programs. Free trade that was supposed to be mutually beneficial regardless of distribution has produced the China Shock's community devastation. Financial deregulation that was supposed to generate efficient capital allocation produced the 2008 crisis.</p>
+
+    <p class="body-p">The "new Washington Consensus" — articulated most explicitly in National Security Advisor Jake Sullivan's 2023 Brookings speech — represents the Biden administration's explicit departure from the previous consensus: "We need a modern American industrial strategy." Its intellectual foundations draw on economists including Dani Rodrik (industrial policy as necessity for development), Mariana Mazzucato (the entrepreneurial state's role in technological innovation), and the "supply-side progressivism" of JEC chair Martin Heinrich and others who argue that the left's policy agenda should focus on increasing supply (housing, clean energy, semiconductors) rather than only redistribution.</p>
+
+    <div class="four-grid">
+      <div class="four-card">
+        <div class="four-tag" style="color:var(--violet-hi)">CHIPS Act · 2022</div>
+        <div class="four-name">Semiconductor Industrial Policy</div>
+        <div class="four-body">$52 billion in direct subsidies for domestic semiconductor manufacturing, combined with $200 billion in science and R&D funding over five years. The explicit rationale: national security requires domestic production of advanced semiconductors; market forces alone will not locate production in the U.S. when Taiwan and South Korea offer comparable or lower costs. TSMC's Arizona fab (with CHIPS funding), Intel's Ohio and Arizona expansion, and Samsung's Texas investment represent the first significant new U.S. semiconductor manufacturing capacity in a generation. <strong>Whether the subsidies produce durable comparative advantage or merely attract investment that relocates when subsidies expire is the critical empirical question</strong> that the next decade will answer.</div>
+      </div>
+      <div class="four-card">
+        <div class="four-tag" style="color:var(--steel-hi)">Inflation Reduction Act · 2022</div>
+        <div class="four-name">Climate Industrial Policy</div>
+        <div class="four-body">$369 billion in climate and clean energy investments — the largest climate legislation in U.S. history — deployed primarily through tax credits (not grants) with domestic content requirements that direct investment to U.S. manufacturing. The IRA's design philosophy: use market mechanisms to achieve public goals, rather than command-and-control regulation. In its first two years, the IRA catalyzed over $500 billion in private clean energy investment — electric vehicle manufacturing, battery factories, solar panel production, wind turbine manufacturing — concentrated in Republican-represented congressional districts (a design choice that created political sustainability). <strong>The IRA is the most significant test case for market-based industrial policy in U.S. history.</strong></div>
+      </div>
+      <div class="four-card">
+        <div class="four-tag" style="color:var(--gold)">Antitrust Revival</div>
+        <div class="four-name">Lina Khan and the Tech Platforms</div>
+        <div class="four-name">FTC Under Lina Khan</div>
+        <div class="four-body">FTC Chair Lina Khan's appointment (2021) represented the most significant intellectual shift in antitrust enforcement since the 1970s — a rejection of the Chicago School's "consumer welfare standard" (measure antitrust harm only by price effects) in favor of the neo-Brandeisian framework that considers market power, political power, and structural competition as legitimate antitrust concerns. Khan's efforts to block Facebook/Instagram, Amazon/MGM, and other acquisitions — using theories of harm beyond immediate price effects — challenged the tech platforms' consolidation strategy. <strong>The results were mixed: courts largely applied the Chicago School standard that Khan was trying to displace</strong>, demonstrating that intellectual paradigm shifts in antitrust require judicial as well as executive branch change.</div>
+      </div>
+      <div class="four-card">
+        <div class="four-tag" style="color:var(--ember-hi)">Fed Framework Revision</div>
+        <div class="four-name">Average Inflation Targeting</div>
+        <div class="four-body">The Federal Reserve's 2020 framework revision — replacing the previous "preemptive" approach (tighten before inflation reaches 2%) with "average inflation targeting" (allow inflation to overshoot 2% temporarily after periods below target) — represented the most significant monetary policy doctrinal shift since the Volcker era. The explicit rationale: tight labor markets produced the largest real wage gains for the bottom of the income distribution, and preemptive tightening had systematically prevented those gains from materializing. <strong>The framework revision elevated employment in the dual mandate's priority order</strong> — a significant institutional shift that the 2021–22 inflation would subsequently complicate, as the prolonged tolerance of above-target inflation contributed to the shock whose correction required the fastest tightening since Volcker.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- AI ECONOMY -->
+  <div class="section-block" id="ai-economy">
+    <div class="section-eyebrow">The Horizon</div>
+    <h2 class="section-title">AI and the Next Economy: The Largest Open Question</h2>
+
+    <p class="body-p">The emergence of large language models and generative AI as economically consequential technologies opens questions about the structure of the next economy that no existing economic framework adequately addresses. The analytical challenge is that AI's economic effects are likely to be qualitatively different from previous general-purpose technologies (electricity, computers) in ways that make historical analogies unreliable — though identifying the disanalogy precisely is itself contested.</p>
+
+    <p class="body-p">The optimistic view (Acemoglu and Restrepo's "creating tasks" framework, applied to AI): AI automates existing tasks but creates new tasks that require human judgment, creativity, and social skills — the historical pattern of general-purpose technology adoption. The pessimistic view (the same Acemoglu in more recent work): AI is different because it can potentially automate non-routine cognitive tasks that previous automation could not reach, compressing the high-skill premium that has driven inequality and eliminating the premium on education and skills that has historically replaced manufacturing wages. The empirical question — which tasks AI actually displaces versus complements — will determine the distributional consequences.</p>
+
+    <div class="tension-stack">
+      <div class="tension-item tech">
+        <div class="tension-label">Productivity Paradox</div>
+        <div class="tension-title">Can AI Break Secular Stagnation?</div>
+        <div class="tension-body">If AI delivers on its productivity potential — and there is genuine uncertainty about whether it will, given that computers and the internet also promised productivity revolutions that took decades to materialize in measured statistics — it could represent the first genuine break from the post-1970s productivity slowdown. <strong>The "productivity paradox" (Solow's "you can see the computer age everywhere except in the productivity statistics") suggests caution:</strong> general-purpose technologies typically diffuse slowly and require complementary organizational and institutional changes before their productivity effects appear in measured output. The question is not whether AI will be transformative — it will — but whether the productivity gains will be captured by capital owners (as the post-1970s pattern suggests) or distributed more broadly (as the postwar pattern suggests), and what institutional arrangements will determine the answer.</div>
+      </div>
+      <div class="tension-item structural">
+        <div class="tension-label">Labor Market Effects</div>
+        <div class="tension-title">Who Benefits from AI Productivity</div>
+        <div class="tension-body">The Treaty of Detroit's lesson applied to AI: the distribution of AI's productivity gains depends entirely on institutional arrangements. If the political and legal framework allows AI productivity gains to accrue to capital owners while displacing workers without adequate compensation or transition support — the pattern of the 1980s–2000s deindustrialization — the result will be a further concentration of income and wealth. If institutional arrangements (stronger unions, profit-sharing requirements, public investment in AI's enabling infrastructure, wealth taxation to redistribute AI rents) direct productivity gains more broadly, AI could theoretically support a new golden age. <strong>The historical record suggests the former is more likely without deliberate institutional design</strong> — and the current political environment, in which the AI companies face minimal regulatory constraint, does not suggest the institutional design is being built.</div>
+      </div>
+      <div class="tension-item global">
+        <div class="tension-label">Geopolitical Dimension</div>
+        <div class="tension-title">AI and U.S.-China Competition</div>
+        <div class="tension-body">The Biden (and now Trump) administration's framing of AI as a national security issue — manifested in semiconductor export controls targeting China's AI development, the CHIPS Act's explicit defense rationale, and the executive orders on AI safety — represents the most significant integration of economic and security policy since the Cold War's military Keynesianism. <strong>The U.S.-China AI competition produces a "race to the bottom" dynamic in AI safety regulation</strong> (each side reluctant to impose constraints that might disadvantage it competitively) while simultaneously justifying levels of public investment in AI research and infrastructure that the domestic political economy would otherwise not support. The geopolitical frame both enables and distorts AI policy in ways whose long-run consequences are not yet legible.</div>
+      </div>
+      <div class="tension-item political">
+        <div class="tension-label">The Regulatory Vacuum</div>
+        <div class="tension-title">Governing a General-Purpose Technology</div>
+        <div class="tension-body">The U.S. has no comprehensive federal AI regulation — a regulatory vacuum that reflects both the speed of the technology's development and the political power of the companies developing it. The EU's AI Act (2024) — the world's first comprehensive AI regulatory framework — applies to European users of AI systems regardless of where developed, giving European regulation extraterritorial reach similar to GDPR's privacy regulation. <strong>The pattern of the financial crisis repeating itself: a powerful new technology creating new systemic risks that existing regulatory frameworks do not cover</strong>, with regulators captured by the regulated industry, until a sufficiently large crisis forces the regulatory response that should have preceded it. Whether AI governance can learn from the financial crisis's regulatory failures — acting before rather than after the crisis — is the governance question of the next decade.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SYNTHESIS -->
+  <div class="section-block" id="synthesis">
+    <div class="section-eyebrow">The Full Arc</div>
+    <h2 class="section-title">Synthesis: Seven Phases, Seven Tensions, One Unresolved Question</h2>
+
+    <p class="body-p">Seven phases of American economic history, read together, reveal not a linear progress narrative but a set of recurring structural tensions that each era resolves temporarily in specific ways — and whose resolution always contains the seeds of the next era's contradictions. The tensions are not accidents of policy; they are built into the structure of a capitalist democracy that must simultaneously satisfy the requirements of capital accumulation and democratic legitimacy.</p>
+
+    <div class="tension-stack">
+      <div class="tension-item structural">
+        <div class="tension-label">Tension I · Recurs in Every Phase</div>
+        <div class="tension-title">Capital vs. Labor: Who Claims Productivity's Gains</div>
+        <div class="tension-body">From the plantation economy's extraction of enslaved labor's output, through the industrial workers' struggle for union recognition, the Treaty of Detroit's productivity-wage link, its severing in the 1980s, and the current AI automation question — the central tension of every phase is who claims the gains from rising productive capacity. The historical record is unambiguous: <strong>the answer is always determined by institutional arrangements and political power, never by market forces alone.</strong> The postwar golden age's broadly shared prosperity required specific institutional arrangements (unions, progressive taxes, capital controls, Keynesian fiscal management); their dismantling produced the Great Divergence. Rebuilding broadly shared prosperity requires rebuilding those institutions — in forms appropriate to the current economy — not relying on market forces whose unmediated operation produces concentration.</div>
+      </div>
+      <div class="tension-item global">
+        <div class="tension-label">Tension II · Ruggie's Dilemma</div>
+        <div class="tension-title">International Openness vs. Domestic Policy Autonomy</div>
+        <div class="tension-body">From Hamilton's infant industry protection against British manufacturing dominance, through the Bretton Woods embedded liberalism compromise, through NAFTA and the China Shock, to the current CHIPS Act and IRA domestic content requirements — the tension between international economic integration and domestic policy space is the second constant of American economic history. Rodrik's globalization trilemma names it precisely: you cannot simultaneously have deep integration, national sovereignty, and democracy. <strong>The current moment represents a partial retreat from deep integration</strong> — the "friendshoring" of supply chains, the domestic content requirements, the semiconductor export controls — that reflects a belated recognition that the neoliberal era's version of globalization sacrificed domestic policy space and democratic accountability to capital mobility.</div>
+      </div>
+      <div class="tension-item political">
+        <div class="tension-label">Tension III · The Racial Economy</div>
+        <div class="tension-title">The Unredeemed Promise</div>
+        <div class="tension-body">From slavery as the foundation of the colonial economy, through the plantation system's role in financing industrial capitalism, through the New Deal's racial exclusions, the postwar suburbanization's racial architecture, the subprime crisis's racial concentration, to today's racial wealth gap — race has been the organizing principle of American economic exclusion in every phase. <strong>The racial wealth gap — median Black family wealth at 13% of median white family wealth — is not the residue of historical discrimination but its compounding consequence</strong>: each phase's exclusions built on the previous ones, and none has been adequately addressed. No account of American economic history that treats race as a side issue rather than a structural feature is adequate to the evidence.</div>
+      </div>
+      <div class="tension-item structural">
+        <div class="tension-label">Tension IV · Minsky's Law</div>
+        <div class="tension-title">Financial Instability as Structural Condition</div>
+        <div class="tension-body">The Panics of 1837 and 1857, the Gilded Age's cycle of boom and bust, the 1929 crash, the S&L crisis, the 2008 collapse — financial instability is not an aberration in American economic history but its most consistent feature. Minsky's insight — that stability breeds instability, that the institutional memory of financial crisis degrades until the next one occurs — has been confirmed in every era. <strong>The post-2008 regulatory settlement did not solve the problem</strong>; the 2023 banking crisis demonstrated its incompleteness. Addressing financial instability requires not merely better regulation but a fundamental rethinking of how the financial system relates to the real economy — a question whose resolution remains genuinely open.</div>
+      </div>
+    </div>
+
+    <div class="frame-box">
+      <div class="frame-box-label">The Unresolved Question</div>
+      <p class="body-p">The seven phases of this research series pose a single question that none has answered: is a broadly shared, ecologically sustainable prosperity compatible with the American political economy as currently constituted? The golden age's twenty-eight years demonstrated that such prosperity is achievable — but it required specific institutional conditions (Bretton Woods, union density, capital controls, managed trade, progressive taxation) that were historically contingent and structurally temporary. No equivalent institutional architecture has been constructed for the contemporary economy.</p>
+      <p class="body-p">The current moment — industrial policy revival, antitrust enforcement, labor market tightness producing real wage gains, the IRA's clean energy investment — represents the most serious attempt to rebuild something like that architecture since the New Deal. Whether it will succeed, or whether it represents a temporary deviation from the neoliberal pattern that political and economic pressures will ultimately reassert, is genuinely unknown. <strong>What this research series should have established is the analytical framework to evaluate the attempts: what specific institutional arrangements determine distribution, what the historical precedents tell us about their effectiveness and fragility, and what structural obstacles — racial, financial, political — any serious program of reform must confront.</strong> The present is not inevitable. Every era's arrangements were choices, contested at the time and reversible in principle. Understanding how they were made is the first requirement for making them differently.</p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SOURCES -->
+  <div class="section-block" id="sources">
+    <div class="section-eyebrow">Reading List</div>
+    <h2 class="section-title">Phase VII Sources</h2>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Primary Sources</div>
+    <div class="source-stack" style="margin-bottom:2rem">
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Financial Crisis Inquiry Commission Report</div>
+          <div class="src-author">FCIC · January 2011</div>
+          <div class="src-note">The official investigation into the 2008 financial crisis — 662 pages of testimony, documents, and analysis that remains the most comprehensive single account of the crisis's causes and mechanisms. Read especially the dissenting views (Commissioner Wallison's view that government housing policy was the primary cause; Commissioners Hennessey, Holtz-Eakin, and Thomas's view that global capital flows were more important than domestic deregulation) — the dissents reveal that the crisis's interpretation is genuinely contested even among those with full access to the evidence. The majority report's finding — that the crisis was "avoidable" and resulted from specific regulatory and corporate governance failures — is the starting point for the regulatory debate that produced Dodd-Frank.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Remarks on the New Washington Consensus (Brookings Institution)</div>
+          <div class="src-author">Jake Sullivan · National Security Advisor · April 27, 2023</div>
+          <div class="src-note">The Biden administration's explicit articulation of the departure from Washington Consensus orthodoxy — a senior official's direct statement that "a free market that isn't embedded in strong institutions can hollow out the middle class, worsen inequality, and undermine democracy." Read as a primary document of the ideological shift, alongside the Bipartisan Policy Center's responses from neoliberal critics. Sullivan's speech is structurally similar to the Powell Memo in its ambition — an attempt to shift the intellectual framework governing economic policy — with the difference that it is public rather than confidential and seeks to restore rather than dismantle managed capitalism's institutional foundations.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin:2rem 0 1rem">Secondary Sources</div>
+    <div class="source-stack">
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Crashed: How a Decade of Financial Crises Changed the World</div>
+          <div class="src-author">Adam Tooze · 2018</div>
+          <div class="src-note">The essential account of the 2008 crisis and its global political consequences — Tooze's scope is genuinely global, tracing the crisis's transmission through European sovereign debt, Chinese stimulus, emerging market contagion, and ultimately the political ruptures of 2016. His analytical framework — that the crisis revealed the extent to which the global economy had been restructured around dollar-denominated finance, and that the bailout's design reflected and reinforced existing power structures — is the most sophisticated available. Tooze is also an extraordinary prose stylist; Crashed reads as urgent intellectual history rather than dry economic analysis. Essential for understanding the international dimensions of the period and the crisis's political consequences.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Capital in the Twenty-First Century</div>
+          <div class="src-author">Thomas Piketty · 2013 (English translation 2014)</div>
+          <div class="src-note">The most important economics book of the post-2008 period — and perhaps the most important since Keynes's General Theory in terms of political impact. Piketty's long-run historical data on income and wealth inequality across multiple countries, his r &gt; g theoretical framework for understanding wealth concentration dynamics, and his radical proposal for a global wealth tax made the book simultaneously a major scholarly contribution and a political phenomenon. Read critically: the r &gt; g mechanism is theoretically important but not the only or necessarily primary driver of current inequality; the wealth tax proposal faces implementation challenges that Piketty acknowledges but arguably underestimates. The book's essential contribution is the historical data that grounds inequality discussion in long-run empirical reality rather than ideological assertion.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Stress Test: Reflections on Financial Crises</div>
+          <div class="src-author">Timothy Geithner · 2014</div>
+          <div class="src-note">The essential insider account of the crisis response — essential precisely because Geithner's perspective is so clearly that of a financial system rescuer rather than a reformer, and reading it against the critics (Barofsky's Bailout, Bair's Bull by the Horns) provides the clearest picture of the choices that were made and why. Geithner's "foam the runway" metaphor — the housing modification programs were designed to help homeowners just enough to cushion the financial system's landing rather than actually rescuing homeowners — is the most damning self-revelation in the post-crisis literature. Read alongside Neil Barofsky's Bailout (the TARP inspector general's account, far more critical) for the complete picture of the bailout's political economy.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Deaths of Despair and the Future of Capitalism</div>
+          <div class="src-author">Anne Case &amp; Angus Deaton · 2020</div>
+          <div class="src-note">Case and Deaton's account of the mortality crisis among white Americans without college degrees — the "deaths of despair" from suicide, drug overdose, and alcohol-related disease that have reversed the historical pattern of declining American mortality — is the most important empirical documentation of the human cost of the post-1970s economic model. Their analysis is explicitly economic: the deaths of despair are the consequence of the destruction of stable working-class employment and community life by deindustrialization, the opioid epidemic's deliberate targeting of distressed communities, and the health care system's failure to provide adequate mental health and addiction treatment. The book is also the most honest account of race in the inequality literature: the mortality crisis is concentrated among white Americans without college degrees, not because Black Americans are doing well (they are not) but because their mortality trends reflect different dynamics that Case and Deaton examine with care.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Code Breaker / Power and Progress: Our Thousand-Year Struggle Over Technology and Prosperity</div>
+          <div class="src-author">Daron Acemoglu &amp; Simon Johnson · 2023</div>
+          <div class="src-note">Acemoglu and Johnson's historical account of how technological progress has been directed toward enriching narrow elites rather than broadly shared prosperity — and what institutional arrangements are required to redirect it — is the essential analytical framework for the AI economy's political economy. Their central argument: technology's distributional consequences are not technologically determined but institutionally determined; the same technology can produce broad prosperity or concentrated wealth depending on who controls its deployment and who captures its gains. The historical sweep (from the printing press to AI) grounds the AI discussion in long-run patterns rather than breathless presentism. Required reading before engaging any policy discussion about AI governance.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type rec">Recommended</div>
+        <div>
+          <div class="src-title">The Entrepreneurial State: Debunking Public vs. Private Sector Myths</div>
+          <div class="src-author">Mariana Mazzucato · 2013</div>
+          <div class="src-note">Mazzucato's empirical challenge to the mythology that technological innovation is driven by private entrepreneurship and that the state's role is merely to "get out of the way": the internet (ARPANET), GPS, touchscreens, voice recognition, and the core technologies of the iPhone were all developed through public investment in basic research and early-stage development. The private sector's role is to commercialize publicly funded innovation — crucial but downstream of the state's risk-taking. The policy implication: if the state takes the early innovation risk, it should capture some of the returns rather than allowing all gains to accrue to private companies that commercialize public research. Mazzucato provides the intellectual foundation for the CHIPS Act and IRA's industrial policy approach — and for the argument that these programs should include equity stakes or revenue-sharing that return some gains to the public.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-toc">
+    <div class="sidebar-title">In This Chapter</div>
+    <a class="stoc-item active" href="#context">Overview & Timeline</a>
+    <a class="stoc-item" href="#crisis-mechanics">Crisis Mechanics</a>
+    <a class="stoc-item" href="#bailout">The Bailout & Its Politics</a>
+    <a class="stoc-item" href="#recovery">The Long Slump</a>
+    <a class="stoc-item" href="#dodd-frank">Dodd-Frank & Its Limits</a>
+    <a class="stoc-item" href="#secular-stagnation">Secular Stagnation</a>
+    <a class="stoc-item" href="#political-rupture">Political Rupture</a>
+    <a class="stoc-item" href="#covid">COVID & the Pandemic Economy</a>
+    <a class="stoc-item" href="#inflation">The Inflation Shock 2021–23</a>
+    <a class="stoc-item" href="#new-washington">The New Washington Consensus</a>
+    <a class="stoc-item" href="#ai-economy">AI & the Next Economy</a>
+    <a class="stoc-item" href="#synthesis">Synthesis: The Full Arc</a>
+    <a class="stoc-item" href="#sources">Reading List</a>
+  </div>
+
+  <div>
+    <div class="sidebar-title">Key Figures</div>
+    <div class="key-figure">
+      <div class="key-figure-name">Ben Bernanke</div>
+      <div class="key-figure-role">Fed Chairman 2006–2014 · "Helicopter Ben"</div>
+      <div class="key-figure-note">The Great Depression scholar who had the misfortune — and arguably the qualification — of presiding over the nearest thing to a repeat. Bernanke's academic work on the Depression's monetary contraction directly shaped his response: he was not going to let the Fed repeat the 1930–33 monetary policy catastrophe. The emergency facilities, the QE programs, and the stress tests all reflected his academic understanding that the central bank must act as lender of last resort in a crisis regardless of political cost. His 2022 Nobel Prize (shared with Diamond and Dybvig) for research on banks and financial crises was awarded the same year the Fed's rate hikes were producing the fastest tightening since Volcker.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Timothy Geithner</div>
+      <div class="key-figure-role">Treasury Secretary 2009–2013</div>
+      <div class="key-figure-note">The architect of the financial rescue strategy — "foam the runway," stress tests, TARP repayment — and the most consequential single decision-maker in the homeowner relief failure. Geithner's worldview: the financial system's stability was the precondition for everything else, and aggressive housing modification that forced banks to take large losses would destabilize the system. His critics (Bair, Barofsky, Warren) argued this reasoning was backwards — the homeowners were the economy, not the banks. The subsequent decade of sluggish recovery and political radicalization is the evidence base for evaluating who was right.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Sheila Bair</div>
+      <div class="key-figure-role">FDIC Chair 2006–2011 · The Dissenter</div>
+      <div class="key-figure-note">The FDIC chair who consistently argued for more aggressive homeowner relief and more aggressive bank restructuring than Geithner was willing to pursue — and whose memoir <em>Bull by the Horns</em> provides the most credible insider account of the choices that were made and the alternatives that were foreclosed. Bair's proposed use of TARP funds to directly purchase and modify mortgages — blocked by Geithner — would have been both more effective and more politically sustainable than the HAMP structure that actually implemented.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Lawrence Summers</div>
+      <div class="key-figure-role">NEC Chair 2009–2010 · Secular Stagnation's Voice</div>
+      <div class="key-figure-note">The most consequential economic official of the Obama era — and one of the most controversial. His $800B stimulus recommendation (against Romer's $1.8T) produced the inadequate recovery; his secular stagnation framework (2013) provided the intellectual foundation for subsequent fiscal expansionism; his warnings about the ARP's inflationary risk (2021) proved prescient. Summers embodies the tension at the heart of mainstream economics: technically sophisticated, institutionally embedded, simultaneously right about some large questions and wrong about others in ways that have enormous consequences for ordinary people.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Lina Khan</div>
+      <div class="key-figure-role">FTC Chair 2021–2025 · Neo-Brandeisian</div>
+      <div class="key-figure-note">The youngest FTC chair in history — appointed at 32, on the basis of a Yale Law Journal article on Amazon's antitrust implications — whose tenure represented the most significant attempt to revive structural antitrust enforcement since the 1960s. Her intellectual framework (antitrust should consider market structure and power, not only consumer prices) challenged forty years of Chicago School dominance in antitrust law. Her mixed record — blocked by courts applying the Chicago School standard she was trying to displace — illustrates both the ambition and the limits of executive branch attempts to shift paradigms without judicial branch alignment.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Key Concepts</div>
+    <span class="concept-pill">TARP</span>
+    <span class="concept-pill">Quantitative Easing</span>
+    <span class="concept-pill">Stress Tests</span>
+    <span class="concept-pill">Too Big to Fail</span>
+    <span class="concept-pill">Shadow Banking</span>
+    <span class="concept-pill">Repo Run</span>
+    <span class="concept-pill">HAMP</span>
+    <span class="concept-pill">Dodd-Frank</span>
+    <span class="concept-pill">Volcker Rule</span>
+    <span class="concept-pill">CFPB</span>
+    <span class="concept-pill">Balance Sheet Recession</span>
+    <span class="concept-pill">Secular Stagnation</span>
+    <span class="concept-pill">Zero Lower Bound</span>
+    <span class="concept-pill">r &gt; g</span>
+    <span class="concept-pill">Deaths of Despair</span>
+    <span class="concept-pill">Opioid Crisis</span>
+    <span class="concept-pill">Tea Party</span>
+    <span class="concept-pill">Occupy Wall Street</span>
+    <span class="concept-pill">CARES Act</span>
+    <span class="concept-pill">American Rescue Plan</span>
+    <span class="concept-pill">Great Resignation</span>
+    <span class="concept-pill">Sellers' Inflation</span>
+    <span class="concept-pill">Average Inflation Targeting</span>
+    <span class="concept-pill">CHIPS Act</span>
+    <span class="concept-pill">Inflation Reduction Act</span>
+    <span class="concept-pill">Neo-Brandeisian Antitrust</span>
+    <span class="concept-pill">Industrial Policy</span>
+    <span class="concept-pill">Friendshoring</span>
+    <span class="concept-pill">AI Productivity Paradox</span>
+    <span class="concept-pill">New Washington Consensus</span>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Duration</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:600;color:var(--violet-hi);line-height:1">3–4</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-top:0.3rem">Weeks</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);margin-top:0.8rem;line-height:1.6">Read Tooze first for the global crisis story; Geithner and Bair together for the competing insider perspectives on the bailout; Case and Deaton for the human cost of the long slump; Piketty for the inequality framework; Acemoglu and Johnson for the AI political economy. The FCIC report and Sullivan's Brookings speech as primary documents bookending the period.</div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Navigation</div>
+    <a href="econ_phase6_neoliberalism.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:0.6rem 0;border-bottom:1px solid var(--border);transition:color 0.2s;text-transform:uppercase" onmouseover="this.style.color='var(--violet-hi)'" onmouseout="this.style.color='var(--text-dim)'">← Phase VI · Stagflation &amp; Neoliberalism</a>
+    <a href="us_economy_research_plan.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:0.6rem 0;border-bottom:1px solid var(--border);transition:color 0.2s;text-transform:uppercase;margin-top:0.5rem" onmouseover="this.style.color='var(--violet-hi)'" onmouseout="this.style.color='var(--text-dim)'">↑ Return to Research Plan</a>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-style:italic;color:var(--text-dim);margin-top:1.5rem;line-height:1.6">End of Series · VII of VII Phases Complete</div>
+  </div>
+</aside>
+</div>
+
+<footer style="padding:2.5rem 8vw;border-top:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase">U.S. Economy Research Plan · Phase VII of VII · Series Complete</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-style:italic;color:var(--text-dim)">Financial Crisis &amp; the Contemporary Economy, 2008–Present</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(
+  entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold:0.07 }
+);
+document.querySelectorAll('.section-block').forEach(el => observer.observe(el));
+const navLinks = document.querySelectorAll('.toc-item,.stoc-item');
+const navObs = new IntersectionObserver(
+  entries => entries.forEach(e => {
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      document.querySelectorAll(`[href="#${e.target.id}"]`).forEach(l=>l.classList.add('active'));
+    }
+  }),
+  { threshold:0.3 }
+);
+document.querySelectorAll('[id]').forEach(s=>navObs.observe(s));
+</script>
+</body>
+</html>

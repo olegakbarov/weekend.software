@@ -32,7 +32,6 @@ type WorkspaceMode =
 export function BrowserPane({
   projectKey,
   filesystemEventVersion,
-  selectedProject,
   hasHealthyRuntimeProcess,
   projectConfigSnapshot,
   isProjectConfigLoading,
@@ -50,7 +49,6 @@ export function BrowserPane({
 }: {
   projectKey: string;
   filesystemEventVersion: number;
-  selectedProject: string | null;
   hasHealthyRuntimeProcess: boolean;
   projectConfigSnapshot: ProjectConfigReadSnapshot | null;
   isProjectConfigLoading: boolean;
@@ -59,7 +57,7 @@ export function BrowserPane({
   onWorkspaceModeChange: (
     mode: "browser" | "editor" | "agent" | "settings"
   ) => void;
-  onPlayProject: (project: string) => void;
+  onPlayProject: () => void;
   playState: PlayState;
   selectedEditorFilePath: string | null;
   editorContent?: ReactNode;
@@ -95,7 +93,7 @@ export function BrowserPane({
   const browserTarget = useMemo(
     () =>
       resolveBrowserRuntimeTarget({
-        selectedProject,
+        projectId: projectKey,
         playState,
         hasHealthyRuntimeProcess,
         isProjectConfigLoading,
@@ -103,7 +101,7 @@ export function BrowserPane({
         projectConfigSnapshot,
       }),
     [
-      selectedProject,
+      projectKey,
       playState,
       hasHealthyRuntimeProcess,
       isProjectConfigLoading,
@@ -353,8 +351,8 @@ export function BrowserPane({
   const showBrowserShell =
     browserTarget.status === "ready" || startupProbeErrorMessage !== null;
   const retryBrowserLoad = () => {
-    if (startupProbeErrorMessage && selectedProject) {
-      onPlayProject(selectedProject);
+    if (startupProbeErrorMessage) {
+      onPlayProject();
       return;
     }
     reloadCurrentPage();
@@ -365,7 +363,7 @@ export function BrowserPane({
       <BrowserToolbar
         workspaceMode={workspaceMode}
         onWorkspaceModeChange={onWorkspaceModeChange}
-        selectedProject={selectedProject}
+        projectId={projectKey}
         urlInputDraft={urlInputDraft}
         addressBarError={addressBarError}
         hasBrowserUrl={hasBrowserUrl}
@@ -471,12 +469,12 @@ export function BrowserPane({
               </div>
             ) : null}
           </>
-        ) : browserTarget.action === "play" && selectedProject ? (
+        ) : browserTarget.action === "play" ? (
           <div className="flex h-full items-center justify-center px-4">
             <button
               className="inline-flex items-center rounded border border-border px-3 py-1.5 font-code text-xs text-foreground transition-colors hover:bg-secondary/60 disabled:cursor-not-allowed disabled:opacity-60"
               disabled={playState === "starting"}
-              onClick={() => onPlayProject(selectedProject)}
+              onClick={onPlayProject}
               type="button"
             >
               {playState === "starting" ? "Starting..." : "|> start"}

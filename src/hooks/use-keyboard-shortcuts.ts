@@ -5,7 +5,8 @@ import type { WorkspaceController } from "@/hooks/use-workspace-controller";
 export function useKeyboardShortcuts(
   controller: WorkspaceController,
   currentProject: string | null,
-  currentView: string | null
+  currentView: string | null,
+  onToggleSidebar?: () => void
 ) {
   const navigate = useNavigate();
 
@@ -69,9 +70,13 @@ export function useKeyboardShortcuts(
           e.preventDefault();
           switchWorkspaceModeRef.current("editor");
           break;
+        case "b":
+          e.preventDefault();
+          onToggleSidebar?.();
+          break;
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [navigate]);
+  }, [navigate, onToggleSidebar]);
 }

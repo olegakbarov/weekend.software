@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase II — Industrialization & Market Revolution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #07080d;
+  --bg2:       #0a0d16;
+  --surface:   #0f1622;
+  --surface2:  #152030;
+  --border:    #1e2e40;
+  --border-hi: #2a4255;
+  --gold:      #c9a84c;
+  --gold-dim:  #7a6030;
+  --gold-pale: #e8d9a8;
+  --green:     #3a8a52;
+  --green-hi:  #4db870;
+  --green-dim: #1e5530;
+  --rust:      #b04a28;
+  --rust-hi:   #d05a30;
+  --rust-dim:  #6a2a14;
+  --slate:     #4a6a8a;
+  --text:      #c8c4bb;
+  --text-dim:  #576878;
+  --text-hi:   #ece7de;
+  --ink:       #d2cdc5;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Libre Baskerville',Georgia,serif;
+  font-size:16px;line-height:1.85;overflow-x:hidden;
+}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--border);overflow:hidden;position:relative;
+}
+.hero-left{
+  padding:7rem 5vw 5rem 8vw;display:flex;flex-direction:column;
+  justify-content:center;position:relative;z-index:1;
+  border-right:1px solid var(--border);
+}
+.hero-left::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 5% 65%,rgba(58,138,82,0.05) 0%,transparent 60%);
+}
+.hero-right{
+  padding:7rem 8vw 5rem 5vw;display:flex;flex-direction:column;
+  justify-content:flex-end;background:var(--bg2);position:relative;overflow:hidden;
+}
+.hero-right::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 75% 25%,rgba(176,74,40,0.05) 0%,transparent 55%),
+    radial-gradient(ellipse at 20% 80%,rgba(58,138,82,0.04) 0%,transparent 50%);
+}
+.chapter-numeral{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(9rem,18vw,20rem);font-weight:700;
+  color:var(--surface2);line-height:0.85;
+  position:absolute;right:-1.5rem;top:2rem;
+  user-select:none;pointer-events:none;z-index:0;
+  opacity:0;animation:fadeIn 1.8s 0.4s forwards;
+}
+.breadcrumb{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.25em;color:var(--rust-dim);text-transform:uppercase;
+  margin-bottom:2.5rem;opacity:0;animation:fadeUp 0.6s 0.1s forwards;
+}
+.breadcrumb a{color:inherit;text-decoration:none;}
+.breadcrumb a:hover{color:var(--rust-hi);}
+.phase-tag{
+  display:inline-flex;align-items:center;gap:0.8rem;
+  margin-bottom:1.5rem;opacity:0;animation:fadeUp 0.6s 0.2s forwards;
+}
+.phase-tag-num{
+  font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:600;
+  color:var(--green-hi);border:1px solid var(--green-dim);padding:0.15rem 0.7rem;letter-spacing:0.1em;
+}
+.phase-tag-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;
+}
+.hero-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.8rem,5.5vw,5.5rem);font-weight:300;
+  line-height:1.05;color:var(--text-hi);letter-spacing:-0.02em;
+  opacity:0;animation:fadeUp 0.9s 0.3s forwards;
+}
+.hero-title em{font-style:italic;color:var(--green-hi);}
+.hero-dates{
+  font-family:'JetBrains Mono',monospace;font-size:0.8rem;
+  color:var(--green-dim);letter-spacing:0.2em;
+  margin-top:1.5rem;margin-bottom:2.5rem;
+  opacity:0;animation:fadeUp 0.6s 0.5s forwards;
+}
+.hero-thesis{
+  font-size:1.05rem;font-style:italic;color:var(--text-dim);
+  line-height:1.8;max-width:480px;
+  border-left:2px solid var(--green-dim);padding-left:1.5rem;
+  opacity:0;animation:fadeUp 0.6s 0.65s forwards;
+}
+.pull-quote-block{opacity:0;animation:fadeIn 1.2s 0.8s forwards;}
+.pull-quote{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.05rem,1.9vw,1.7rem);font-weight:300;
+  font-style:italic;color:var(--text-hi);line-height:1.6;margin-bottom:1rem;
+}
+.pull-quote-attr{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.15em;color:var(--green-dim);text-transform:uppercase;
+}
+.hero-right-top{flex:1;}
+
+/* ── NAV ── */
+.toc-nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(7,8,13,0.96);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;padding:0 8vw;overflow-x:auto;scrollbar-width:none;
+}
+.toc-nav::-webkit-scrollbar{display:none;}
+.toc-item{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;
+  color:var(--text-dim);text-decoration:none;padding:1rem 0.9rem;
+  border-bottom:2px solid transparent;white-space:nowrap;
+  transition:all 0.2s;text-transform:uppercase;
+}
+.toc-item:hover{color:var(--green-hi);border-bottom-color:var(--green-dim);}
+.toc-item.active{color:var(--green-hi);border-bottom-color:var(--green-hi);}
+
+/* ── LAYOUT ── */
+.main-grid{display:grid;grid-template-columns:680px 1fr;max-width:1400px;margin:0 auto;}
+@media(max-width:1100px){
+  .main-grid{grid-template-columns:1fr;}
+  .hero{grid-template-columns:1fr;}
+  .hero-right,.sidebar{display:none;}
+}
+.main-content{padding:5rem 5vw 5rem 8vw;border-right:1px solid var(--border);}
+.sidebar{
+  padding:5rem 4vw 5rem 3vw;position:sticky;top:52px;
+  height:calc(100vh - 52px);overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;
+  background:var(--bg2);
+}
+
+/* ── CONTENT ── */
+.section-block{
+  margin-bottom:5rem;opacity:0;transform:translateY(28px);
+  transition:opacity 0.7s ease,transform 0.7s ease;
+}
+.section-block.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:0.62rem;
+  letter-spacing:0.28em;color:var(--green-hi);text-transform:uppercase;
+  margin-bottom:1.2rem;display:flex;align-items:center;gap:0.8rem;
+}
+.section-eyebrow::after{content:'';width:40px;height:1px;background:var(--green-dim);}
+.section-title{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,3vw,2.4rem);
+  font-weight:300;color:var(--text-hi);line-height:1.2;
+  letter-spacing:-0.01em;margin-bottom:2rem;
+}
+.body-p{font-size:0.97rem;line-height:1.9;color:var(--ink);margin-bottom:1.4rem;}
+.body-p strong{color:var(--text-hi);font-weight:700;}
+.body-p em{color:var(--gold-pale);font-style:italic;}
+.rule{width:100%;height:1px;background:linear-gradient(90deg,var(--green-dim),transparent);margin:3rem 0;border:none;}
+
+blockquote{
+  margin:2.5rem 0;padding:1.8rem 2rem 1.8rem 2.5rem;
+  background:var(--surface);border-left:3px solid var(--green-hi);position:relative;
+}
+blockquote::before{
+  content:'\201C';font-family:'Cormorant Garamond',serif;font-size:5rem;
+  color:var(--green-dim);position:absolute;top:-0.5rem;left:0.5rem;
+  line-height:1;pointer-events:none;
+}
+blockquote p{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;color:var(--text-hi);line-height:1.7;position:relative;z-index:1;}
+blockquote cite{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--green-dim);text-transform:uppercase;margin-top:0.8rem;font-style:normal;}
+
+/* ── EVENT TIMELINE ── */
+.event-timeline{margin:2rem 0;position:relative;padding-left:2.5rem;}
+.event-timeline::before{
+  content:'';position:absolute;left:0.6rem;top:0.5rem;bottom:0.5rem;
+  width:1px;background:linear-gradient(to bottom,var(--green-dim),transparent);
+}
+.event-item{position:relative;margin-bottom:2rem;}
+.event-item::before{
+  content:'';position:absolute;left:-1.9rem;top:0.45rem;
+  width:8px;height:8px;border-radius:50%;background:var(--green-dim);border:1px solid var(--green-hi);
+}
+.event-item.pivot::before{background:var(--rust-hi);border-color:var(--rust-hi);}
+.event-item.tension::before{background:var(--gold-dim);border-color:var(--gold);}
+.event-year{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;color:var(--green-hi);margin-bottom:0.2rem;}
+.event-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.4rem;}
+.event-desc{font-size:0.88rem;color:var(--text-dim);line-height:1.7;}
+
+/* ── DETAIL STACK ── */
+.detail-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.detail-item{
+  background:var(--bg2);padding:1.4rem 1.8rem;
+  display:grid;grid-template-columns:220px 1fr;
+  gap:1.5rem;align-items:flex-start;transition:background 0.2s;
+}
+.detail-item:hover{background:var(--surface);}
+.detail-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.68rem;
+  letter-spacing:0.1em;color:var(--green-hi);text-transform:uppercase;
+  padding-top:0.15rem;line-height:1.6;
+}
+.detail-body{font-size:0.88rem;color:var(--text-dim);line-height:1.75;}
+.detail-body strong{color:var(--text);}
+
+/* ── COMPARE GRID ── */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.compare-card{background:var(--bg2);padding:2rem;transition:background 0.2s;}
+.compare-card:hover{background:var(--surface);}
+.compare-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.compare-name{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--text-hi);margin-bottom:0.8rem;}
+.compare-body{font-size:0.87rem;color:var(--text-dim);line-height:1.75;}
+.compare-body strong{color:var(--text);}
+.compare-item{margin-bottom:0.6rem;padding-left:1rem;position:relative;font-size:0.87rem;color:var(--text-dim);line-height:1.65;}
+.compare-item::before{content:'→';position:absolute;left:0;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--green-dim);top:0.05rem;}
+
+/* ── THREE-COL GRID ── */
+.three-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+@media(max-width:800px){.three-grid{grid-template-columns:1fr;}}
+.three-card{background:var(--bg2);padding:1.8rem;transition:background 0.2s;}
+.three-card:hover{background:var(--surface);}
+.three-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.three-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.6rem;}
+.three-body{font-size:0.86rem;color:var(--text-dim);line-height:1.72;}
+.three-body strong{color:var(--text);}
+
+/* ── FULL-WIDTH CARD ── */
+.full-card{background:var(--bg2);border:1px solid var(--border);padding:2rem;margin:2rem 0;transition:background 0.2s;}
+.full-card:hover{background:var(--surface);}
+
+/* ── FRAME BOX ── */
+.frame-box{
+  background:var(--surface);border:1px solid var(--border-hi);
+  padding:2.5rem;margin-top:3rem;position:relative;
+}
+.frame-box-label{
+  position:absolute;top:-0.6rem;left:1.5rem;
+  background:var(--surface);padding:0 0.8rem;
+  font-family:'JetBrains Mono',monospace;font-size:0.6rem;
+  letter-spacing:0.2em;color:var(--green-hi);text-transform:uppercase;
+}
+
+/* ── SOURCE CARDS ── */
+.source-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);}
+.src-card{
+  background:var(--bg2);padding:1.5rem 1.8rem;
+  display:grid;grid-template-columns:auto 1fr;
+  gap:1.5rem;align-items:flex-start;transition:background 0.2s;
+}
+.src-card:hover{background:var(--surface);}
+.src-type{
+  font-family:'JetBrains Mono',monospace;font-size:0.58rem;
+  letter-spacing:0.12em;text-transform:uppercase;
+  padding:0.2rem 0.6rem;border:1px solid;white-space:nowrap;margin-top:0.2rem;
+}
+.src-type.essential{border-color:var(--gold);color:var(--gold);}
+.src-type.primary{border-color:var(--green-hi);color:var(--green-hi);}
+.src-type.rec{border-color:var(--border-hi);color:var(--text-dim);}
+.src-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;font-style:italic;color:var(--text-hi);line-height:1.4;}
+.src-author{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.05em;color:var(--text-dim);margin-top:0.3rem;}
+.src-note{font-size:0.85rem;color:var(--text-dim);margin-top:0.4rem;line-height:1.6;}
+
+/* ── SIDEBAR ── */
+.sidebar-title{
+  font-family:'JetBrains Mono',monospace;font-size:0.6rem;
+  letter-spacing:0.25em;color:var(--text-dim);text-transform:uppercase;
+  margin-bottom:1.5rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border);
+}
+.sidebar-toc{margin-bottom:3rem;}
+.stoc-item{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.08em;color:var(--text-dim);text-decoration:none;
+  padding:0.5rem 0;border-bottom:1px solid var(--border);
+  transition:color 0.2s,padding-left 0.2s;line-height:1.5;
+}
+.stoc-item:hover,.stoc-item.active{color:var(--green-hi);padding-left:0.4rem;}
+.key-figure{
+  margin-bottom:1.5rem;padding:1.2rem;
+  background:var(--surface);border-top:2px solid var(--green-dim);
+}
+.key-figure-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin-bottom:0.3rem;}
+.key-figure-role{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--green-dim);text-transform:uppercase;margin-bottom:0.5rem;}
+.key-figure-note{font-size:0.82rem;color:var(--text-dim);line-height:1.6;}
+.concept-pill{
+  display:inline-block;font-family:'JetBrains Mono',monospace;
+  font-size:0.62rem;letter-spacing:0.08em;color:var(--text-dim);
+  border:1px solid var(--border-hi);padding:0.25rem 0.7rem;
+  margin:0.2rem 0.2rem 0 0;transition:all 0.2s;text-transform:uppercase;cursor:default;
+}
+.concept-pill:hover{color:var(--green-hi);border-color:var(--green-dim);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+::selection{background:rgba(77,184,112,0.15);color:var(--text-hi);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="breadcrumb">
+      <a href="us_economy_research_plan.html">← Research Plan</a>
+      &nbsp;/&nbsp;
+      <a href="econ_phase1_colonial.html">Phase I</a>
+      &nbsp;/&nbsp; Phase II
+    </div>
+    <div class="phase-tag">
+      <span class="phase-tag-num">Phase II</span>
+      <span class="phase-tag-label">3 Weeks</span>
+    </div>
+    <h1 class="hero-title">Industrialization<br>&amp; the <em>Market</em><br>Revolution</h1>
+    <div class="hero-dates">1800 &nbsp;—&nbsp; 1877</div>
+    <p class="hero-thesis">The Market Revolution was not progress arriving naturally — it was the violent disruption of older economic orders, the creation of a dependent wage-labor class, and the explosive expansion of a slave economy whose productive dynamism made the Civil War not just morally inevitable but economically necessary. Two incompatible capitalisms occupied the same republic, and only one could survive.</p>
+  </div>
+  <div class="hero-right">
+    <span class="chapter-numeral">II</span>
+    <div class="hero-right-top"></div>
+    <div class="pull-quote-block">
+      <div class="pull-quote">"The whole commerce between master and slave is a perpetual exercise of the most boisterous passions, the most unremitting despotism on the one part, and degrading submissions on the other... The man must be a prodigy who can retain his manners and morals undepraved by such circumstances."</div>
+      <div class="pull-quote-attr">Thomas Jefferson · Notes on the State of Virginia · 1781</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ NAV ═══ -->
+<nav class="toc-nav">
+  <a class="toc-item active" href="#context">Overview</a>
+  <a class="toc-item" href="#market-revolution">Market Revolution</a>
+  <a class="toc-item" href="#transport">Transportation Revolution</a>
+  <a class="toc-item" href="#lowell">Industrial Capitalism</a>
+  <a class="toc-item" href="#american-system">The American System</a>
+  <a class="toc-item" href="#king-cotton">King Cotton</a>
+  <a class="toc-item" href="#two-capitalisms">Two Capitalisms</a>
+  <a class="toc-item" href="#panics">Financial Panics</a>
+  <a class="toc-item" href="#civil-war-econ">Civil War Economy</a>
+  <a class="toc-item" href="#reconstruction">Reconstruction's Foreclosure</a>
+  <a class="toc-item" href="#sources">Reading List</a>
+</nav>
+
+<!-- ═══ BODY ═══ -->
+<div class="main-grid">
+<main class="main-content">
+
+  <!-- OVERVIEW -->
+  <div class="section-block" id="context">
+    <div class="section-eyebrow">Overview</div>
+    <h2 class="section-title">Two Capitalisms in One Republic</h2>
+
+    <p class="body-p">The seventy-seven years from 1800 to 1877 contain the most consequential transformation in American economic history: the simultaneous industrialization of the North and the explosive expansion of a slave-labor cotton economy in the South. These were not simply two regional variants of the same economic development — they were two fundamentally incompatible economic systems that happened to share a currency, a federal government, and a deepening conflict over the territories whose economic character would determine which system dominated the continental economy.</p>
+
+    <p class="body-p">Charles Sellers coined the term "Market Revolution" to describe the transformation of the Northern and Mid-Atlantic economy from household subsistence to market integration — the process by which ordinary farmers, artisans, and craftspeople became participants in cash markets, dependent on prices set by distant forces, producing for sale rather than for use, for the first time. This transformation was not gradual or painless. It disrupted communities, dissolved older social bonds, created new forms of economic dependence, and generated intense political conflict over tariffs, banking, and the distribution of its benefits. The religious revivals and reform movements of the Jacksonian era were, Sellers argues, partly a cultural response to the Market Revolution's social dislocations.</p>
+
+    <p class="body-p">Simultaneously — and this simultaneity is the analytical key to the period — the slave cotton economy was undergoing its own revolutionary expansion. Cotton production doubled every decade from 1800 to 1860. The enslaved population grew from roughly 900,000 to nearly 4 million. The geographic footprint of the slave economy expanded from the original Tidewater and Low Country regions westward through Georgia, Alabama, Mississippi, Louisiana, Arkansas, and Texas. <strong>This expansion was not the dying gasp of a pre-modern institution being overtaken by capitalist dynamism; it was itself an enormously dynamic, capitalist enterprise whose profitability was rising, not falling, in the decades before the Civil War.</strong></p>
+
+    <p class="body-p">The period's analytical center of gravity is the question of why these two systems could not coexist indefinitely. The answer is not simply moral — it is structural. The expansion of each system required territory; each needed the federal government to serve its interests on tariffs, banking, and land policy; each produced a political class with irreconcilable demands. The Civil War was the resolution of a structural incompatibility that could not be resolved through normal political processes.</p>
+
+    <div class="event-timeline">
+      <div class="event-item">
+        <div class="event-year">1807–1808</div>
+        <div class="event-title">Embargo Act & Prohibition of the International Slave Trade</div>
+        <div class="event-desc">Jefferson's Embargo Act (a response to British and French interference with American shipping during the Napoleonic Wars) inadvertently stimulated Northern manufacturing by cutting off British imports and forcing Americans to produce domestically. The simultaneous prohibition of the international slave trade (constitutionally possible from 1808) did not end slavery's expansion — it intensified the domestic slave trade and the economic value of enslaved people already in the country.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1807–1825</div>
+        <div class="event-title">The Transportation Revolution Begins</div>
+        <div class="event-desc">Fulton's steamboat (1807) on the Hudson, the National Road (1811 onwards), the Erie Canal (completed 1825) — the transportation revolution that created a national market. The Erie Canal reduced freight costs between Buffalo and New York City by approximately 95% and travel time from three weeks to eight days. It made New York City the commercial center of North America and opened the Old Northwest (Ohio, Indiana, Illinois) to commercial agriculture on a scale previously impossible.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1816–1828</div>
+        <div class="event-title">The American System — and Its Defeat</div>
+        <div class="event-desc">Henry Clay's American System — protective tariff, national bank, federally funded internal improvements — was the Hamiltonian economic program translated into Whig Party politics. The "Tariff of Abominations" (1828) pushed protection to its highest level yet and triggered the Nullification Crisis of 1832–33, in which South Carolina declared the tariff unconstitutional and threatened secession. The crisis was resolved but revealed the structural tension: Northern manufacturers wanted protection; Southern cotton planters, selling into global markets, wanted free trade.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1820s–1830s</div>
+        <div class="event-title">The Market Revolution at Full Speed</div>
+        <div class="event-desc">The transformation of Northern economic life from subsistence to market integration reaches its most disruptive phase. New England textile mills employing "mill girls," the putting-out system in rural households, the growth of commercial agriculture in the Old Northwest, the rise of a commercial professional class in Eastern cities — all represent facets of the Market Revolution's penetration into previously self-sufficient communities. The social dislocations drive the Second Great Awakening and the reform movements of the Jacksonian era.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1837</div>
+        <div class="event-title">The Panic of 1837 — First Great Financial Crisis</div>
+        <div class="event-desc">The first major financial panic of the industrial era, triggered by a combination of speculative land purchases on credit, the Bank of England's tightening of credit, and Andrew Jackson's Specie Circular (requiring payment for federal land in gold or silver). The ensuing depression lasted until 1843 — six years of deflation, unemployment, and business failures. It demonstrated the fragility of an economy built on credit and the instability consequences of Jackson's destruction of the Second Bank of the United States.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1840s–1850s</div>
+        <div class="event-title">Railroad Mania — the Second Transportation Revolution</div>
+        <div class="event-desc">Railroad construction transforms the American economy at a scale the canal era could not approach. Mileage grows from 3,000 miles in 1840 to 30,000 miles by 1860. The railroad is the first industry to require the organizational and financial structures of modern capitalism: large fixed capital, professional management, separation of ownership from control, stock market financing. It is also the first industry to develop accounting systems, standardized time, and national supply chains. The railroad makes the continental market economy possible.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1857</div>
+        <div class="event-title">The Panic of 1857 — the Sectional Panic</div>
+        <div class="event-desc">A financial panic triggered by the collapse of Ohio Life Insurance and Trust Company, the first panic transmitted by telegraph — demonstrating how the new communications infrastructure had integrated financial markets nationally. Crucially, the panic hit the Northern industrial and commercial economy hard while leaving the Southern cotton economy relatively unaffected (cotton prices held). Southern politicians drew the lesson that their economic system was more stable than the North's credit-dependent industrial capitalism — a dangerous misreading that contributed to Confederate miscalculation about the war's likely duration and economic consequences.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1861–1865</div>
+        <div class="event-title">The Civil War — the Economic Transformation</div>
+        <div class="event-desc">The war is simultaneously a military conflict and an economic revolution. The Morrill Tariff (1861), the Legal Tender Act (1862), the National Banking Acts (1863–1864), the Homestead Act (1862), the Pacific Railway Acts (1862–1864), and the Land Grant College Act (1862) together constitute the largest transformation of federal economic power since the Founding. The Republican Congress, freed from Southern obstruction, implements the Hamiltonian program in its most complete form. The war economy mobilizes Northern industrial capacity at an unprecedented scale and establishes the institutional framework for the Gilded Age industrial economy.</div>
+      </div>
+      <div class="event-item tension">
+        <div class="event-year">1865–1877</div>
+        <div class="event-title">Reconstruction — and Its Economic Foreclosure</div>
+        <div class="event-desc">Reconstruction's economic program — land redistribution to the freedpeople, the Freedmen's Bureau, the enforcement of free labor contracts — was the most radical economic reform proposed in American history. Its systematic dismantling through violence, legal obstruction, and Northern indifference constitutes the period's defining economic tragedy. The Compromise of 1877, which ended Reconstruction in exchange for Republican retention of the White House, completed the foreclosure of the economic program that might have given the freed people the material foundation for genuine economic citizenship.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- MARKET REVOLUTION -->
+  <div class="section-block" id="market-revolution">
+    <div class="section-eyebrow">The Core Transformation</div>
+    <h2 class="section-title">The Market Revolution: What It Was and What It Did</h2>
+
+    <p class="body-p">Charles Sellers's concept of the "Market Revolution" describes a transformation more profound than industrialization — the reorganization of economic life around market exchange rather than household production, community reciprocity, and subsistence farming. Before the Market Revolution, most Americans produced most of what they consumed. They grew their food, made their clothing, built their tools, and traded locally through barter networks that supplemented but did not dominate their economic lives. Market participation was peripheral and optional for most households. After the Market Revolution, market participation was inescapable: households produced cash crops or wage labor for the market and purchased what they had previously made.</p>
+
+    <p class="body-p">The transformation's psychological and social dimensions were as consequential as its economic ones. Market integration introduced strangers into every transaction, replaced the face-to-face trust of community exchange with the anonymous calculation of market prices, and subjected formerly secure subsistence farmers to the volatility of commodity prices set in distant markets they could neither understand nor influence. <strong>A farmer who had grown wheat for family use was economically secure as long as his land was fertile; a farmer who grew wheat for the Chicago market was exposed to price fluctuations driven by European harvests, railroad freight rates, and speculative trading in commodity futures.</strong> The psychological consequence — the anxiety of market dependence — drove the reform movements, religious revivals, and utopian communities of the Jacksonian era.</p>
+
+    <p class="body-p">The Market Revolution also reorganized gender and household economies in ways whose consequences persist to the present. The household production economy had given women's labor substantial economic visibility — spinning, weaving, food preservation, and household manufacture were recognized contributions to the family's economic welfare. The Market Revolution moved production out of the household into the factory and the counting house, and in doing so made women's remaining household labor economically invisible — not less necessary, but no longer legible in market terms. The "domestic sphere" ideology of the 19th century — the cult of domesticity that defined middle-class femininity in terms of moral guardianship rather than economic contribution — was partly ideological rationalization for this structural change.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Subsistence to Market</div>
+        <div class="detail-body">The shift from household production for use to commodity production for sale transformed the relationship between farm families and the broader economy. <strong>By the 1840s, Old Northwest farmers were producing wheat, corn, and hogs for Eastern and export markets</strong> rather than primarily for local consumption. The Erie Canal made this commercially viable; the railroad made it universal. The practical consequence: farm families became dependent on cash income and market prices, and exposed to the volatility of commodity markets for the first time.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Artisan to Wage Worker</div>
+        <div class="detail-body">The Market Revolution destroyed the artisan economy of independent craftspeople who owned their tools, controlled their labor process, and sold finished goods. The "putting-out" system — merchants providing raw materials to household workers who returned finished products — was the transitional form; the factory system replaced it. <strong>The journeyman carpenter, shoemaker, or printer who had expected eventually to own his own shop found that path increasingly blocked</strong> as capital requirements grew and employers' market power increased. The labor movement's 19th-century rhetoric — its hostility to "wage slavery" — expressed this loss of economic independence directly.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Credit & Speculation</div>
+        <div class="detail-body">Market integration required credit — to buy land, build factories, finance inventories, and bridge the gap between production and sale. The expansion of banking in the Jacksonian era (state-chartered banks multiplied rapidly after the Second Bank's destruction) provided this credit, but also introduced systemic instability. <strong>The boom-bust cycle — easy credit driving land and commodity speculation, followed by contraction and collapse — was built into the structure of an underdeveloped banking system</strong> with no central lender of last resort and no deposit insurance. The Panics of 1819, 1837, and 1857 were the predictable results.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Class Formation</div>
+        <div class="detail-body">The Market Revolution produced the first American class structure in the modern sense: a commercial and professional middle class of merchants, lawyers, doctors, and manufacturers; a wage-earning working class in the factories and construction trades; and a growing urban poor dependent on irregular wage work. <strong>The Jacksonian era's democratic politics were partly a response to this class formation</strong> — the rhetorical assertion of artisan and farmer virtues against the power of banks, corporations, and commercial elites. Andrew Jackson's war on the Bank was cultural as well as economic: it expressed the anxiety of the market economy's losers and resisters against its winners.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- TRANSPORT -->
+  <div class="section-block" id="transport">
+    <div class="section-eyebrow">Infrastructure as Economic Policy</div>
+    <h2 class="section-title">The Transportation Revolution: Canals, Railroads, and the Making of a National Market</h2>
+
+    <p class="body-p">The transportation revolution was not an autonomous technological development — it was the result of massive public investment, deliberate economic policy, and the systematic use of state power to create the infrastructure that private markets could not and would not build on their own. Understanding this is essential for understanding the American System debate and for appreciating that the subsequent industrial economy was built on a publicly created foundation even as it was managed by private capital.</p>
+
+    <p class="body-p">The Erie Canal (1817–1825) was the transformative infrastructure project of the early republic. Financed by New York State bonds — not private capital, which was unavailable at the required scale — it ran 363 miles from Albany to Buffalo, connecting the Hudson River (and thus New York City) to the Great Lakes and the Old Northwest. The economic consequences were immediate and dramatic: freight costs from Buffalo to New York fell from roughly $100 per ton to $8 per ton. New York City's population grew from 123,000 in 1820 to 312,000 in 1840. The canal made commercial agriculture in Ohio, Indiana, and Illinois economically viable and effectively oriented the Old Northwest's economy toward the Northeast rather than down the Mississippi to New Orleans — a geographic reorientation with profound political consequences in the sectional conflict that followed.</p>
+
+    <p class="body-p">The railroad era (roughly 1830–1880) transformed the economy at a scale the canal era could not approach. The railroad's advantages over the canal — speed, year-round operation, ability to traverse terrain that canals could not — made it the dominant transportation technology within a generation of its introduction. <strong>The railroad was also the first industry to confront the organizational problems of modern capitalism: how to manage large enterprises employing thousands of workers across hundreds of miles; how to raise the enormous fixed capital required; how to account for assets and depreciation; how to separate ownership from management.</strong> Alfred Chandler's argument — that the railroad invented modern management — is the essential analytical frame for understanding why the railroad was the organizational model for the Gilded Age industrial corporation.</p>
+
+    <div class="three-grid">
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--green-hi)">1817–1840</div>
+        <div class="three-name">Canal Era</div>
+        <div class="three-body">State-financed; transformed regional commerce. The Erie Canal is the paradigmatic project — public investment creating the conditions for private commercial development at a scale private capital alone could never have achieved. Canal fever spread across the country; most of the subsequent state canal systems lost money or failed outright. The era ended when the railroad proved decisively superior.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--gold)">1830–1860</div>
+        <div class="three-name">Early Railroad</div>
+        <div class="three-body">Privately financed (with massive public land grants and state subsidies), organizationally innovative. The Baltimore & Ohio, Pennsylvania, New York Central — the trunk lines that connected Eastern cities to the interior. By 1860, 30,000 miles of track; by 1880, 90,000 miles. The railroad integrated the Northern economy into a coherent national market and gave Northern industry the logistical advantage that helped win the Civil War.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--rust-hi)">1862–1869</div>
+        <div class="three-name">Transcontinental Railroad</div>
+        <div class="three-body">The Pacific Railway Acts (1862, 1864) authorized the Union Pacific and Central Pacific railroads with massive federal land grants — more than 170 million acres of public land transferred to railroad corporations. The transcontinental railroad's completion in 1869 integrated the continental economy, opened the Great Plains to commercial settlement, and enabled the extraction of Western resources at industrial scale. Its construction was built on the labor of Chinese immigrants who were systematically excluded from the benefits it created.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- LOWELL -->
+  <div class="section-block" id="lowell">
+    <div class="section-eyebrow">The Northern Model</div>
+    <h2 class="section-title">Industrial Capitalism: Lowell, Labor, and the Factory System</h2>
+
+    <p class="body-p">The Lowell textile mills, established in the 1820s along the Merrimack River in Massachusetts, were the first large-scale industrial factories in North America and the organizational template for the Northern industrial economy. Understanding them requires understanding both their genuine innovations and their specific labor model — and why that labor model changed so dramatically between the 1820s and the 1850s.</p>
+
+    <p class="body-p">The Lowell system's initial labor force was distinctive: young women from New England farming families, employed for a few years before marriage, living in company boarding houses under paternalistic supervision. The "mill girl" model was not accidental — it was a deliberate strategy to reassure a republican public skeptical of industrial capitalism that the factory system would not produce the degraded urban proletariat visible in British industrial cities. Francis Cabot Lowell and his associates presented the mills as educational institutions as much as factories: the women were temporary workers improving themselves before returning to respectable domestic life, not a permanent dependent wage-labor class.</p>
+
+    <p class="body-p">By the 1840s, the original model had collapsed. The initial mill girls had been replaced, in the most arduous jobs, by Irish immigrants fleeing the Famine — workers with no alternative employment and no cultural leverage to resist wage cuts and speed-ups. Labor turnover from farm-girl to immigrant worker was not a coincidence; it reflected the deliberate strategy of mill owners seeking to reduce labor costs by replacing a workforce with bargaining power (women who could return to farming families) with a workforce without it (immigrants dependent on wages for survival). <strong>The transformation of Lowell's workforce was a microcosm of industrial capitalism's general tendency: to seek the most exploitable available labor force and to use competitive pressure to continuously drive down the cost of that labor.</strong></p>
+
+    <p class="body-p">The labor response — strikes, labor organizing, the Ten-Hour Movement — was the first sustained working-class political movement in American history. The Lowell mill girls' strikes of the 1830s, the broader Ten-Hour campaigns of the 1840s, and the emergence of craft unions among skilled workers established the organizational and ideological foundations for the labor movement that would confront industrial capitalism more systematically in Phase III.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">The Putting-Out System</div>
+        <div class="detail-body">The transitional form between artisan production and factory production — merchants provided raw materials (wool, flax, leather) to rural households who returned finished or semi-finished goods for payment. <strong>It extended merchant capital's reach into rural households without requiring the fixed capital investment of the factory system</strong>, and it drew rural women and children into the market economy as piece-rate workers. The putting-out system was efficient but limited in productivity growth; the factory system replaced it when the scale of demand and the technology of power-driven machinery made concentrated production decisively more profitable.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Factory System</div>
+        <div class="detail-body">The concentration of workers and machinery under one roof, powered by water (initially) and later steam, allowed the coordination and supervision of production at a scale impossible in dispersed household production. <strong>The factory's key economic innovation was not the machinery itself but the disciplining of labor time.</strong> Factory workers were paid by the hour or the piece, not by the product; their workday was regulated by the clock and the foreman rather than by the seasonal rhythms and personal judgment of household production. The bell that summoned Lowell workers at 4:30 AM was the temporal discipline of industrial capitalism made audible.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Immigration & the Labor Market</div>
+        <div class="detail-body">The massive immigration of the 1840s and 1850s — primarily Irish and German, fleeing famine and political repression — fundamentally transformed the Northern labor market. <strong>Immigration provided industrial capitalism with a supply of desperate, vulnerable workers who could undercut the wages and labor standards of existing workers.</strong> It also created the ethnic segmentation of the industrial working class — different immigrant groups concentrated in different industries and occupations — that would complicate labor organizing throughout the 19th and early 20th centuries. The nativist movements of the 1840s–50s were partly a labor market response: native-born workers seeking to exclude immigrant competition.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Free Labor Ideology</div>
+        <div class="detail-body">The Republican Party's economic ideology — developed in the 1850s by figures including Lincoln and William Seward — held that free labor (wage labor by choice, with the possibility of advancement to independent ownership) was morally and economically superior to slave labor, which degraded both the enslaved and the society that tolerated it. <strong>Free labor ideology was simultaneously a critique of slavery and a defense of the wage labor system's social order</strong> — it argued that Northern workers, unlike enslaved workers or European serfs, had genuine opportunities for advancement, and that this mobility justified the wage labor relationship's inequality. Eric Foner's analysis is the essential treatment.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- AMERICAN SYSTEM -->
+  <div class="section-block" id="american-system">
+    <div class="section-eyebrow">Economic Policy Architecture</div>
+    <h2 class="section-title">The American System: Clay, the Whigs, and the Developmental State</h2>
+
+    <p class="body-p">Henry Clay's American System — the legislative program he promoted from the 1810s through the 1840s — was the most coherent and ambitious economic development program proposed in the antebellum period. It was explicitly Hamiltonian in its logic: national economic development required active government intervention, and the three pillars of that intervention were a protective tariff (to foster domestic manufacturing), a national bank (to provide stable credit and a national currency), and federally financed internal improvements (to build the infrastructure that markets could not provide on their own). Understanding the American System — its logic, its political defeats, and its partial vindication in the Civil War era — is essential for understanding the political economy debates of Phase III.</p>
+
+    <blockquote>
+      <p>In adopting the policy of protection, we are not legislating for this day or this generation alone, but for posterity... We are building up for this great country a system of industry and labor that shall be permanent, and which our children's children will enjoy.</p>
+      <cite>Henry Clay · Speech in the U.S. Senate · 1832</cite>
+    </blockquote>
+
+    <p class="body-p">The American System's political defeat was partly geographic and partly ideological. Southern planters opposed the protective tariff — they sold cotton into global markets and bought manufactured goods from Britain; protection raised the price of their purchases without benefiting their exports. Western farmers initially supported internal improvements (roads and canals reduced transportation costs) but were suspicious of the national bank. Jacksonian Democrats built their coalition around opposition to all three pillars: tariff protection benefited manufacturers at consumers' expense; the national bank was a corrupt monopoly serving Eastern financial elites; federal internal improvements were constitutionally unauthorized. Jackson's destruction of the Second Bank of the United States (1832–1836) was the American System's most decisive defeat.</p>
+
+    <p class="body-p"><strong>The irony: the Civil War Congress implemented the American System in its most complete form.</strong> The Morrill Tariff (1861) raised rates to their highest levels since the War of 1812; the National Banking Acts (1863–64) created a national banking system and a uniform national currency; the Pacific Railway Acts and the Homestead Act were the most ambitious internal improvement and land distribution programs in American history. The Southern Democrats who had blocked the American System for forty years were no longer in Congress. The Republican Party's economic program was, in its essentials, Clay's American System finally enacted without obstruction.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- KING COTTON -->
+  <div class="section-block" id="king-cotton">
+    <div class="section-eyebrow">The Southern Political Economy</div>
+    <h2 class="section-title">King Cotton: Slavery's Productive Expansion and the Atlantic Economy</h2>
+
+    <p class="body-p">The Southern slave economy's expansion between 1800 and 1860 was not the stagnation of a pre-modern institution being slowly overtaken by Northern industrial capitalism. It was a highly productive, rapidly growing, deeply capitalist enterprise whose profitability was increasing, whose geographic expansion was aggressive, and whose political power was sufficient to control the federal government for most of the antebellum period. Understanding this requires confronting the revisionist scholarship — primarily Baptist, Beckert, and Johnson — that has replaced the older "unprofitable slavery" thesis with a clear-eyed account of slavery's economic dynamism.</p>
+
+    <p class="body-p">Cotton output grew from 750,000 bales in 1830 to over 4 million bales by 1860. By the latter date, cotton accounted for nearly 60% of American exports — more than all other exports combined. The price of a prime field hand rose from roughly $500 in 1800 to $1,800 in 1860, reflecting both the increasing productivity of enslaved cotton workers and the buoyant demand for their labor as cotton cultivation expanded westward. The slave economy was, by every measurable standard, booming on the eve of its destruction.</p>
+
+    <p class="body-p">Edward Baptist's most disturbing contribution is his documentation of how this productivity increase was achieved: not through technological innovation (the cotton gin improved ginning efficiency but not field cultivation) but through the systematic intensification of labor through what he calls the "pushing system" — a regime of quantified daily work quotas, detailed record-keeping of each worker's output, and the systematic use of violence (the whip) to enforce constant productivity increases. <strong>The slave economy's productivity gains were not the result of technological progress — they were extracted through organized terror.</strong> This is not incidental to understanding the economy; it is its central feature.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">The Domestic Slave Trade</div>
+        <div class="detail-body">After the international slave trade was prohibited in 1808, the domestic trade — the buying and selling of enslaved people within the United States — became one of the largest financial markets in antebellum America. <strong>Approximately one million enslaved people were forcibly relocated from the Upper South (Virginia, Maryland, Kentucky) to the cotton-producing Deep South (Alabama, Mississippi, Louisiana) between 1790 and 1860</strong> — separated from families, communities, and the social networks that provided whatever margin of human dignity was possible under slavery. The domestic slave trade was organized through professional traders, auction houses in New Orleans and Richmond, and a sophisticated credit system that financed purchases with mortgages on the enslaved people themselves.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Financial Integration: South & North</div>
+        <div class="detail-body">The cotton economy's financial integration with the Northern and British economies was deep and specific. New York banks provided short-term credit to Southern factors (merchants who handled cotton sales) and longer-term mortgage credit on land and enslaved people. <strong>New England textile mills, which by 1860 consumed roughly a quarter of American cotton production, were directly dependent on slave labor for their raw material.</strong> The insurance companies that wrote policies on enslaved people's lives, the shipping companies that transported cotton, and the commodity trading houses that speculated in cotton futures were largely Northern enterprises. The financial entanglement of Northern capital with the slave economy was not metaphorical — it ran through specific credit relationships, commodity flows, and asset valuations.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The "Slave Power" in Federal Politics</div>
+        <div class="detail-body">The three-fifths clause gave Southern slaveholders disproportionate representation in Congress and the Electoral College, producing what Northern antislavery politicians called the "Slave Power" — the sustained over-representation of slaveholder interests in federal policy-making. <strong>From 1789 to 1861, slaveholders held the presidency for 50 of 72 years and dominated the Supreme Court throughout.</strong> Federal policy on tariffs (low), the national bank (destroyed), western land (opened to slavery's expansion), and the return of fugitive enslaved people (vigorously enforced) consistently reflected Slave Power priorities. The Republican Party's 1860 victory — the first presidential victory for a party committed to containing slavery's expansion — was experienced by Southern elites as an existential threat precisely because it signaled the end of their federal political dominance.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Cotton & Global Industrialization</div>
+        <div class="detail-body">Beckert's "empire of cotton" places American slavery in its global economic context. By the 1850s, the American South produced roughly 75% of the raw cotton consumed by the world's textile mills — the Lancashire mills that were the engine of British industrial development, the New England mills that were the seed of American manufacturing, and the mills of France and Germany. <strong>The first global commodity chain was built on enslaved labor.</strong> The disruption of that chain by the Civil War — the "cotton famine" in Lancashire, the emergency development of alternative cotton sources in Egypt and India — illustrates how deeply embedded American slavery was in the global industrial economy of its time.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- TWO CAPITALISMS -->
+  <div class="section-block" id="two-capitalisms">
+    <div class="section-eyebrow">The Structural Conflict</div>
+    <h2 class="section-title">Two Capitalisms: Why Coexistence Became Impossible</h2>
+
+    <p class="body-p">The standard framing — the Civil War as a conflict between a modern capitalist North and a backward pre-capitalist South — is wrong in important ways. Both the Northern industrial economy and the Southern slave economy were forms of capitalism; both were dynamic, expanding, and generating impressive rates of capital accumulation. What made them incompatible was not that one was capitalist and the other pre-modern, but that they required incompatible economic policies from the federal government and incompatible resolutions to the question of territorial expansion.</p>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-tag" style="color:var(--green-hi)">Northern Industrial Capitalism</div>
+        <div class="compare-name">Free Labor Economy</div>
+        <div class="compare-body">
+          <p style="margin-bottom:1rem;">The Northern economy in 1860: commercially integrated, manufacturing-oriented, railroad-connected, employing free wage labor, and growing rapidly. Its political interests:</p>
+          <div class="compare-item"><strong>High protective tariffs</strong> to shield domestic manufacturers from British competition</div>
+          <div class="compare-item"><strong>A national banking system</strong> to provide stable credit and a uniform national currency</div>
+          <div class="compare-item"><strong>Free land</strong> in the territories (Homestead Act) to attract family farmers who would become market participants</div>
+          <div class="compare-item"><strong>Federal internal improvements</strong> — railroads, canals, roads — to reduce transportation costs and integrate the national market</div>
+          <div class="compare-item"><strong>Containment of slavery's territorial expansion</strong> — not necessarily abolition, but prevention of the slave economy's spread into territories where free labor farming was economically viable</div>
+          <div class="compare-item"><strong>High immigration</strong> to provide labor for factories and farms</div>
+        </div>
+      </div>
+      <div class="compare-card">
+        <div class="compare-tag" style="color:var(--rust-hi)">Southern Slave Capitalism</div>
+        <div class="compare-name">Plantation Economy</div>
+        <div class="compare-body">
+          <p style="margin-bottom:1rem;">The Southern economy in 1860: plantation-based, cotton-export-oriented, slave-labor-dependent, and equally dynamic. Its political interests:</p>
+          <div class="compare-item"><strong>Low or no tariffs</strong> — planters bought manufactured goods; tariffs raised their costs without benefiting their exports</div>
+          <div class="compare-item"><strong>Weak federal banking</strong> and decentralized credit — the Second Bank had enforced financial discipline on speculative planters; state banks were more accommodating</div>
+          <div class="compare-item"><strong>Territorial expansion of slavery</strong> — slave economies exhaust soil; planters required continuous westward expansion into new fertile territories</div>
+          <div class="compare-item"><strong>Federal protection of slavery</strong> — the Fugitive Slave Acts, the Dred Scott decision, and Congressional protection of slavery in the territories</div>
+          <div class="compare-item"><strong>Limits on federal power</strong> generally — a strong federal government capable of building railroads was also capable of regulating or abolishing slavery</div>
+          <div class="compare-item"><strong>Low immigration</strong> — immigrant free labor workers in territories competed with slave-labor expansion</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="body-p">The Compromise of 1850, the Kansas-Nebraska Act (1854), and the violent conflict in "Bleeding Kansas" (1854–1858) were attempts to manage this structural incompatibility through political deal-making. They failed because the underlying conflict was not about political preferences that could be negotiated but about structural economic interests that required opposite federal policies. <strong>The question of whether the territories would be slave or free was simultaneously a moral question and an economic one: it determined which economic system would dominate the continental economy of the future.</strong> No political compromise could resolve it permanently because there was no stable equilibrium between two systems that required opposite federal economic policies.</p>
+
+    <p class="body-p">The Nullification Crisis (1832–33) previewed the structural argument. South Carolina's assertion that a state could nullify federal law — specifically the protective tariff — rested on the theory that the federal government was a compact of sovereign states and that its economic policies could be vetoed by any state whose interests they harmed. Jackson suppressed the nullification attempt, but Calhoun's "concurrent majority" theory — that major policy decisions required the concurrent assent of both major sections — was a constitutional rationalization for the structural reality: the two economic systems needed veto power over each other's preferred federal policies, and in a democratic republic with shifting electoral majorities, that veto could not be constitutionally guaranteed.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- PANICS -->
+  <div class="section-block" id="panics">
+    <div class="section-eyebrow">Financial Instability</div>
+    <h2 class="section-title">The Panics of 1837 and 1857: Early Financial Capitalism's Instability</h2>
+
+    <p class="body-p">The financial panics of 1837 and 1857 were not accidents or aberrations — they were predictable consequences of the structure of American financial capitalism in the antebellum period: an expanding credit system with no central bank, no deposit insurance, no regulatory framework, and no lender of last resort. Understanding them is important both for what they reveal about the structural vulnerabilities of unregulated financial systems and for what they contributed to the political-economic conflicts that produced the Civil War.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">The Panic of 1819 — Preview</div>
+        <div class="detail-body">The first major financial panic of the national period, triggered by the contraction of credit by the Second Bank of the United States after the speculative boom of the post-War of 1812 period. Land prices in the West collapsed; banks failed; debtors lost farms and businesses. <strong>The political consequence: Andrew Jackson's visceral hatred of the Bank of the United States</strong>, which he associated with the financial interests of Eastern elites who had foreclosed on Western farmers. The 1819 panic planted the seeds of Jacksonian populism that would destroy the Bank in the 1830s — and thereby eliminate the only institution capable of preventing the panic that followed.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Panic of 1837 — Jackson's Legacy</div>
+        <div class="detail-body">Jackson's destruction of the Second Bank of the United States (vetoing its recharter in 1832, removing federal deposits in 1833) eliminated the only institution capable of providing national monetary discipline. State-chartered banks — freed from the restraint of the Bank's note-redemption requirements — rapidly expanded credit and note issuance, fueling a speculative boom in western land. Jackson's Specie Circular (1836), requiring payment for federal land in gold or silver, suddenly drained specie from the banking system. <strong>The resulting panic produced the worst depression the United States had yet experienced</strong> — roughly six years of deflation, unemployment, and business failure. It demonstrated conclusively that financial capitalism without institutional oversight was violently unstable.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Panic of 1857 — The Sectional Panic</div>
+        <div class="detail-body">The 1857 panic began with the collapse of Ohio Life Insurance and Trust — the first financial crisis transmitted instantaneously by telegraph, demonstrating the new communications infrastructure's capacity to accelerate both growth and panic. The panic's geographic incidence was politically revealing: <strong>it devastated the Northern industrial and commercial economy while largely sparing the Southern cotton economy</strong>, whose export prices held. Southern politicians drew a dangerous lesson: their system was more stable than Northern financial capitalism's boom-bust cycles. Confederate leaders entered the Civil War expecting that "King Cotton" would sustain the Confederate economy and that British textile dependence on Southern cotton would force British intervention on the Confederacy's behalf. Both expectations proved catastrophically wrong.</div>
+      </div>
+    </div>
+
+    <p class="body-p">The Minsky framework — developed in Phase VI but applicable retrospectively — illuminates these panics precisely. The absence of a central bank meant there was no institutional mechanism to prevent the credit expansion of boom periods from generating the speculative excess that made busts inevitable. Each panic cycle demonstrated the same pattern: easy credit enabling speculation in land or commodities; external shock or internal contradiction triggering a loss of confidence; bank runs and credit contraction amplifying the initial shock into a general depression. <strong>The lesson that unregulated financial capitalism requires institutional oversight to prevent catastrophic instability was taught repeatedly in the antebellum period — and repeatedly ignored in the service of laissez-faire ideology.</strong></p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- CIVIL WAR ECONOMY -->
+  <div class="section-block" id="civil-war-econ">
+    <div class="section-eyebrow">The Economic Revolution</div>
+    <h2 class="section-title">The Civil War's Economic Transformation: The Hamiltonian Program Enacted</h2>
+
+    <p class="body-p">The Civil War was the most economically transformative event in American history after the Revolution — and its economic transformation was, in significant measure, deliberate policy. The Republican Congress that convened in 1861, freed from the obstruction of the Southern Democrats who had blocked the American System for forty years, immediately enacted the most ambitious economic program since the Founding. Understanding this legislative revolution is essential for understanding the institutional framework that enabled the Gilded Age's industrial expansion.</p>
+
+    <div class="three-grid">
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--green-hi)">Fiscal Architecture</div>
+        <div class="three-name">Revenue & Money</div>
+        <div class="three-body"><strong>Legal Tender Act (1862):</strong> Created "greenbacks" — the first national paper currency not backed by specie — to finance the war. Established for the first time that the federal government could issue fiat money, a power contested until the Supreme Court upheld it in 1871. <strong>Revenue Act (1861–1862):</strong> The first federal income tax in American history — a 3% flat tax on incomes over $800. Progressive income taxation was thus established as a constitutional precedent, though it required the 16th Amendment to make it permanent. <strong>National Banking Acts (1863–64):</strong> Created a system of federally chartered national banks issuing uniform national bank notes backed by U.S. government bonds, replacing the chaotic patchwork of state bank notes with a national currency. Hamilton's national banking vision was finally realized.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--gold)">Land & Development</div>
+        <div class="three-name">Territorial Program</div>
+        <div class="three-body"><strong>Homestead Act (1862):</strong> 160 acres of federal land to any citizen (or intended citizen) who cultivated it for five years — the most ambitious land distribution program in American history. In practice, the Act benefited land speculators and railroad corporations at least as much as family farmers, but its ideological commitment to small-farm settlement shaped Western land use for decades. <strong>Morrill Land Grant College Act (1862):</strong> Federal land grants to states for the establishment of agricultural and mechanical colleges — the origin of the state university system and of the federal government's investment in technical and scientific education. <strong>Pacific Railway Acts (1862, 1864):</strong> Massive federal land grants to the Union Pacific and Central Pacific railroads for the transcontinental railroad — federal industrial policy on the largest scale yet attempted.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--rust-hi)">Trade & Industry</div>
+        <div class="three-name">Protection & Industry</div>
+        <div class="three-body"><strong>Morrill Tariff (1861):</strong> Dramatically raised tariff rates — the first major protective tariff since the "Tariff of Abominations" of 1828. With Southern opponents gone from Congress, the protectionist program that Clay had advocated for forty years was enacted. Tariff rates would remain high (generally 40–50%) for the rest of the 19th century, providing the protection for infant American industries that Hamilton had argued for in 1791. The high-tariff era produced the most rapid industrial expansion in history — though sorting out how much was due to protection vs. other factors is an ongoing economic history debate. <strong>This war-era tariff structure lasted, with modifications, until Woodrow Wilson's Underwood Tariff of 1913.</strong></div>
+      </div>
+    </div>
+
+    <p class="body-p">The war also transformed the federal government's fiscal and financial capacities in ways whose consequences outlasted the conflict. The creation of the Bureau of Internal Revenue, the introduction of the income tax, the development of the national debt market, and the establishment of the national banking system together created institutional infrastructure for a federal government capable of managing a continental economy — infrastructure that did not exist in 1860 and that provided the foundation for the regulatory and fiscal state that later Phases would build upon.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- RECONSTRUCTION -->
+  <div class="section-block" id="reconstruction">
+    <div class="section-eyebrow">The Road Not Taken</div>
+    <h2 class="section-title">Reconstruction's Foreclosed Economic Program</h2>
+
+    <p class="body-p">Reconstruction's economic program — land redistribution to the freedpeople, the Freedmen's Bureau's labor regulation, the constitutional amendments' guarantee of economic citizenship — was the most radical economic reform proposed in American history. Its systematic dismantling between 1865 and 1877 is the defining economic tragedy of the 19th century, whose consequences for the racial wealth gap and Southern economic development persist to the present.</p>
+
+    <p class="body-p">The promise: "forty acres and a mule." General Sherman's Special Field Order No. 15 (January 1865) redistributed roughly 400,000 acres of coastal South Carolina and Georgia to freedpeople in 40-acre plots. For a brief moment, a genuine program of land redistribution — transforming the formerly enslaved into independent small farmers — seemed possible. The Freedmen's Bureau was authorized to settle freedpeople on abandoned and confiscated Confederate lands. Thaddeus Stevens in Congress proposed the confiscation and redistribution of large Confederate plantations. <strong>The economic logic was compelling: you cannot create genuine economic freedom without an economic foundation; freedom without land was wage labor under conditions that differed from slavery primarily in its formal voluntariness.</strong></p>
+
+    <p class="body-p">The reality: President Johnson pardoned Confederate landowners and restored their confiscated lands. Sherman's order was rescinded. The freedpeople who had begun working their 40 acres were evicted. The Freedmen's Bureau, chronically underfunded and politically undermined, could not enforce free labor contracts against planters who were backed by state governments committed to restoring racial labor control. The Black Codes — laws passed by Southern state legislatures in 1865–66 — effectively re-enslaved freedpeople by criminalizing unemployment, requiring labor contracts, and subjecting Black workers to vagrancy prosecutions that resulted in forced convict labor.</p>
+
+    <p class="body-p">The Compromise of 1877 completed Reconstruction's liquidation: Northern Republicans agreed to end federal military enforcement of Reconstruction in exchange for Southern Democratic acquiescence in Hayes's disputed election victory. The consequences were immediate and long-lasting. Sharecropping and tenant farming replaced slavery as the South's dominant labor system — economically coercive arrangements that trapped Black families in debt peonage for generations. The convict leasing system used the criminal justice system to provide cheap forced labor to Southern industries. The racial terror of Reconstruction's violent end — the KKK, the White League, the rifle clubs — established the social control mechanisms that would enforce racial economic subordination for the next century.</p>
+
+    <div class="frame-box">
+      <div class="frame-box-label">Analytical Frame: The Path-Dependence of Reconstruction's Failure</div>
+      <p class="body-p">Economic historians use the concept of "path dependence" to describe how initial conditions constrain subsequent development — how early choices create lock-in effects that persist even when the original reasons for those choices have become irrelevant. Reconstruction's failure is the most important example of path dependence in American economic history.</p>
+      <p class="body-p">Had the land redistribution program been implemented and sustained — had the freedpeople received the forty acres and the constitutional protection to keep them — the subsequent economic development of the South would have been fundamentally different. A Black smallholder class, economically independent and politically enfranchised, would have had both the resources and the incentives to resist the racial terror that dismantled Reconstruction. The sharecropping system that instead emerged locked the Southern economy into low-productivity agriculture for three generations, impeded industrialization, and created the economic conditions that made the Great Migration (Phase V) both necessary and transformative.</p>
+      <p class="body-p" style="margin-bottom:0"><strong>The racial wealth gap that persists in the present — the approximately 8:1 ratio of white to Black median family wealth — was not produced by slavery alone. It was actively reproduced by the specific policy choices of Reconstruction's failure: the restoration of planter lands, the enforcement of Black Codes, the abandonment of federal protection for Black economic and political rights.</strong> Every subsequent phase will return to this legacy: the New Deal's racial exclusions, the FHA's redlining, the GI Bill's discriminatory administration — all operated within a structure whose foundations were laid in 1865–1877.</p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SOURCES -->
+  <div class="section-block" id="sources">
+    <div class="section-eyebrow">Reading List</div>
+    <h2 class="section-title">Phase II Sources</h2>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Primary Sources</div>
+    <div class="source-stack" style="margin-bottom:2rem">
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Speech on the American System (February 2–3, 1832)</div>
+          <div class="src-author">Henry Clay · U.S. Senate</div>
+          <div class="src-note">Clay's most comprehensive statement of the American System's economic logic — the case for protective tariffs, national bank, and internal improvements as an integrated developmental program. Read alongside Hamilton's Report on Manufactures to see the continuity of the Hamiltonian tradition. Clay is a better political speaker than Hamilton and his arguments for protection — especially the "home market" argument that domestic manufacturing creates consumers for domestic agriculture — are more politically effective if somewhat less analytically rigorous.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Bank Veto Message (July 10, 1832)</div>
+          <div class="src-author">Andrew Jackson</div>
+          <div class="src-note">Jackson's veto of the Second Bank of the United States recharter — one of the most important economic policy documents in American history. The message is a remarkable populist attack on concentrated financial power: the Bank is "a vast engine of foreign and domestic aristocracy" that grants monopoly privileges to the wealthy at the expense of ordinary farmers and workers. Read it as both economic argument and political rhetoric — it defines the Jacksonian political economy of anti-monopoly, hard money, and laissez-faire that shaped Democratic Party economic thinking through the Civil War and beyond.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Frederick Douglass on the Political Economy of Slavery</div>
+          <div class="src-author">Various speeches and writings · 1845–1865</div>
+          <div class="src-note">Douglass's economic analysis of slavery — scattered through his autobiography, his newspaper editorials, and his speeches — is among the most incisive available. His "What to the Slave Is the Fourth of July?" (1852) addresses slavery's economic contradictions directly; his later speeches engage the question of free labor and economic citizenship for freedpeople. Read especially his arguments about the economic interests aligned with slavery's perpetuation — he understood the political economy of abolition's opposition with unusual clarity.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Democracy in America (Volume II, Part II: "Influence of Democracy on the Feelings of Americans")</div>
+          <div class="src-author">Alexis de Tocqueville · 1840</div>
+          <div class="src-note">Tocqueville's analysis of the Market Revolution's social consequences — the restless acquisitiveness, the individualism, the anxiety of a society in which everyone is formally equal but materially competitive — is the most penetrating contemporary account of what the transformation of American economic life was doing to American social character. Volume II is less read than Volume I but more relevant to economic history: his chapters on manufacturing aristocracy, the middle class, and the effects of commercial culture on democratic politics are essential reading for understanding the Market Revolution's social dimensions.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin:2rem 0 1rem">Secondary Sources</div>
+    <div class="source-stack">
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Market Revolution: Jacksonian America, 1815–1846</div>
+          <div class="src-author">Charles Sellers · 1991</div>
+          <div class="src-note">The essential synthesis of the Market Revolution's political, economic, and cultural dimensions. Sellers is a provocateur — his argument that the Market Revolution was experienced as a social trauma by most Americans, and that the evangelical Protestant reform movements of the Jacksonian era were partly a cultural resistance to market values, is controversial but stimulating. His synthesis of economic change, political mobilization, and cultural response is methodologically exemplary. Some economic historians find his market skepticism excessive; read him for the framework rather than accepting every argument uncritically.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Half Has Never Been Told: Slavery and the Making of American Capitalism</div>
+          <div class="src-author">Edward Baptist · 2014</div>
+          <div class="src-note">Continues from Phase I — the chapters on the cotton South (Chapters 5–9) are most directly relevant to Phase II. Baptist's account of the "pushing system" — the quantified productivity regime enforced through violence — is the essential counter to any residual notion that slave labor was economically inefficient. His documentation of the domestic slave trade's scale and brutality provides the human dimension of the macro-economic growth statistics. The most important single work for understanding the Southern slave economy's dynamism and its relationship to American capitalism's development.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Free Soil, Free Labor, Free Men: The Ideology of the Republican Party Before the Civil War</div>
+          <div class="src-author">Eric Foner · 1970</div>
+          <div class="src-note">The definitive account of the "free labor" ideology that animated Northern antislavery politics — not primarily abolitionist in the moral sense but committed to the economic superiority of free labor and the necessity of containing slavery's territorial expansion. Foner shows how the Republican Party's economic program (Homestead Act, protective tariffs, internal improvements) was integrated with its antislavery politics through the free labor ideology: free labor required free territory, and slavery's expansion threatened the economic future of free workers. Essential for understanding the Civil War's economic dimensions.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Reconstruction: America's Unfinished Revolution, 1863–1877</div>
+          <div class="src-author">Eric Foner · 1988</div>
+          <div class="src-note">The definitive history of Reconstruction — its economic program, its political achievements, and its violent dismantling. Foner's economic chapters are the essential treatment of what Reconstruction attempted and what it foreclosed. His account of the Freedmen's Bureau, the Black Codes, the sharecropping system, and the abandonment of land redistribution provides the analytical foundation for understanding the racial wealth gap as a product of specific policy choices rather than historical accident. Indispensable for anyone who wants to understand the structural origins of contemporary racial economic inequality.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Empire of Cotton: A Global History (Chapters 5–9)</div>
+          <div class="src-author">Sven Beckert · 2014</div>
+          <div class="src-note">Continues from Phase I — the chapters covering the cotton economy's antebellum expansion and the Civil War's disruption of the global cotton supply chain are most relevant here. Beckert's account of British textile manufacturers' reactions to the Civil War — their attempt to develop alternative cotton sources in Egypt and India — illustrates the global dimensions of the conflict and the degree to which American slavery was embedded in the global industrial economy. His concept of "war capitalism" — state-backed coercive accumulation — is essential analytical equipment for the period.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type rec">Recommended</div>
+        <div>
+          <div class="src-title">The Visible Hand: The Managerial Revolution in American Business</div>
+          <div class="src-author">Alfred Chandler · 1977</div>
+          <div class="src-note">Chandler's argument — that the railroad invented modern management, and that the large vertically integrated corporation superseded the market as the primary coordinator of economic activity — is the essential framework for understanding the organizational revolution of the industrial era. The railroad chapters (Parts I–II) are most relevant to Phase II; the full book continues into Phase III. Chandler is not primarily concerned with labor relations or distribution — his focus is organizational efficiency — which means he needs to be read alongside Baptist and Foner for a complete picture.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type rec">Recommended</div>
+        <div>
+          <div class="src-title">What Hath God Wrought: The Transformation of America, 1815–1848</div>
+          <div class="src-author">Daniel Walker Howe · 2007</div>
+          <div class="src-note">The Pulitzer Prize-winning narrative history of the antebellum period — comprehensive, balanced, and excellent on the economic transformations of the Market Revolution era. Howe is more sympathetic to the Whig-American System tradition than to Jacksonian populism; his account complements Sellers's Market Revolution by providing the political narrative that Sellers's thematic approach sometimes sacrifices. Particularly good on the communications revolution (the telegraph, the penny press) and its economic and cultural consequences.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-toc">
+    <div class="sidebar-title">In This Chapter</div>
+    <a class="stoc-item active" href="#context">Overview & Timeline</a>
+    <a class="stoc-item" href="#market-revolution">The Market Revolution</a>
+    <a class="stoc-item" href="#transport">Transportation Revolution</a>
+    <a class="stoc-item" href="#lowell">Industrial Capitalism & Lowell</a>
+    <a class="stoc-item" href="#american-system">The American System</a>
+    <a class="stoc-item" href="#king-cotton">King Cotton</a>
+    <a class="stoc-item" href="#two-capitalisms">Two Capitalisms</a>
+    <a class="stoc-item" href="#panics">Panics of 1837 & 1857</a>
+    <a class="stoc-item" href="#civil-war-econ">Civil War Economic Revolution</a>
+    <a class="stoc-item" href="#reconstruction">Reconstruction's Foreclosure</a>
+    <a class="stoc-item" href="#sources">Reading List</a>
+  </div>
+
+  <div>
+    <div class="sidebar-title">Key Figures</div>
+    <div class="key-figure">
+      <div class="key-figure-name">Henry Clay</div>
+      <div class="key-figure-role">U.S. Senator · The Great Compromiser</div>
+      <div class="key-figure-note">The American System's architect and the antebellum era's most consequential economic statesman. Clay spent forty years promoting his three-pillar program — tariff, bank, internal improvements — only to see it repeatedly defeated by Southern and Jacksonian opposition. The irony: the Civil War Republican Congress enacted his program in its most complete form within months of Southern secession. Clay died in 1852, just in time to miss the confirmation of his vision.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Andrew Jackson</div>
+      <div class="key-figure-role">President 1829–1837 · Anti-Bank Populist</div>
+      <div class="key-figure-note">The destruction of the Second Bank of the United States was Jackson's most consequential economic act — eliminating the only institution capable of providing financial stability and setting the stage for the Panic of 1837. His anti-monopoly populism was genuinely responsive to real grievances about concentrated financial power, but his solution — eliminating the Bank rather than reforming it — made the underlying instability dramatically worse.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Frederick Douglass</div>
+      <div class="key-figure-role">Abolitionist · Economic Analyst of Slavery</div>
+      <div class="key-figure-note">The most penetrating contemporary analyst of slavery's political economy — its economic interests, its relationship to Northern capital, and the economic basis of racial subordination. His argument that freedom required economic foundation — that legal freedom without land and capital was inadequate — anticipated the Reconstruction debate over forty acres. His analysis of why slaveholders' economic interests made reform impossible informed the antislavery movement's shift toward more radical positions.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Thaddeus Stevens</div>
+      <div class="key-figure-role">Radical Republican · Land Redistribution Advocate</div>
+      <div class="key-figure-note">The most economically radical of the Reconstruction-era politicians — his proposal for confiscation and redistribution of large Confederate plantations was the most serious legislative attempt at land reform in American history. Its defeat was not inevitable — it had significant Congressional support — but required the combined opposition of Johnson's administration, conservative Republicans, and the constitutional objections of moderates who feared the precedent of confiscating property without compensation.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Eli Whitney / Francis Cabot Lowell</div>
+      <div class="key-figure-role">Industrial Innovators</div>
+      <div class="key-figure-note">Whitney's cotton gin (1793) made large-scale cotton cultivation profitable and inadvertently cemented slavery's economic viability in the South — an invention whose unintended consequences shaped the next seven decades of American history. Lowell (the man, not the city) brought the integrated textile mill from Britain to Massachusetts, establishing the organizational template for Northern industrial capitalism. Both figures illustrate how technological innovation interacted with existing economic institutions to produce outcomes their inventors did not intend or foresee.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Key Concepts</div>
+    <span class="concept-pill">Market Revolution</span>
+    <span class="concept-pill">American System</span>
+    <span class="concept-pill">Protective Tariff</span>
+    <span class="concept-pill">Second Bank of the U.S.</span>
+    <span class="concept-pill">Internal Improvements</span>
+    <span class="concept-pill">King Cotton</span>
+    <span class="concept-pill">Domestic Slave Trade</span>
+    <span class="concept-pill">Pushing System</span>
+    <span class="concept-pill">Free Labor Ideology</span>
+    <span class="concept-pill">Slave Power</span>
+    <span class="concept-pill">Nullification</span>
+    <span class="concept-pill">Panic of 1837</span>
+    <span class="concept-pill">Greenbacks</span>
+    <span class="concept-pill">National Banking Acts</span>
+    <span class="concept-pill">Homestead Act</span>
+    <span class="concept-pill">Sharecropping</span>
+    <span class="concept-pill">Black Codes</span>
+    <span class="concept-pill">40 Acres & a Mule</span>
+    <span class="concept-pill">Path Dependence</span>
+    <span class="concept-pill">Putting-Out System</span>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Duration</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:600;color:var(--green-hi);line-height:1">3</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-top:0.3rem">Weeks</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);margin-top:0.8rem;line-height:1.6">Read Sellers first for the Market Revolution's social dimensions; Baptist for the slave economy's productive logic; Foner (Free Soil) for the free labor ideology; Foner (Reconstruction) last as the period's tragic conclusion. Chandler is reference, not narrative — consult the railroad chapters for organizational history.</div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Navigation</div>
+    <a href="econ_phase1_colonial.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:0.6rem 0;border-bottom:1px solid var(--border);transition:color 0.2s;text-transform:uppercase" onmouseover="this.style.color='var(--green-hi)'" onmouseout="this.style.color='var(--text-dim)'">← Phase I · Colonial Economy</a>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin:1rem 0 0.3rem">Phase III · Gilded Age &amp; Industrial Capitalism</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);line-height:1.6">1877–1929 · How industrial capitalism concentrated economic power at unprecedented scale — and what the Progressive Era's regulatory response achieved, failed to achieve, and inadvertently enabled.</div>
+  </div>
+</aside>
+</div>
+
+<footer style="padding:2.5rem 8vw;border-top:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase">U.S. Economy Research Plan · Phase II of VII</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-style:italic;color:var(--text-dim)">Industrialization &amp; Market Revolution, 1800–1877</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(
+  entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold:0.07 }
+);
+document.querySelectorAll('.section-block').forEach(el => observer.observe(el));
+const navLinks = document.querySelectorAll('.toc-item,.stoc-item');
+const navObs = new IntersectionObserver(
+  entries => entries.forEach(e => {
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      document.querySelectorAll(`[href="#${e.target.id}"]`).forEach(l=>l.classList.add('active'));
+    }
+  }),
+  { threshold:0.3 }
+);
+document.querySelectorAll('[id]').forEach(s=>navObs.observe(s));
+</script>
+</body>
+</html>

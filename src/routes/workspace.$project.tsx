@@ -4,14 +4,14 @@ import { BrowserPane } from "@/components/browser/browser-pane";
 import { ProjectEditorPane } from "@/components/editor/project-editor-pane";
 import { ProjectSettingsPage } from "@/components/settings/project-settings-page";
 import { TerminalView } from "@/components/terminal/terminal-view";
+import { useProjectActions } from "@/hooks/use-project-actions";
 import { useVimMode } from "@/hooks/use-vim-mode";
-import { useWorkspaceActions } from "@/hooks/use-workspace-actions";
 import { useWorkspaceState } from "@/hooks/use-workspace-state";
-
-type WorkspaceSearch = {
-  view: "browser" | "editor" | "terminal" | "settings";
-  terminalId?: string;
-};
+import {
+  buildWorkspaceLocation,
+  isTerminalOwnedByProject,
+  type WorkspaceSearch,
+} from "@/lib/workspace-navigation";
 
 export const Route = createFileRoute("/workspace/$project")({
   validateSearch: (search: Record<string, unknown>): WorkspaceSearch => {
@@ -31,7 +31,7 @@ function WorkspaceRoute() {
   const { project } = Route.useParams();
   const { view, terminalId } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const actions = useWorkspaceActions(controller, state);
+  const projectActions = useProjectActions(controller, state, project);
   const [isVimModeEnabled, setIsVimModeEnabled] = useVimMode();
   const [selectedEditorFilePathByProject, setSelectedEditorFilePathByProject] =
     useState<Record<string, string | null>>({});
@@ -53,7 +53,11 @@ function WorkspaceRoute() {
   const hasHealthyRuntimeProcess =
     state.runtimeProcessHealthyByProject[project] ?? false;
 
-  const activeTerminalId = view === "terminal" ? (terminalId ?? null) : null;
+  const isTerminalRouteOwnedByProject =
+    view === "terminal" &&
+    isTerminalOwnedByProject(project, terminalId);
+  const activeTerminalId =
+    view === "terminal" && isTerminalRouteOwnedByProject ? terminalId : null;
   const activeTerminalSession = activeTerminalId
     ? (state.terminalSessionsByProject[project] ?? []).find(
         (s) => s.terminalId === activeTerminalId
@@ -82,6 +86,10 @@ function WorkspaceRoute() {
 
   // Auto-load project config
   useEffect(() => {
+    controller.selectProject(project);
+  }, [controller, project]);
+
+  useEffect(() => {
     if (projectConfigSnapshot) return;
     if (isProjectConfigLoading) return;
     if (projectConfigError !== null) return;
@@ -97,20 +105,21 @@ function WorkspaceRoute() {
   // Terminal existence guard — navigate away if the terminal no longer exists
   useEffect(() => {
     if (view !== "terminal" || !terminalId) return;
-    const hasTerminal = (state.terminalSessionsByProject[project] ?? []).some(
-      (session) => session.terminalId === terminalId
-    );
+    const hasTerminal =
+      isTerminalRouteOwnedByProject &&
+      (state.terminalSessionsByProject[project] ?? []).some(
+        (session) => session.terminalId === terminalId
+      );
     if (!hasTerminal) {
       const fallback = getNonTerminalViewForProject(project);
-      void navigate({
-        search: { view: fallback },
-      });
+      void navigate(buildWorkspaceLocation(project, { view: fallback }));
     }
   }, [
     view,
     terminalId,
     project,
     state.terminalSessionsByProject,
+    isTerminalRouteOwnedByProject,
     getNonTerminalViewForProject,
     navigate,
   ]);
@@ -132,48 +141,13 @@ function WorkspaceRoute() {
     [controller]
   );
 
-  const routeNavigate = useCallback(
-    (opts: { search: { view: "browser" | "editor" | "terminal" | "settings"; terminalId?: string } }) => {
-      void navigate({ search: opts.search });
-    },
-    [navigate]
-  );
-
-  const handleWorkspaceModeChange = useCallback(
-    (mode: "browser" | "editor" | "agent" | "settings") => {
-      actions.workspaceModeChange(project, routeNavigate, mode);
-    },
-    [actions, routeNavigate, project]
-  );
-
-  const handleElementGrabbed = useCallback(
-    (data: {
-      tag: string;
-      id: string;
-      className: string;
-      text: string;
-      selector: string;
-      outerHTML?: string;
-    }) => {
-      actions.elementGrabbed(project, routeNavigate, data);
-    },
-    [actions, routeNavigate, project]
-  );
-
-  const handlePlayFromBrowser = useCallback(
-    (proj: string) => {
-      actions.playFromBrowser(proj);
-    },
-    [actions]
-  );
-
   const handlePlayFromSettings = useCallback(async () => {
-    await actions.playFromSettings(project);
-  }, [actions, project]);
+    await projectActions.playFromSettings();
+  }, [projectActions]);
 
   const handleStopFromSettings = useCallback(() => {
-    actions.stop(project);
-  }, [actions, project]);
+    projectActions.stop();
+  }, [projectActions]);
 
   const workspaceMode = useMemo(() => {
     if (view === "editor") return "editor" as const;
@@ -190,11 +164,11 @@ function WorkspaceRoute() {
     <div className="relative min-h-0 flex flex-1 flex-col overflow-hidden">
       <BrowserPane
         agentContent={
-          view === "terminal" && terminalId ? (
+          activeTerminalId ? (
             <TerminalView
-              key={terminalId}
+              key={activeTerminalId}
               project={project}
-              terminalId={terminalId}
+              terminalId={activeTerminalId}
             />
           ) : (
             <div className="flex h-full items-center justify-center">
@@ -224,22 +198,21 @@ function WorkspaceRoute() {
             playError={state.playErrorByProject[project] ?? null}
             onPlayProject={handlePlayFromSettings}
             onStopProject={handleStopFromSettings}
-            isArchivingProject={actions.isArchivingProject}
-            onArchiveProject={() => actions.archiveProject(project)}
-            isDeletingProject={actions.isDeletingProject}
-            onDeleteProject={() => actions.deleteProject(project)}
+            isArchivingProject={projectActions.isArchivingProject}
+            onArchiveProject={projectActions.archiveProject}
+            isDeletingProject={projectActions.isDeletingProject}
+            onDeleteProject={projectActions.deleteProject}
           />
         }
         agentTerminalLabel={activeTerminalLabel}
-        onElementGrabbed={handleElementGrabbed}
-        onWorkspaceModeChange={handleWorkspaceModeChange}
-        onPlayProject={handlePlayFromBrowser}
+        onElementGrabbed={projectActions.elementGrabbed}
+        onWorkspaceModeChange={projectActions.workspaceModeChange}
+        onPlayProject={projectActions.playFromBrowser}
         playState={playState}
         projectConfigError={projectConfigError}
         projectConfigSnapshot={projectConfigSnapshot}
         projectKey={project}
         filesystemEventVersion={filesystemEventVersion}
-        selectedProject={project}
         hasHealthyRuntimeProcess={hasHealthyRuntimeProcess}
         selectedEditorFilePath={selectedEditorFilePath}
         workspaceMode={workspaceMode}

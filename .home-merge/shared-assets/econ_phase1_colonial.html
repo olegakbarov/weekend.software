@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase I — Colonial & Founding Economy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #06080d;
+  --bg2:       #090c14;
+  --surface:   #0d1520;
+  --surface2:  #12202e;
+  --border:    #182d44;
+  --border-hi: #224060;
+  --gold:      #c9a84c;
+  --gold-dim:  #7a6030;
+  --gold-pale: #e8d9a8;
+  --teal:      #2a8a72;
+  --teal-hi:   #3db899;
+  --teal-dim:  #1a5545;
+  --amber:     #c47a1a;
+  --amber-hi:  #e8971e;
+  --amber-dim: #7a4a0a;
+  --text:      #c8c4bb;
+  --text-dim:  #57707e;
+  --text-hi:   #ece7de;
+  --ink:       #d2cdc5;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Libre Baskerville',Georgia,serif;
+  font-size:16px;line-height:1.85;overflow-x:hidden;
+}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--border);overflow:hidden;position:relative;
+}
+.hero-left{
+  padding:7rem 5vw 5rem 8vw;display:flex;flex-direction:column;
+  justify-content:center;position:relative;z-index:1;
+  border-right:1px solid var(--border);
+}
+.hero-left::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 5% 65%,rgba(42,138,114,0.05) 0%,transparent 60%);
+}
+.hero-right{
+  padding:7rem 8vw 5rem 5vw;display:flex;flex-direction:column;
+  justify-content:flex-end;background:var(--bg2);position:relative;overflow:hidden;
+}
+.hero-right::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 75% 25%,rgba(201,168,76,0.05) 0%,transparent 55%),
+    radial-gradient(ellipse at 20% 80%,rgba(42,138,114,0.04) 0%,transparent 50%);
+}
+.chapter-numeral{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(9rem,18vw,20rem);font-weight:700;
+  color:var(--surface2);line-height:0.85;
+  position:absolute;right:-1.5rem;top:2rem;
+  user-select:none;pointer-events:none;z-index:0;
+  opacity:0;animation:fadeIn 1.8s 0.4s forwards;
+}
+
+.breadcrumb{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.25em;color:var(--gold-dim);text-transform:uppercase;
+  margin-bottom:2.5rem;opacity:0;animation:fadeUp 0.6s 0.1s forwards;
+}
+.breadcrumb a{color:inherit;text-decoration:none;}
+.breadcrumb a:hover{color:var(--gold);}
+
+.phase-tag{
+  display:inline-flex;align-items:center;gap:0.8rem;
+  margin-bottom:1.5rem;opacity:0;animation:fadeUp 0.6s 0.2s forwards;
+}
+.phase-tag-num{
+  font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:600;
+  color:var(--teal-hi);border:1px solid var(--teal-dim);padding:0.15rem 0.7rem;letter-spacing:0.1em;
+}
+.phase-tag-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;
+}
+.hero-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.8rem,5.5vw,5.5rem);font-weight:300;
+  line-height:1.05;color:var(--text-hi);letter-spacing:-0.02em;
+  opacity:0;animation:fadeUp 0.9s 0.3s forwards;
+}
+.hero-title em{font-style:italic;color:var(--teal-hi);}
+.hero-dates{
+  font-family:'JetBrains Mono',monospace;font-size:0.8rem;
+  color:var(--teal-dim);letter-spacing:0.2em;
+  margin-top:1.5rem;margin-bottom:2.5rem;
+  opacity:0;animation:fadeUp 0.6s 0.5s forwards;
+}
+.hero-thesis{
+  font-size:1.05rem;font-style:italic;color:var(--text-dim);
+  line-height:1.8;max-width:480px;
+  border-left:2px solid var(--teal-dim);padding-left:1.5rem;
+  opacity:0;animation:fadeUp 0.6s 0.65s forwards;
+}
+.pull-quote-block{opacity:0;animation:fadeIn 1.2s 0.8s forwards;}
+.pull-quote{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.05rem,1.9vw,1.7rem);font-weight:300;
+  font-style:italic;color:var(--text-hi);line-height:1.6;margin-bottom:1rem;
+}
+.pull-quote-attr{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.15em;color:var(--teal-dim);text-transform:uppercase;
+}
+.hero-right-top{flex:1;}
+
+/* ── NAV ── */
+.toc-nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(6,8,13,0.96);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;padding:0 8vw;overflow-x:auto;scrollbar-width:none;
+}
+.toc-nav::-webkit-scrollbar{display:none;}
+.toc-item{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;
+  color:var(--text-dim);text-decoration:none;padding:1rem 0.9rem;
+  border-bottom:2px solid transparent;white-space:nowrap;
+  transition:all 0.2s;text-transform:uppercase;
+}
+.toc-item:hover{color:var(--teal-hi);border-bottom-color:var(--teal-dim);}
+.toc-item.active{color:var(--teal-hi);border-bottom-color:var(--teal-hi);}
+
+/* ── LAYOUT ── */
+.main-grid{display:grid;grid-template-columns:680px 1fr;max-width:1400px;margin:0 auto;}
+@media(max-width:1100px){
+  .main-grid{grid-template-columns:1fr;}
+  .hero{grid-template-columns:1fr;}
+  .hero-right,.sidebar{display:none;}
+}
+.main-content{padding:5rem 5vw 5rem 8vw;border-right:1px solid var(--border);}
+.sidebar{
+  padding:5rem 4vw 5rem 3vw;position:sticky;top:52px;
+  height:calc(100vh - 52px);overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;
+  background:var(--bg2);
+}
+
+/* ── CONTENT ── */
+.section-block{
+  margin-bottom:5rem;opacity:0;transform:translateY(28px);
+  transition:opacity 0.7s ease,transform 0.7s ease;
+}
+.section-block.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:0.62rem;
+  letter-spacing:0.28em;color:var(--teal-hi);text-transform:uppercase;
+  margin-bottom:1.2rem;display:flex;align-items:center;gap:0.8rem;
+}
+.section-eyebrow::after{content:'';width:40px;height:1px;background:var(--teal-dim);}
+.section-title{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,3vw,2.4rem);
+  font-weight:300;color:var(--text-hi);line-height:1.2;
+  letter-spacing:-0.01em;margin-bottom:2rem;
+}
+.body-p{font-size:0.97rem;line-height:1.9;color:var(--ink);margin-bottom:1.4rem;}
+.body-p strong{color:var(--text-hi);font-weight:700;}
+.body-p em{color:var(--gold-pale);font-style:italic;}
+.rule{width:100%;height:1px;background:linear-gradient(90deg,var(--teal-dim),transparent);margin:3rem 0;border:none;}
+
+blockquote{
+  margin:2.5rem 0;padding:1.8rem 2rem 1.8rem 2.5rem;
+  background:var(--surface);border-left:3px solid var(--teal-hi);position:relative;
+}
+blockquote::before{
+  content:'\201C';font-family:'Cormorant Garamond',serif;font-size:5rem;
+  color:var(--teal-dim);position:absolute;top:-0.5rem;left:0.5rem;
+  line-height:1;pointer-events:none;
+}
+blockquote p{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;color:var(--text-hi);line-height:1.7;position:relative;z-index:1;}
+blockquote cite{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--teal-dim);text-transform:uppercase;margin-top:0.8rem;font-style:normal;}
+
+/* ── TIMELINE ── */
+.event-timeline{margin:2rem 0;position:relative;padding-left:2.5rem;}
+.event-timeline::before{
+  content:'';position:absolute;left:0.6rem;top:0.5rem;bottom:0.5rem;
+  width:1px;background:linear-gradient(to bottom,var(--teal-dim),transparent);
+}
+.event-item{position:relative;margin-bottom:2rem;}
+.event-item::before{
+  content:'';position:absolute;left:-1.9rem;top:0.45rem;
+  width:8px;height:8px;border-radius:50%;background:var(--teal-dim);border:1px solid var(--teal-hi);
+}
+.event-item.pivot::before{background:var(--amber-hi);border-color:var(--amber-hi);}
+.event-item.tension::before{background:var(--gold-dim);border-color:var(--gold);}
+.event-year{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;color:var(--teal-hi);margin-bottom:0.2rem;}
+.event-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.4rem;}
+.event-desc{font-size:0.88rem;color:var(--text-dim);line-height:1.7;}
+
+/* ── COMMODITY GRID ── */
+.commodity-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.commodity-card{background:var(--bg2);padding:1.8rem;transition:background 0.2s;}
+.commodity-card:hover{background:var(--surface);}
+.commodity-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:var(--teal-hi);text-transform:uppercase;margin-bottom:0.5rem;}
+.commodity-name{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--text-hi);margin-bottom:0.6rem;}
+.commodity-body{font-size:0.87rem;color:var(--text-dim);line-height:1.75;}
+.commodity-body strong{color:var(--text);}
+
+/* ── LABOR COMPARISON ── */
+.labor-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+@media(max-width:800px){.labor-grid{grid-template-columns:1fr;}}
+.labor-card{background:var(--bg2);padding:1.6rem;transition:background 0.2s;}
+.labor-card:hover{background:var(--surface);}
+.labor-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.labor-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.5rem;}
+.labor-body{font-size:0.84rem;color:var(--text-dim);line-height:1.7;}
+
+/* ── DETAIL STACK ── */
+.detail-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.detail-item{
+  background:var(--bg2);padding:1.4rem 1.8rem;
+  display:grid;grid-template-columns:220px 1fr;
+  gap:1.5rem;align-items:flex-start;transition:background 0.2s;
+}
+.detail-item:hover{background:var(--surface);}
+.detail-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.68rem;
+  letter-spacing:0.1em;color:var(--teal-hi);text-transform:uppercase;
+  padding-top:0.15rem;line-height:1.6;
+}
+.detail-body{font-size:0.88rem;color:var(--text-dim);line-height:1.75;}
+.detail-body strong{color:var(--text);}
+
+/* ── DEBATE COLUMNS ── */
+.debate-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.debate-card{background:var(--bg2);padding:2rem;transition:background 0.2s;}
+.debate-card:hover{background:var(--surface);}
+.debate-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.debate-name{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--text-hi);margin-bottom:0.8rem;}
+.debate-body{font-size:0.87rem;color:var(--text-dim);line-height:1.75;}
+.debate-body strong{color:var(--text);}
+.debate-item{margin-bottom:0.6rem;padding-left:1rem;position:relative;font-size:0.87rem;color:var(--text-dim);line-height:1.65;}
+.debate-item::before{content:'→';position:absolute;left:0;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--teal-dim);top:0.05rem;}
+
+/* ── SOURCE CARDS ── */
+.source-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);}
+.src-card{
+  background:var(--bg2);padding:1.5rem 1.8rem;
+  display:grid;grid-template-columns:auto 1fr;
+  gap:1.5rem;align-items:flex-start;transition:background 0.2s;
+}
+.src-card:hover{background:var(--surface);}
+.src-type{
+  font-family:'JetBrains Mono',monospace;font-size:0.58rem;
+  letter-spacing:0.12em;text-transform:uppercase;
+  padding:0.2rem 0.6rem;border:1px solid;white-space:nowrap;margin-top:0.2rem;
+}
+.src-type.essential{border-color:var(--gold);color:var(--gold);}
+.src-type.primary{border-color:var(--teal-hi);color:var(--teal-hi);}
+.src-type.rec{border-color:var(--border-hi);color:var(--text-dim);}
+.src-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;font-style:italic;color:var(--text-hi);line-height:1.4;}
+.src-author{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.05em;color:var(--text-dim);margin-top:0.3rem;}
+.src-note{font-size:0.85rem;color:var(--text-dim);margin-top:0.4rem;line-height:1.6;}
+
+/* ── FRAME BOX ── */
+.frame-box{
+  background:var(--surface);border:1px solid var(--border-hi);
+  padding:2.5rem;margin-top:3rem;position:relative;
+}
+.frame-box::before{
+  content:'Analytical Frame';position:absolute;top:-0.6rem;left:1.5rem;
+  background:var(--surface);padding:0 0.8rem;
+  font-family:'JetBrains Mono',monospace;font-size:0.6rem;
+  letter-spacing:0.2em;color:var(--teal-hi);text-transform:uppercase;
+}
+
+/* ── SIDEBAR ── */
+.sidebar-title{
+  font-family:'JetBrains Mono',monospace;font-size:0.6rem;
+  letter-spacing:0.25em;color:var(--text-dim);text-transform:uppercase;
+  margin-bottom:1.5rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border);
+}
+.sidebar-toc{margin-bottom:3rem;}
+.stoc-item{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.08em;color:var(--text-dim);text-decoration:none;
+  padding:0.5rem 0;border-bottom:1px solid var(--border);
+  transition:color 0.2s,padding-left 0.2s;line-height:1.5;
+}
+.stoc-item:hover,.stoc-item.active{color:var(--teal-hi);padding-left:0.4rem;}
+.key-figure{
+  margin-bottom:1.5rem;padding:1.2rem;
+  background:var(--surface);border-top:2px solid var(--teal-dim);
+}
+.key-figure-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin-bottom:0.3rem;}
+.key-figure-role{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--teal-dim);text-transform:uppercase;margin-bottom:0.5rem;}
+.key-figure-note{font-size:0.82rem;color:var(--text-dim);line-height:1.6;}
+.concept-pill{
+  display:inline-block;font-family:'JetBrains Mono',monospace;
+  font-size:0.62rem;letter-spacing:0.08em;color:var(--text-dim);
+  border:1px solid var(--border-hi);padding:0.25rem 0.7rem;
+  margin:0.2rem 0.2rem 0 0;transition:all 0.2s;text-transform:uppercase;cursor:default;
+}
+.concept-pill:hover{color:var(--teal-hi);border-color:var(--teal-dim);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+::selection{background:rgba(61,184,153,0.15);color:var(--text-hi);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="breadcrumb">
+      <a href="us_economy_research_plan.html">← Research Plan</a>
+      &nbsp;/&nbsp; Phase I
+    </div>
+    <div class="phase-tag">
+      <span class="phase-tag-num">Phase I</span>
+      <span class="phase-tag-label">3 Weeks</span>
+    </div>
+    <h1 class="hero-title">Colonial &amp;<br><em>Founding</em><br>Economy</h1>
+    <div class="hero-dates">1600 &nbsp;—&nbsp; 1800</div>
+    <p class="hero-thesis">The colonial economy was not a free market interrupted by British tyranny. It was a system of enforced mercantile dependency built on the largest act of capital formation in human history: the enslavement of African people. Understanding what was actually built — and the profound disagreement over what should replace it — is the foundation of everything that follows.</p>
+  </div>
+  <div class="hero-right">
+    <span class="chapter-numeral">I</span>
+    <div class="hero-right-top"></div>
+    <div class="pull-quote-block">
+      <div class="pull-quote">"A rich country can be ruined by a wrong system of political economy more easily than a poor one; and on the other hand, there is no poor country which might not become rich under a right system."</div>
+      <div class="pull-quote-attr">Alexander Hamilton · Report on Manufactures · December 5, 1791</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ NAV ═══ -->
+<nav class="toc-nav">
+  <a class="toc-item active" href="#context">Overview</a>
+  <a class="toc-item" href="#mercantilism">Mercantilism</a>
+  <a class="toc-item" href="#plantation">Plantation Economy</a>
+  <a class="toc-item" href="#slavery-capital">Slavery as Capital</a>
+  <a class="toc-item" href="#atlantic-trade">Atlantic Trade</a>
+  <a class="toc-item" href="#revolution">Revolution's Economics</a>
+  <a class="toc-item" href="#hamilton-jefferson">Hamilton vs. Jefferson</a>
+  <a class="toc-item" href="#hamiltonian-program">The Hamiltonian Program</a>
+  <a class="toc-item" href="#constitution">Constitution as Economic Document</a>
+  <a class="toc-item" href="#sources">Reading List</a>
+</nav>
+
+<!-- ═══ BODY ═══ -->
+<div class="main-grid">
+<main class="main-content">
+
+  <!-- CONTEXT -->
+  <div class="section-block" id="context">
+    <div class="section-eyebrow">Overview</div>
+    <h2 class="section-title">What Was Built — and What Was Contested at the Founding</h2>
+
+    <p class="body-p">The two centuries from the first permanent English settlement at Jamestown (1607) to the end of the Federalist era (roughly 1800) produced an economy whose basic structure was simultaneously more sophisticated and more brutal than the standard story allows. More sophisticated: by the 1770s, the colonies had developed regional specializations, intercolonial trade networks, financial instruments, and a merchant class of considerable wealth and organizational capacity. More brutal: the productive foundation of this economy rested on chattel slavery — the legal reduction of human beings to property — on a scale and with an economic logic that was not incidental to colonial development but absolutely central to it.</p>
+
+    <p class="body-p">The period has three distinct analytical moments that should be held together rather than treated as a sequential narrative. First, the colonial economy under British mercantilism — what it was designed to do, who it served, and how it actually functioned. Second, slavery as an economic institution — not as background context but as the primary engine of capital accumulation in the Southern colonies and a fundamental driver of Northern commercial and financial development. Third, the Founding economic debate — the profound and consequential disagreement between Hamilton and Jefferson about what kind of economy an independent America should build.</p>
+
+    <p class="body-p">The analytical payoff of getting this phase right: nearly every subsequent American economic debate — tariffs vs. free trade, national bank vs. decentralized credit, manufacturing vs. agriculture, the role of government in economic development — has its roots in the Founding disagreement between Hamilton and Jefferson. And the legacy of slavery as the colonial economy's primary capital formation mechanism runs continuously through every phase to the present. <strong>This is not ancient history with no bearing on the present; it is the structural foundation on which every subsequent phase was built.</strong></p>
+
+    <div class="event-timeline">
+      <div class="event-item">
+        <div class="event-year">1607</div>
+        <div class="event-title">Jamestown — the first permanent settlement</div>
+        <div class="event-desc">The Virginia Company's commercial venture — organized as a joint-stock company, financed by London investors seeking profit from the New World. Its near-failure in the first years illustrates the difficulty of extracting value from a new continent; its eventual success through tobacco cultivation illustrates how that value would be organized: through coerced labor growing cash crops for European markets.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1619</div>
+        <div class="event-title">First Africans arrive in Virginia</div>
+        <div class="event-desc">Twenty to thirty enslaved Africans arrive at Point Comfort, Virginia — the beginning of the Atlantic slave trade's American dimension. Their legal status is initially ambiguous; by the 1660s, Virginia law has fully codified chattel slavery, making it inheritable, permanent, and racial. This legal architecture — slavery as property, as permanent status, as racial category — becomes the most consequential economic institution in American history.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1651–1696</div>
+        <div class="event-title">Navigation Acts — mercantilism codified</div>
+        <div class="event-desc">A series of Parliamentary acts requiring colonial trade to pass through British ships and British ports, restricting colonial manufacturing, and designating specific "enumerated commodities" (tobacco, sugar, indigo, rice) that could only be exported to Britain. The Acts are the legal expression of mercantilist theory: colonies exist to enrich the mother country, not to develop autonomous economies. They structure colonial economic life for over a century and become a primary grievance of the Revolution.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1700s</div>
+        <div class="event-title">The plantation economy reaches full scale</div>
+        <div class="event-desc">By the mid-18th century, the Southern plantation economy has achieved its mature form: tobacco in Virginia and Maryland, rice and indigo in South Carolina and Georgia, all produced by enslaved African labor on large estates. The enslaved population of the colonies grows from approximately 28,000 in 1700 to nearly 500,000 by 1770. Their labor produces the colonial economy's primary export commodities; their bodies represent its largest single form of capital.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1776</div>
+        <div class="event-title">The Revolution — and its economic motivations</div>
+        <div class="event-desc">The Declaration of Independence is simultaneously a political document and an economic one. The colonial grievances listed — taxation without representation, interference with trade, restriction of manufacturing — are economic grievances as much as political ones. The Revolution creates the space for a new economic order; the question of what that order should look like is immediately and intensely contested.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1781–1789</div>
+        <div class="event-title">The Articles of Confederation — economic failure</div>
+        <div class="event-desc">The Articles create a federal government with no power to tax, no power to regulate interstate commerce, and no capacity to enforce financial obligations. The result: worthless Continental currency, unpayable war debts, interstate trade conflicts, and the inability to fund a national government. Shays' Rebellion (1786–87) — a debtor farmer uprising in Massachusetts — makes the economic dysfunction visceral and politically urgent. The Constitutional Convention is convened primarily to address the economic failures of the Articles.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1787–1789</div>
+        <div class="event-title">The Constitution — economic architecture</div>
+        <div class="event-desc">The Constitution addresses the Articles' economic failures directly: Congress gets the power to tax, to regulate interstate and foreign commerce, to coin money, and to establish uniform bankruptcy laws. The contracts clause prevents states from impairing existing debts. These provisions are not peripheral to the Constitution — they are its central economic program, designed by men who were themselves creditors and merchants with a direct stake in stable property rights and enforceable contracts.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1790–1791</div>
+        <div class="event-title">Hamilton's Reports — the Founding economic debate</div>
+        <div class="event-desc">Treasury Secretary Hamilton submits his three foundational reports: on Public Credit (January 1790), on a National Bank (December 1790), and on Manufactures (December 1791). Together they constitute the most ambitious economic program proposed in the new republic — and they immediately generate the most consequential economic disagreement in American history: Hamilton's industrial-commercial vision against Jefferson's agrarian republic. The debate's terms structure American political economy through the Civil War.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- MERCANTILISM -->
+  <div class="section-block" id="mercantilism">
+    <div class="section-eyebrow">The Colonial Framework</div>
+    <h2 class="section-title">Mercantilism and the Navigation Acts: What the System Was Designed to Do</h2>
+
+    <p class="body-p">Mercantilism — the governing economic theory of 17th- and 18th-century European states — held that national wealth consisted in the accumulation of gold and silver, that trade was a zero-sum competition between nations, and that colonies existed to serve the mother country's economic interests by providing raw materials, consuming manufactured goods, and generating a trade surplus. It was not a market theory; it was a political theory about how states should use economic power in competition with other states. The Navigation Acts were mercantilism's legal expression, and they structured colonial economic life more completely than any other institution except slavery.</p>
+
+    <p class="body-p">The Acts' core provisions: colonial goods had to be transported on British-owned ships crewed by British sailors; certain "enumerated commodities" (tobacco, sugar, indigo, rice, naval stores) could only be exported to Britain or other British colonies; colonial imports of European goods had to pass through British ports and pay British duties; colonial manufacturing that competed with British industry was suppressed. The Woolen Act (1699), the Hat Act (1732), and the Iron Act (1750) prohibited the manufacture of textiles, hats, and finished iron goods in the colonies — precisely the industries that Hamilton would later argue were essential for national economic independence.</p>
+
+    <p class="body-p">The economic consequences of the Acts are more complex than the simple oppression narrative suggests. The Acts imposed real costs on colonial producers — tobacco planters, in particular, were effectively forced to sell through British merchants who captured a significant share of the profit. But the Acts also provided benefits: colonial ships participated in the British trading network, colonial merchants received implicit subsidies through exclusion of foreign competition, and colonial producers of enumerated commodities had guaranteed access to British markets. Adam Smith's estimate — that the Acts cost the colonies roughly 3% of their annual income — is probably in the right range: real and annoying, but not economically catastrophic.</p>
+
+    <p class="body-p">The more important point about mercantilism is theoretical: it was the economic ideology that the American Founders had to think through and, in part, reject in developing their own economic program. <strong>Hamilton's Report on Manufactures is fundamentally a response to Smith's argument in The Wealth of Nations (1776) that free trade and comparative advantage would serve the new nation better than protective tariffs.</strong> Hamilton's counter-argument — that infant industries in less-developed nations require protection from established competitors, and that industrial development requires deliberate government policy, not just free markets — is the first systematic articulation of what later economists would call the "developmental state" theory. It would be more influential in Germany, Japan, and South Korea in the 19th and 20th centuries than it was in the United States at the time it was written.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- PLANTATION ECONOMY -->
+  <div class="section-block" id="plantation">
+    <div class="section-eyebrow">Regional Specialization</div>
+    <h2 class="section-title">The Plantation Economy: Regional Architecture and Commodity Regimes</h2>
+
+    <p class="body-p">The colonial economy was not uniform — it was organized around distinct regional economies with different commodity bases, labor systems, and economic logics. Understanding these regional differences is essential for understanding the economic roots of the antebellum sectional conflict that Phase II will trace in detail.</p>
+
+    <div class="commodity-grid">
+      <div class="commodity-card">
+        <div class="commodity-tag">Chesapeake · 1610s onwards</div>
+        <div class="commodity-name">Tobacco</div>
+        <div class="commodity-body">Virginia and Maryland tobacco was the colonial economy's first great export commodity. Its cultivation was initially attempted with white indentured servants, but the transition to enslaved African labor was rapid once it became clear that enslaved workers were both more controllable and more economically rational (an enslaved worker's labor could be appropriated for life rather than for a term). By 1700, tobacco was generating enormous profits for large planters and for the London merchants who handled the trade — and consuming the labor of tens of thousands of enslaved people. <strong>Tobacco cultivation exhausted the soil rapidly,</strong> driving planters to expand westward continuously — producing the territorial expansionism that characterized the planter class through the Civil War.</div>
+      </div>
+      <div class="commodity-card">
+        <div class="commodity-tag">Low Country · 1690s onwards</div>
+        <div class="commodity-name">Rice & Indigo</div>
+        <div class="commodity-body">South Carolina's rice economy was built on the specific agricultural knowledge of enslaved West Africans from rice-growing regions — <strong>knowledge that was appropriated along with the people who carried it.</strong> Rice cultivation in tidal wetlands was extraordinarily labor-intensive and deadly; the death rate among enslaved workers in the Carolina Low Country exceeded the birth rate, requiring continuous importation of enslaved people from Africa. Indigo, introduced in the 1740s by Eliza Lucas Pinckney, provided a second export commodity that fit between rice's growing seasons. The Low Country planters became the wealthiest people in colonial America — and among the most politically powerful at the Constitutional Convention.</div>
+      </div>
+      <div class="commodity-card">
+        <div class="commodity-tag">New England · 17th–18th century</div>
+        <div class="commodity-name">Commerce & Manufacturing</div>
+        <div class="commodity-body">New England's thin soils and short growing seasons prevented the development of plantation agriculture, pushing the region toward commerce, fishing, shipbuilding, and proto-manufacturing. Boston, Newport, and Providence merchants developed extensive trading networks — including direct participation in the Atlantic slave trade and the trade in slave-produced commodities. <strong>The region's apparent distance from slavery is misleading:</strong> New England merchants financed slave voyages, insured enslaved cargoes, and processed slave-produced raw materials (the "sugar triangle" — molasses from Caribbean slave plantations to New England rum distilleries to Africa for more enslaved people — was a New England commercial staple). The region's economic development was deeply intertwined with the slave economy it did not directly employ.</div>
+      </div>
+      <div class="commodity-card">
+        <div class="commodity-tag">Mid-Atlantic · 17th–18th century</div>
+        <div class="commodity-name">Mixed Commercial Agriculture</div>
+        <div class="commodity-body">Pennsylvania, New York, and New Jersey developed a mixed economy of commercial grain farming, artisan manufacturing, and Atlantic trade. Philadelphia by 1770 was the largest city in British North America — a commercial hub whose merchant class had sophisticated financial instruments and deep connections to London credit markets. The region employed both enslaved and free labor, with slavery more prevalent in New York than the standard narrative acknowledges. The Mid-Atlantic's economy — diverse, commercially sophisticated, oriented toward both manufacturing and agriculture — most closely resembled what Hamilton would propose as the model for the new republic.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SLAVERY AS CAPITAL -->
+  <div class="section-block" id="slavery-capital">
+    <div class="section-eyebrow">The Foundational Institution</div>
+    <h2 class="section-title">Slavery as Economic Institution: The Capitalization of Human Bodies</h2>
+
+    <p class="body-p">The most important analytical reorientation in American economic history over the past generation has been the systematic recovery of slavery's role as an economic institution — not as a pre-modern aberration or a moral failing incidental to the "real" economy, but as the primary engine of capital accumulation in the colonial and antebellum periods and a fundamental driver of the wider Atlantic economy. Edward Baptist's <em>The Half Has Never Been Told</em> (2014) and Sven Beckert's <em>Empire of Cotton</em> (2014) are the essential works; but the foundation was laid by scholars including Robin Blackburn, Walter Johnson, and Stephanie Smallwood.</p>
+
+    <p class="body-p">The economic analysis of slavery requires confronting what it actually was: the legal conversion of human beings into capital assets. An enslaved person was simultaneously a laborer (whose output could be extracted for life without wages) and a capital asset (whose market value could be borrowed against, sold, inherited, and insured). By 1860, the market value of enslaved people in the United States was approximately $3.5 billion — more than the value of all the railroads and factories in the country combined. <strong>The largest single form of capital in the American economy was enslaved people.</strong></p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Labor Extraction</div>
+        <div class="detail-body"><strong>Enslaved workers' output could be appropriated for life</strong> — not for a term, as with indentured servitude, and not voluntarily, as with wage labor, but permanently and completely. The economic rationality of slavery rested on this: the owner captured 100% of the worker's output above subsistence. The productivity of enslaved cotton pickers in the antebellum South increased dramatically over time — not through technological innovation but through the systematic intensification of labor through violence, which Baptist documents in detail. Slavery was not inefficient pre-capitalism; it was a highly productive system that generated precisely the returns its investors expected.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Capital Asset Value</div>
+        <div class="detail-body">Enslaved people were <strong>collateral for loans, subjects of insurance policies, objects of speculative investment, and vehicles for intergenerational wealth transfer.</strong> Southern planters borrowed against their enslaved workers to finance land purchases; when they defaulted, Northern banks took enslaved people as collateral. The domestic slave trade — the buying and selling of enslaved people within the United States after the international trade was nominally prohibited in 1808 — was one of the largest financial markets in antebellum America, moving approximately one million people from the Upper South to the cotton-producing Deep South between 1790 and 1860.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Northern Entanglement</div>
+        <div class="detail-body">The standard narrative — slavery as a Southern institution, the North as industrializing and free — is misleading in its clean geography. <strong>New York banks held mortgages on enslaved people; New England textile mills processed slave-grown cotton;</strong> Northern insurance companies wrote policies on enslaved cargoes; Northern merchants provided the credit that financed Southern planters' operations. Sven Beckert's "empire of cotton" is literally global: Lancashire mills, New York merchants, Indian farmers, Egyptian fellahin, and enslaved American workers were all nodes in a single integrated system whose dynamism powered early industrialization across the Atlantic world.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Reproduction as Investment</div>
+        <div class="detail-body">After the international slave trade was prohibited in 1808, the natural increase of the enslaved population became itself an economic asset. <strong>Enslaved women's reproductive capacity was explicitly valued and exploited</strong> — the "breeding" of enslaved people for sale was economically significant in the Upper South states (Virginia, Maryland, Kentucky) whose soil exhaustion had reduced agricultural profitability, and whose enslaved population was increasingly a commodity to be sold southward rather than employed locally. This aspect of slavery's economic logic — the commodification of human reproduction — is among its most horrifying features and among those most systematically suppressed in conventional economic histories.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Financing Industrialization</div>
+        <div class="detail-body">The capital accumulated through slavery did not stay in the plantation economy — it financed early industrialization. <strong>British textile industrialization was powered by American slave-grown cotton;</strong> the profits flowed into the financial system that funded railroad construction, factory building, and the broader Industrial Revolution. Beckert's estimate is that roughly 75% of the raw cotton consumed by the Lancashire mills in the critical decades of industrialization came from American slave plantations. The causal link between slavery and industrialization is not metaphorical — it runs through specific commodity flows, capital accounts, and credit relationships.</div>
+      </div>
+    </div>
+
+    <blockquote>
+      <p>Enslaved people were the capital that made capitalism. They were not the victims of capitalism's excesses — they were its foundation. The profits of the slave trade financed the banks; the cotton they grew fed the mills; the credit extended against their bodies built the infrastructure. To understand American capitalism, you must first understand American slavery.</p>
+      <cite>Synthesized from Baptist, Beckert, Johnson — The New History of American Capitalism</cite>
+    </blockquote>
+  </div>
+
+  <hr class="rule">
+
+  <!-- ATLANTIC TRADE -->
+  <div class="section-block" id="atlantic-trade">
+    <div class="section-eyebrow">Global Integration</div>
+    <h2 class="section-title">The Atlantic World Economy: Networks, Circuits, and Dependencies</h2>
+
+    <p class="body-p">The colonial American economy was not a closed system — it was a node in an Atlantic world economy of considerable sophistication and reach. Understanding its position in that larger system is essential for understanding both its strengths and the specific political-economic grievances that produced the Revolution.</p>
+
+    <p class="body-p">The Atlantic economy operated through several overlapping circuits. The most famous — the "triangular trade" — is somewhat misleading in its simplicity: the actual trading networks were more complex, with multiple overlapping circuits connecting different regions and commodities. But the basic structure holds: manufactured goods from Britain and New England flowed to Africa (paid for enslaved people) and to the colonies (paid for raw materials and re-exported); enslaved people from West Africa were transported to the Caribbean and American mainland (the "Middle Passage," whose death rate of roughly 15% represents the most economically significant mortality event in the history of capital circulation); colonial raw materials — tobacco, rice, indigo, sugar, cotton — flowed to Britain and through Britain to Europe.</p>
+
+    <p class="body-p">The financial architecture of this system was centered in London. The major colonial planters were not cash-rich — they were deeply indebted to London merchant houses that provided credit against future crops. This credit relationship made colonial planters simultaneously prosperous (in assets and consumption) and structurally dependent (in cash flow and financial freedom). Jefferson's famous complaint about the "perpetual debt" of Virginian planters to English creditors reflects a structural feature of the system, not individual profligacy: the terms of trade and credit were set in London, and the planters had limited power to negotiate them. When the Revolution severed these credit relationships, the resulting financial disruption was one of the first economic problems the new republic had to address.</p>
+
+    <p class="body-p"><strong>The Caribbean dimension of the Atlantic economy deserves more attention than it usually receives in American economic history.</strong> The Caribbean sugar islands — Jamaica, Barbados, the French Caribbean — were far more economically important to Britain than the mainland colonies in the 18th century. The sugar trade produced enormous profits; the enslaved populations of the Caribbean were treated with even greater brutality than on the mainland because the economics of sugar production made replacement cheaper than preservation. The mainland colonies' primary economic relationship with the Caribbean was commercial: New England rum, fish, and timber traded for Caribbean molasses, sugar, and bills of exchange. The colonial economy's commercial sophistication rested heavily on this relationship.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- REVOLUTION'S ECONOMICS -->
+  <div class="section-block" id="revolution">
+    <div class="section-eyebrow">The Break</div>
+    <h2 class="section-title">The Revolution's Economic Dimensions</h2>
+
+    <p class="body-p">The American Revolution was simultaneously a political revolution and an economic one — a break not just from British governance but from the mercantilist economic system the Navigation Acts had imposed. Understanding its economic dimensions requires resisting two opposed oversimplifications: the patriot narrative (the Revolution as a response to unjust taxation) and the purely economic reductionist narrative (the Revolution as a merchant conspiracy to avoid debt and trade regulation).</p>
+
+    <p class="body-p">The specific grievances enumerated in the Declaration of Independence — the Stamp Act, the Townshend duties, the tea tax, the closure of Boston harbor, the Coercive Acts — had direct economic content. The Stamp Act (1765) imposed taxes on legal documents, newspapers, and commercial instruments — precisely the instruments of commercial life. The tea tax, trivial in revenue terms, was significant as a principle: Parliament's assertion of the right to tax colonial commerce. The colonial response — boycotts, non-importation agreements, the Continental Association — was itself economic warfare, organized through the same merchant networks that conducted ordinary commerce.</p>
+
+    <p class="body-p">The war's economic consequences were severe and instructive. The Continental Congress financed the Revolution primarily through the emission of paper currency ("Continentals") that depreciated catastrophically — the phrase "not worth a Continental" entered the language as a description of worthlessness. The combination of monetary chaos, unpayable debts, and the inability of the Articles of Confederation to impose fiscal discipline created the economic crisis that made the Constitutional Convention politically possible. <strong>The Constitution was, in significant measure, a creditor-class solution to a debtor-class crisis.</strong> Charles Beard's 1913 argument that the Founders were protecting their financial interests was overstated in its simple economic determinism, but its core insight — that the Constitution's economic provisions reflected the interests of those who wrote it — has been repeatedly confirmed by subsequent scholarship.</p>
+
+    <div class="labor-grid">
+      <div class="labor-card">
+        <div class="labor-tag" style="color:var(--teal-hi)">Labor Form I</div>
+        <div class="labor-name">Chattel Slavery</div>
+        <div class="labor-body">The primary labor institution of the Southern colonies and the foundation of their export economy. Permanent, heritable, racial. Approximately 500,000 enslaved people in the colonies by 1776 — about 20% of the total population. The Founders' failure to address slavery in the Constitution was not an oversight but a deliberate compromise: without Southern support, there was no union.</div>
+      </div>
+      <div class="labor-card">
+        <div class="labor-tag" style="color:var(--amber-hi)">Labor Form II</div>
+        <div class="labor-name">Indentured Servitude</div>
+        <div class="labor-body">Contracts binding workers to labor for a term (typically 4–7 years) in exchange for passage to the colonies. The primary labor mechanism for early tobacco cultivation before the shift to enslaved labor. By the Revolution, largely superseded in the South by slavery and in the North by wage labor, but still significant in the Mid-Atlantic. Indentured servants' legal status was inferior to free workers but not as absolute as enslaved people's.</div>
+      </div>
+      <div class="labor-card">
+        <div class="labor-tag" style="color:var(--text-dim)">Labor Form III</div>
+        <div class="labor-name">Free & Wage Labor</div>
+        <div class="labor-body">Artisans, tenant farmers, and the beginnings of wage labor in the Northern colonies. The "free labor" ideology that would distinguish the North from the South in the antebellum period has its roots here — the idea that free men working for themselves or wages represented a qualitatively different and superior social order to the slave and servant labor of the South. This ideological distinction would do enormous political work in the decades before the Civil War.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- HAMILTON vs JEFFERSON -->
+  <div class="section-block" id="hamilton-jefferson">
+    <div class="section-eyebrow">The Foundational Debate</div>
+    <h2 class="section-title">Hamilton vs. Jefferson: The First Great Economic Debate</h2>
+
+    <p class="body-p">The debate between Alexander Hamilton and Thomas Jefferson over the economic direction of the new republic is the most important debate in American economic history. It is not merely a historical curiosity; its terms — industrial development vs. agrarian simplicity, national bank vs. decentralized credit, active government vs. minimal state, protectionism vs. free trade — have structured American political economy for two and a half centuries. Almost every major economic policy debate in subsequent American history can be traced back to this founding disagreement.</p>
+
+    <p class="body-p">The debate is often framed as a personality conflict between two brilliant men who disliked each other intensely. This framing is accurate but insufficient. More importantly, Hamilton and Jefferson represented genuinely incompatible visions of what kind of society America should be — incompatible not just in policy but in their conceptions of political economy, human nature, and democratic possibility. Hamilton admired British commercial and financial institutions; Jefferson feared the social consequences of the dependent wage-labor class they created. Hamilton thought concentrated financial power could be channeled to national development; Jefferson thought it inevitably corrupted republican governance. <strong>Both were right about things the other got wrong.</strong></p>
+
+    <div class="debate-grid">
+      <div class="debate-card">
+        <div class="debate-tag" style="color:var(--teal-hi)">The Hamiltonian Vision</div>
+        <div class="debate-name">Alexander Hamilton</div>
+        <div class="debate-body">
+          <p style="margin-bottom:1rem;font-size:0.87rem;color:var(--text-dim);line-height:1.7">Hamilton's economic program rested on three premises: that national power required economic power, that economic power required industrial development, and that industrial development required active government support. He was the first American economist to systematically argue for what would later be called the developmental state.</p>
+          <div class="debate-item">A national bank to mobilize private capital for public purposes and provide stable credit</div>
+          <div class="debate-item">Protective tariffs to shield infant American industries from British competition until they could compete independently</div>
+          <div class="debate-item">Assumption of state debts to establish federal credit and bind creditor classes to the national government</div>
+          <div class="debate-item">Federal investment in infrastructure ("internal improvements") to integrate the national market</div>
+          <div class="debate-item">A funded national debt as a positive economic institution — giving propertied classes a stake in the government's survival</div>
+          <div class="debate-item">Manufacturing as the foundation of national power — independence required the capacity to produce, not just trade</div>
+        </div>
+      </div>
+      <div class="debate-card">
+        <div class="debate-tag" style="color:var(--amber-hi)">The Jeffersonian Vision</div>
+        <div class="debate-name">Thomas Jefferson</div>
+        <div class="debate-body">
+          <p style="margin-bottom:1rem;font-size:0.87rem;color:var(--text-dim);line-height:1.7">Jefferson's economic program rested on the agrarian republican ideal: a nation of independent farmers whose economic self-sufficiency guaranteed political independence. His fear was not poverty but dependence — the erosion of the economic independence that republican self-governance required.</p>
+          <div class="debate-item">Agriculture, not manufacturing, as the basis of a virtuous republican economy — "Those who labor in the earth are the chosen people of God"</div>
+          <div class="debate-item">Fear of a national bank as a vehicle for concentrated financial power that would corrupt both the economy and the republic</div>
+          <div class="debate-item">Opposition to a funded national debt — "the earth belongs to the living" — debts should not bind future generations</div>
+          <div class="debate-item">Free trade rather than protection: America's comparative advantage in agriculture should be exploited, not distorted by tariffs</div>
+          <div class="debate-item">Decentralized credit through state banks, preventing the concentration of financial power in a national institution</div>
+          <div class="debate-item">Hostility to the "mobs of great cities" — the dependent wage workers that manufacturing would create and that he associated with European political instability</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="body-p">The debate's irony: Jefferson's vision of an agrarian republic was already becoming obsolete in 1790, and was explicitly dependent on enslaved labor — the Monticello plantation that financed Jefferson's intellectual freedom was worked by over 600 enslaved people during his lifetime. Hamilton's industrial vision would eventually produce the dependent wage-labor class Jefferson feared, along with the manufacturing power Hamilton desired. <strong>Neither man could fully see the contradictions embedded in his own position.</strong></p>
+
+    <p class="body-p">The political winner in the short term was Jefferson — the Jeffersonian Republican coalition dominated national politics from 1800 to 1824, and Hamilton's national bank was twice allowed to expire. But Hamilton's vision was more prophetic of what America would actually become. The Whig Party of the 1830s–40s and the Republican Party from 1860 onward were explicitly Hamiltonian in their economic programs. The developmental state that Hamilton theorized — protective tariffs, national bank, federal infrastructure investment — was eventually implemented under Lincoln and became the framework for American industrialization in Phase III.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- HAMILTONIAN PROGRAM -->
+  <div class="section-block" id="hamiltonian-program">
+    <div class="section-eyebrow">The Policy Architecture</div>
+    <h2 class="section-title">The Hamiltonian Program: Reports, Institutions, and Precedents</h2>
+
+    <p class="body-p">Hamilton's three great Reports as Secretary of the Treasury constitute the most ambitious economic policy program proposed in the early republic — and, despite their partial defeat at the time, the template for American economic governance for the next century. Understanding them in detail is essential for understanding the recurring debates over tariffs, banking, and government's role in economic development that run through Phase II and Phase III.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Report on Public Credit (1790)</div>
+        <div class="detail-body"><strong>The first and most immediately consequential of Hamilton's reports.</strong> It proposed that the federal government assume all state debts from the Revolution (approximately $25 million) and fund both the assumed state debts and the existing federal debt at face value in new federal securities. The policy rationale: establishing federal credit, binding creditor classes to the national government, and creating a liquid market in federal securities. The political opposition was fierce — Southern states had largely paid their debts; assumption transferred their tax burden to service Northern creditors' claims. The compromise: Hamilton agreed to locate the permanent federal capital on the Potomac (Jefferson's preference) in exchange for Southern votes for assumption. The result: the United States had functioning federal credit and a liquid market in federal securities within a decade of independence — the financial foundation for everything that followed.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Report on a National Bank (1790)</div>
+        <div class="detail-body">Hamilton proposed a Bank of the United States — a mixed public-private institution modeled on the Bank of England — capitalized at $10 million (the largest corporation in America), with the federal government holding 20% of shares and private investors 80%. It would issue bank notes serving as a national currency, provide loans to the government and to commerce, and facilitate tax collection. <strong>The constitutional debate it triggered is the first and most important in American constitutional history:</strong> Jefferson and Madison argued Congress had no constitutional authority to charter a bank (strict construction); Hamilton argued Congress had implicit powers to enact legislation "necessary and proper" to its enumerated functions (broad construction). Washington signed the bill; Marshall's McCulloch v. Maryland (1819) would vindicate Hamilton's constitutional theory. The bank's practical success — it stabilized credit and provided a functional national currency — demonstrated the value of financial institutions Hamilton's opponents had rejected on ideological grounds.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Report on Manufactures (1791)</div>
+        <div class="detail-body">Hamilton's most intellectually ambitious report and his most immediately defeated. It proposed a comprehensive system of protective tariffs and manufacturing bounties to develop American industry — explicitly rejecting Adam Smith's comparative advantage argument and anticipating the "infant industry" arguments that Friedrich List would develop more systematically fifty years later. <strong>Hamilton's central argument against free trade:</strong> the theory of comparative advantage assumes that existing patterns of specialization are optimal, but they reflect historical accident and unequal power, not natural endowments. A nation that had been deliberately prevented from developing manufacturing (by British mercantilist policy) could not compete freely against established British industries; protection was required to give infant industries time to develop the scale and skills to compete. The report was not enacted — agrarian interests in Congress blocked the tariffs. But its ideas dominated American economic policy during the periods of greatest industrial growth: the high-tariff era from the Civil War through World War I.</div>
+      </div>
+    </div>
+
+    <blockquote>
+      <p>Not only the wealth but the independence and security of a country appear to be materially connected with the prosperity of manufactures. Every nation, with a view to those great objects, ought to endeavor to possess within itself all the essentials of national supply.</p>
+      <cite>Alexander Hamilton · Report on Manufactures · December 5, 1791</cite>
+    </blockquote>
+  </div>
+
+  <hr class="rule">
+
+  <!-- CONSTITUTION AS ECONOMIC DOCUMENT -->
+  <div class="section-block" id="constitution">
+    <div class="section-eyebrow">Institutional Architecture</div>
+    <h2 class="section-title">The Constitution as Economic Document</h2>
+
+    <p class="body-p">Charles Beard's <em>An Economic Interpretation of the Constitution</em> (1913) argued that the Constitution was primarily an economic document designed to protect the property interests of the merchant and creditor class who wrote it. The argument was overstated — not every Constitutional provision can be reduced to economic self-interest — but its core insight is sound: the Constitution's economic provisions are not peripheral to its political design. They are central to it, and they reflect the specific economic interests and anxieties of a specific class of men at a specific historical moment.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Commerce Clause</div>
+        <div class="detail-body">Congress is given the power "to regulate Commerce with foreign Nations, and among the several States." <strong>This clause — whose scope has been contested from the Founding to the present — is the constitutional foundation of the federal government's economic authority.</strong> Under the Articles, interstate commerce was a patchwork of conflicting state regulations that fragmented the national market and made interstate trade costly. The commerce clause was designed to create a unified national market — the largest free trade zone in the world at the time of ratification. Its subsequent interpretation by the Supreme Court has determined the scope of federal economic power in almost every era.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Contracts Clause</div>
+        <div class="detail-body">No state shall "pass any Law impairing the Obligation of Contracts." This provision was a direct response to the debtor-relief legislation that several states had passed during the economic crisis of the 1780s — laws that reduced or postponed debt obligations, effectively transferring wealth from creditors to debtors. <strong>The Founders, predominantly creditors, made the contractual impairment of debt obligations constitutionally prohibited.</strong> The clause established the principle that private property rights, including creditors' rights, were beyond ordinary democratic revision — a principle whose tension with democratic governance has been a recurring theme in American constitutional law.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Taxing & Spending Power</div>
+        <div class="detail-body">Congress has the power to "lay and collect Taxes, Duties, Imposts and Excises, to pay the Debts and provide for the common Defence and general Welfare." The taxing power — absent under the Articles — was the first economic priority of the Constitutional Convention. Without it, the federal government could not pay its debts, fund an army, or operate as a credible sovereign. The "general welfare" clause would eventually be interpreted to authorize broad federal spending programs — a reading the original Federalists anticipated but the Jeffersonians disputed.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Three-Fifths Compromise</div>
+        <div class="detail-body"><strong>The most economically significant and morally catastrophic provision of the Constitution.</strong> Enslaved people were to be counted as three-fifths of a person for purposes of congressional apportionment — giving slaveholders representation in Congress based on people they defined as property. The practical consequence: Southern states had substantially more congressional representation and Electoral College votes than their free population warranted. This over-representation of the slaveholder interest in federal government lasted until the Civil War, and it helps explain why the federal government was so consistently protective of slavery's interests in the antebellum period: the slaveholders were overrepresented in every branch of the government that could have acted against them.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Slave Trade Clause</div>
+        <div class="detail-body">Congress could not prohibit the international slave trade before 1808 — a twenty-year protection for the continued importation of enslaved people from Africa. <strong>This was a direct concession to the Deep South states (especially South Carolina and Georgia), whose plantation expansion required a continued supply of enslaved workers.</strong> The clause illustrates the Constitution's fundamental bargain: the slaveholding states' participation in the Union required federal protection of slavery's economic interests. The 1808 prohibition on the international trade, when it came, was partially offset by the expansion of the domestic slave trade — which the Constitution left entirely unregulated.</div>
+      </div>
+    </div>
+
+    <div class="frame-box">
+      <p class="body-p">The analytical synthesis Phase I demands: the colonial and Founding economy was not a primitive precursor to the "real" American economy that developed in later phases. It was a fully formed economic system with specific institutional features — mercantile dependency, slavery as primary capital, Atlantic trading networks — that created the structural conditions for everything that followed. Three structural legacies are most important for tracking through subsequent phases:</p>
+      <p class="body-p"><strong>First, the racial structure of capital accumulation.</strong> Slavery was not abolished; it was constitutionally protected and economically expanding at the Founding. The capital accumulated through enslaved labor did not disappear when slavery ended — it had already been converted into other forms of wealth. The racial wealth gap that persists in the present has its deepest roots here.</p>
+      <p class="body-p"><strong>Second, the developmental state debate.</strong> Hamilton's argument for deliberate government-led industrial development was not enacted at the Founding — but it was vindicated by the subsequent experience of every successful industrial developer, from Germany and Japan in the 19th century to South Korea and China in the 20th. The debate between Hamiltonian developmental statism and Jeffersonian market liberalism has never been settled; it returns in different forms in every subsequent phase.</p>
+      <p class="body-p" style="margin-bottom:0"><strong>Third, the constitutional structure of economic power.</strong> The commerce clause, the contracts clause, the taxing power, and the three-fifths compromise together created an institutional framework whose evolution — through judicial interpretation, legislative extension, and political conflict — is the constitutional story of American economic history. Understanding where you are in any later phase requires knowing how these provisions have been interpreted and contested to get there.</p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SOURCES -->
+  <div class="section-block" id="sources">
+    <div class="section-eyebrow">Reading List</div>
+    <h2 class="section-title">Phase I Sources</h2>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Primary Sources</div>
+    <div class="source-stack" style="margin-bottom:2rem">
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Report on Public Credit, Report on a National Bank, Report on Manufactures</div>
+          <div class="src-author">Alexander Hamilton · 1790–1791</div>
+          <div class="src-note">The three foundational documents of American economic governance. Read them in order: Public Credit first (the immediate crisis), Bank second (the constitutional debate), Manufactures third (the long-term developmental vision). The Reports are remarkably readable — Hamilton was a superb prose writer — and their arguments remain relevant to contemporary policy debates in ways that repay close attention. Available in full at the Library of Congress and in the Hamilton Papers.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Notes on the State of Virginia (Query XIX: Manufactures)</div>
+          <div class="src-author">Thomas Jefferson · 1781–1782, published 1785</div>
+          <div class="src-note">Jefferson's most extended statement of the agrarian republican economic ideal — "Those who labor in the earth are the chosen people of God" and the famous warning against manufacturing's social consequences. Query XIX is only a few pages but essential. Read alongside the Hamilton Reports as the counter-argument. Jefferson's Notes also contain his most explicit statements on race, which should be read as part of the ideological context for understanding how the agrarian republic's free labor ideal was compatible (in Jefferson's mind) with slavery.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">The Federalist Papers (Nos. 10, 51, and the economic essays: 11, 12, 30–36)</div>
+          <div class="src-author">Hamilton, Madison & Jay · 1787–1788</div>
+          <div class="src-note">The economic Federalist papers are underread relative to the political theory essays. Federalist 11 and 12 (both Hamilton) make the economic case for Union — why commercial and manufacturing interests required a stronger federal government. Federalist 30–36 make the case for federal taxing power. Read these alongside the political theory essays to understand the Constitution as an integrated political-economic project.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">The Wealth of Nations (Books I, II, and IV, Ch. 7: "On Colonies")</div>
+          <div class="src-author">Adam Smith · 1776</div>
+          <div class="src-note">Smith's great work was published in the year of American independence — read by the Founders and directly engaged by Hamilton in the Report on Manufactures. Book IV, Chapter 7 on the colonial system is the essential passage for this phase: Smith's argument that mercantilism served monopoly interests rather than general welfare was the theoretical foundation for the colonists' economic critique of British policy. Hamilton's rejection of Smith's free trade conclusions — while accepting his critique of mercantilism — is the defining intellectual move of the Report on Manufactures.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin:2rem 0 1rem">Secondary Sources</div>
+    <div class="source-stack">
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Half Has Never Been Told: Slavery and the Making of American Capitalism</div>
+          <div class="src-author">Edward Baptist · 2014</div>
+          <div class="src-note">The most important work of American economic history of the past generation. Baptist's central argument — that American capitalism was built on slavery's productive dynamism, not in spite of it but through it — is meticulously documented and analytically powerful. His account of how the productivity of enslaved cotton workers was systematically increased through the "pushing system" of violence and threat challenges the standard account of slavery as economically stagnant pre-capitalism. Read before anything else in this phase. Some of his specific quantitative claims have been contested by economic historians; the core argument stands.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Empire of Cotton: A Global History</div>
+          <div class="src-author">Sven Beckert · 2014</div>
+          <div class="src-note">The global political economy of the commodity that defined the 18th and 19th century Atlantic economy. Beckert's "war capitalism" — the use of violence, coercion, and state power to create the conditions for market expansion — is the conceptual contribution that most usefully supplements Baptist. His account of how American slave cotton powered British industrialization puts the U.S. economy in its global context in ways that pure domestic histories miss. Chapters 1–5 are most relevant to Phase I; the book continues through Phase II and III.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Alexander Hamilton</div>
+          <div class="src-author">Ron Chernow · 2004</div>
+          <div class="src-note">The definitive narrative biography — exhaustive, beautifully written, and analytically serious about Hamilton's economic program. Chernow is particularly good on the Report on Manufactures and on Hamilton's theory of credit and public debt. Read the economic sections carefully: Chernow understands finance and conveys Hamilton's economic reasoning with unusual clarity. Useful as a narrative complement to the more analytically structured primary texts.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Making of New World Slavery: From the Baroque to the Modern, 1492–1800</div>
+          <div class="src-author">Robin Blackburn · 1997</div>
+          <div class="src-note">The essential long-view account of how chattel slavery was constructed as a legal and economic institution across the Atlantic world. Blackburn traces the specific legal, ideological, and economic decisions that converted African workers from one labor status to another — showing that slavery was not a natural institution but a deliberately constructed one, and that its construction required continuous legal and political work. Essential for understanding why slavery took the specific form it did in the American colonies.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type rec">Recommended</div>
+        <div>
+          <div class="src-title">An Economic Interpretation of the Constitution of the United States</div>
+          <div class="src-author">Charles Beard · 1913</div>
+          <div class="src-note">Beard's argument — that the Constitution was designed to protect the property interests of the men who wrote it — was enormously controversial and has been partially refuted by subsequent scholarship (Forrest McDonald's We The People, 1958, challenged his property data). But it remains essential reading for its methodological contribution: asking economic questions about political documents, and taking seriously the material interests of historical actors. Read it as a methodological model more than as a definitive account.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type rec">Recommended</div>
+        <div>
+          <div class="src-title">The Economy of British America, 1607–1789</div>
+          <div class="src-author">John McCusker & Russell Menard · 1985</div>
+          <div class="src-note">The standard quantitative reference work on the colonial economy — essential for anyone who wants the data on colonial GDP, trade flows, commodity prices, and economic growth. Not narrative but indispensable as a reference. Their estimates of colonial living standards (comparable to England's by the 1770s, higher in some regions) provide the empirical context for evaluating the Navigation Acts' actual economic costs and for understanding what the Revolution was — and was not — about economically.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-toc">
+    <div class="sidebar-title">In This Chapter</div>
+    <a class="stoc-item active" href="#context">Overview & Timeline</a>
+    <a class="stoc-item" href="#mercantilism">Mercantilism & Navigation Acts</a>
+    <a class="stoc-item" href="#plantation">The Plantation Economy</a>
+    <a class="stoc-item" href="#slavery-capital">Slavery as Capital</a>
+    <a class="stoc-item" href="#atlantic-trade">The Atlantic World Economy</a>
+    <a class="stoc-item" href="#revolution">Revolution's Economics</a>
+    <a class="stoc-item" href="#hamilton-jefferson">Hamilton vs. Jefferson</a>
+    <a class="stoc-item" href="#hamiltonian-program">The Hamiltonian Program</a>
+    <a class="stoc-item" href="#constitution">Constitution as Economic Document</a>
+    <a class="stoc-item" href="#sources">Reading List</a>
+  </div>
+
+  <div>
+    <div class="sidebar-title">Key Figures</div>
+    <div class="key-figure">
+      <div class="key-figure-name">Alexander Hamilton</div>
+      <div class="key-figure-role">Secretary of the Treasury · 1789–1795</div>
+      <div class="key-figure-note">The most consequential economic mind of the Founding era. Immigrant, self-made, deeply read in finance and political economy. His three Reports constitute the template for developmental state theory — more influential in 19th-century Germany and 20th-century East Asia than in his own time. His theory that national power required industrial development and that industrial development required active government was vindicated by subsequent history.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Thomas Jefferson</div>
+      <div class="key-figure-role">Secretary of State · 1790–1793 · President 1801–1809</div>
+      <div class="key-figure-note">The agrarian republican ideal's most eloquent spokesman and its most visible contradiction. His vision of a nation of independent farmers rested on the labor of 600 enslaved people at Monticello. His fear of concentrated financial and industrial power was prescient; his preferred alternative was neither economically viable nor morally coherent given his dependence on slavery. His political victory over Hamilton shaped American economic policy for a generation.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Robert Morris</div>
+      <div class="key-figure-role">Superintendent of Finance · 1781–1784</div>
+      <div class="key-figure-note">The Revolution's primary financier and the most powerful economic figure of the Confederation period. His personal credit financed the Continental Army when Congress could not. His proposal for a national bank predated Hamilton's; his eventual bankruptcy (he overextended in land speculation and spent time in debtors' prison) is a cautionary tale about the limits of private finance in the absence of institutional infrastructure.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Adam Smith</div>
+      <div class="key-figure-role">Moral Philosopher · The Wealth of Nations, 1776</div>
+      <div class="key-figure-note">The Founders read Smith; Hamilton explicitly engaged and rejected his free trade conclusions. Smith's critique of mercantilism as serving monopoly rather than general welfare was accepted by nearly everyone; his argument for comparative advantage and free trade was accepted by Jefferson and rejected by Hamilton. The debate between them is the founding tension of American trade policy.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Key Concepts</div>
+    <span class="concept-pill">Mercantilism</span>
+    <span class="concept-pill">Navigation Acts</span>
+    <span class="concept-pill">Enumerated Commodities</span>
+    <span class="concept-pill">Chattel Slavery</span>
+    <span class="concept-pill">Triangular Trade</span>
+    <span class="concept-pill">Infant Industry</span>
+    <span class="concept-pill">Comparative Advantage</span>
+    <span class="concept-pill">Public Credit</span>
+    <span class="concept-pill">Developmental State</span>
+    <span class="concept-pill">Contracts Clause</span>
+    <span class="concept-pill">Commerce Clause</span>
+    <span class="concept-pill">Three-Fifths Compromise</span>
+    <span class="concept-pill">War Capitalism</span>
+    <span class="concept-pill">Free Labor Ideology</span>
+    <span class="concept-pill">Agrarian Republic</span>
+    <span class="concept-pill">Implied Powers</span>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Duration</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:600;color:var(--teal-hi);line-height:1">3</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-top:0.3rem">Weeks</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);margin-top:0.8rem;line-height:1.6">Read Baptist first — the slavery-as-capitalism argument is the most important analytical reorientation and should frame everything else. Hamilton's Reports are short and essential; read them alongside Chernow's biography for context. McCusker & Menard is a reference, not narrative — consult as needed for data.</div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Navigation</div>
+    <a href="us_economy_research_plan.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:0.6rem 0;border-bottom:1px solid var(--border);transition:color 0.2s;text-transform:uppercase" onmouseover="this.style.color='var(--teal-hi)'" onmouseout="this.style.color='var(--text-dim)'">← Research Plan</a>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin:1rem 0 0.3rem">Phase II · Industrialization & Market Revolution</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);line-height:1.6">1800–1877 · How the Market Revolution transformed American economic life — and why the North and South developed incompatible economic systems.</div>
+  </div>
+</aside>
+</div>
+
+<footer style="padding:2.5rem 8vw;border-top:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase">U.S. Economy Research Plan · Phase I of VII</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-style:italic;color:var(--text-dim)">Colonial & Founding Economy, 1600–1800</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(
+  entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold:0.07 }
+);
+document.querySelectorAll('.section-block').forEach(el => observer.observe(el));
+const navLinks = document.querySelectorAll('.toc-item,.stoc-item');
+const navObs = new IntersectionObserver(
+  entries => entries.forEach(e => {
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      document.querySelectorAll(`[href="#${e.target.id}"]`).forEach(l=>l.classList.add('active'));
+    }
+  }),
+  { threshold:0.3 }
+);
+document.querySelectorAll('[id]').forEach(s=>navObs.observe(s));
+</script>
+</body>
+</html>

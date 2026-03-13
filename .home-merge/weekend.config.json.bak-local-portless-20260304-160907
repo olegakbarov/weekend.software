@@ -1,0 +1,22 @@
+{
+  "runtime": {
+    "mode": "portless",
+    "url": "https://calendar.portless.dev/"
+  },
+  "startup": {
+    "commands": [
+      "pnpm dev"
+    ]
+  },
+  "processes": {
+    "dev": {
+      "command": "pnpm dev",
+      "role": "dev-server"
+    },
+    "agent": {
+      "command": "claude",
+      "role": "agent"
+    }
+  },
+  "archived": false
+}

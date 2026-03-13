@@ -37,6 +37,47 @@ pub fn list_browser_webviews<R: Runtime>(app: &AppHandle<R>) -> Vec<String> {
     live
 }
 
+fn stale_browser_webview_labels(labels: Vec<String>, active_label: Option<&str>) -> Vec<String> {
+    labels
+        .into_iter()
+        .filter(|label| {
+            label.starts_with("browser-pane:") && active_label != Some(label.as_str())
+        })
+        .collect()
+}
+
+pub fn close_stale_browser_webviews<R: Runtime>(
+    app: &AppHandle<R>,
+    active_label: Option<&str>,
+) -> Vec<String> {
+    let bridge_state: &BridgeState = app.state::<BridgeState>().inner();
+    let stale_labels = stale_browser_webview_labels(list_browser_webviews(app), active_label);
+
+    for label in &stale_labels {
+        if let Some(webview) = app.get_webview(label) {
+            if let Err(error) = webview.hide() {
+                log_backend(
+                    "WARN",
+                    format!("bridge: failed to hide stale browser webview {label}: {error}"),
+                );
+            }
+            if let Err(error) = webview.close() {
+                log_backend(
+                    "WARN",
+                    format!("bridge: failed to close stale browser webview {label}: {error}"),
+                );
+            }
+        }
+
+        if let Ok(mut labels) = bridge_state.browser_webview_labels.lock() {
+            labels.remove(label);
+        }
+        bridge_state.remove_bridge_state(label);
+    }
+
+    stale_labels
+}
+
 pub fn wait_for_bridge_ready<R: Runtime>(
     app: &AppHandle<R>,
     label: &str,
@@ -295,7 +336,7 @@ pub fn get_webview_url<R: Runtime>(app: &AppHandle<R>, label: &str) -> Result<St
 
 #[cfg(test)]
 mod tests {
-    use super::build_eval_wrapper;
+    use super::{build_eval_wrapper, stale_browser_webview_labels};
 
     #[test]
     fn eval_wrapper_uses_camel_case_callback_fields() {
@@ -304,5 +345,26 @@ mod tests {
         assert!(wrapper.contains("callbackToken: __weekend_callback_token"));
         assert!(!wrapper.contains("request_id: __weekend_request_id"));
         assert!(!wrapper.contains("callback_token: __weekend_callback_token"));
+    }
+
+    #[test]
+    fn stale_browser_webview_labels_keeps_only_active_browser_pane() {
+        let stale = stale_browser_webview_labels(
+            vec![
+                "browser-pane:home:0".to_string(),
+                "browser-pane:sports:3".to_string(),
+                "browser-pane:sandbox:1".to_string(),
+                "main".to_string(),
+            ],
+            Some("browser-pane:sports:3"),
+        );
+
+        assert_eq!(
+            stale,
+            vec![
+                "browser-pane:home:0".to_string(),
+                "browser-pane:sandbox:1".to_string(),
+            ]
+        );
     }
 }

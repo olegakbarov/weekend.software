@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "weekend-browser": {
+      "args": [],
+      "command": "/Users/venge/Code/aios/target/debug/weekend-browser-mcp",
+      "env": {
+        "WEEKEND_PROJECT": "calendar"
+      }
+    }
+  }
+}

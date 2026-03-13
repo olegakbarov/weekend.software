@@ -86,7 +86,7 @@ export function createWorkspaceController() {
     initialized: false,
     shellName: "zsh",
     projects: [],
-    selectedProject: null,
+    focusedProject: null,
     projectTreeByProject: {},
     projectTreeLoadingByProject: {},
     projectTreeErrorByProject: {},

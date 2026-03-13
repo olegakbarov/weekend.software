@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase VI — Stagflation, Neoliberalism & Financialization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0a0708;
+  --bg2:       #120b0d;
+  --surface:   #1a1012;
+  --surface2:  #261518;
+  --border:    #3a2022;
+  --border-hi: #522830;
+  --gold:      #c9a84c;
+  --gold-dim:  #7a6030;
+  --gold-pale: #e8d9a8;
+  --crimson:   #aa3030;
+  --crimson-hi:#cc4848;
+  --crimson-dim:#6a1818;
+  --copper:    #b87030;
+  --copper-hi: #d89050;
+  --copper-dim:#6a3a10;
+  --slate:     #4a6888;
+  --slate-hi:  #6a88a8;
+  --slate-dim: #243448;
+  --text:      #c8c4bb;
+  --text-dim:  #6a5860;
+  --text-hi:   #ece7de;
+  --ink:       #d2cdc5;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Libre Baskerville',Georgia,serif;font-size:16px;line-height:1.85;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");}
+
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);overflow:hidden;position:relative;}
+.hero-left{padding:7rem 5vw 5rem 8vw;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;border-right:1px solid var(--border);}
+.hero-left::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 5% 65%,rgba(170,48,48,0.07) 0%,transparent 60%);}
+.hero-right{padding:7rem 8vw 5rem 5vw;display:flex;flex-direction:column;justify-content:flex-end;background:var(--bg2);position:relative;overflow:hidden;}
+.hero-right::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 75% 25%,rgba(184,112,48,0.06) 0%,transparent 55%),radial-gradient(ellipse at 20% 80%,rgba(170,48,48,0.04) 0%,transparent 50%);}
+.chapter-numeral{font-family:'Cormorant Garamond',serif;font-size:clamp(9rem,18vw,20rem);font-weight:700;color:var(--surface2);line-height:0.85;position:absolute;right:-1.5rem;top:2rem;user-select:none;pointer-events:none;z-index:0;opacity:0;animation:fadeIn 1.8s 0.4s forwards;}
+.breadcrumb{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.25em;color:var(--crimson-dim);text-transform:uppercase;margin-bottom:2.5rem;opacity:0;animation:fadeUp 0.6s 0.1s forwards;}
+.breadcrumb a{color:inherit;text-decoration:none;}
+.breadcrumb a:hover{color:var(--crimson-hi);}
+.phase-tag{display:inline-flex;align-items:center;gap:0.8rem;margin-bottom:1.5rem;opacity:0;animation:fadeUp 0.6s 0.2s forwards;}
+.phase-tag-num{font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:600;color:var(--crimson-hi);border:1px solid var(--crimson-dim);padding:0.15rem 0.7rem;letter-spacing:0.1em;}
+.phase-tag-label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,5.5vw,5.5rem);font-weight:300;line-height:1.05;color:var(--text-hi);letter-spacing:-0.02em;opacity:0;animation:fadeUp 0.9s 0.3s forwards;}
+.hero-title em{font-style:italic;color:var(--crimson-hi);}
+.hero-dates{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--crimson-dim);letter-spacing:0.2em;margin-top:1.5rem;margin-bottom:2.5rem;opacity:0;animation:fadeUp 0.6s 0.5s forwards;}
+.hero-thesis{font-size:1.05rem;font-style:italic;color:var(--text-dim);line-height:1.8;max-width:480px;border-left:2px solid var(--crimson-dim);padding-left:1.5rem;opacity:0;animation:fadeUp 0.6s 0.65s forwards;}
+.pull-quote-block{opacity:0;animation:fadeIn 1.2s 0.8s forwards;}
+.pull-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(1.05rem,1.9vw,1.7rem);font-weight:300;font-style:italic;color:var(--text-hi);line-height:1.6;margin-bottom:1rem;}
+.pull-quote-attr{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--crimson-dim);text-transform:uppercase;}
+.hero-right-top{flex:1;}
+
+.toc-nav{position:sticky;top:0;z-index:100;background:rgba(10,7,8,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;padding:0 8vw;overflow-x:auto;scrollbar-width:none;}
+.toc-nav::-webkit-scrollbar{display:none;}
+.toc-item{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:1rem 0.9rem;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;text-transform:uppercase;}
+.toc-item:hover{color:var(--crimson-hi);border-bottom-color:var(--crimson-dim);}
+.toc-item.active{color:var(--crimson-hi);border-bottom-color:var(--crimson-hi);}
+
+.main-grid{display:grid;grid-template-columns:680px 1fr;max-width:1400px;margin:0 auto;}
+@media(max-width:1100px){.main-grid,.hero{grid-template-columns:1fr;}.hero-right,.sidebar{display:none;}}
+.main-content{padding:5rem 5vw 5rem 8vw;border-right:1px solid var(--border);}
+.sidebar{padding:5rem 4vw 5rem 3vw;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;background:var(--bg2);}
+
+.section-block{margin-bottom:5rem;opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.section-block.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.28em;color:var(--crimson-hi);text-transform:uppercase;margin-bottom:1.2rem;display:flex;align-items:center;gap:0.8rem;}
+.section-eyebrow::after{content:'';width:40px;height:1px;background:var(--crimson-dim);}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,3vw,2.4rem);font-weight:300;color:var(--text-hi);line-height:1.2;letter-spacing:-0.01em;margin-bottom:2rem;}
+.body-p{font-size:0.97rem;line-height:1.9;color:var(--ink);margin-bottom:1.4rem;}
+.body-p strong{color:var(--text-hi);font-weight:700;}
+.body-p em{color:var(--gold-pale);font-style:italic;}
+.rule{width:100%;height:1px;background:linear-gradient(90deg,var(--crimson-dim),transparent);margin:3rem 0;border:none;}
+
+blockquote{margin:2.5rem 0;padding:1.8rem 2rem 1.8rem 2.5rem;background:var(--surface);border-left:3px solid var(--crimson-hi);position:relative;}
+blockquote::before{content:'\201C';font-family:'Cormorant Garamond',serif;font-size:5rem;color:var(--crimson-dim);position:absolute;top:-0.5rem;left:0.5rem;line-height:1;pointer-events:none;}
+blockquote p{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;color:var(--text-hi);line-height:1.7;position:relative;z-index:1;}
+blockquote cite{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--crimson-dim);text-transform:uppercase;margin-top:0.8rem;font-style:normal;}
+
+.event-timeline{margin:2rem 0;position:relative;padding-left:2.5rem;}
+.event-timeline::before{content:'';position:absolute;left:0.6rem;top:0.5rem;bottom:0.5rem;width:1px;background:linear-gradient(to bottom,var(--crimson-dim),transparent);}
+.event-item{position:relative;margin-bottom:2rem;}
+.event-item::before{content:'';position:absolute;left:-1.9rem;top:0.45rem;width:8px;height:8px;border-radius:50%;background:var(--crimson-dim);border:1px solid var(--crimson-hi);}
+.event-item.pivot::before{background:var(--gold);border-color:var(--gold);}
+.event-item.shock::before{background:var(--copper-hi);border-color:var(--copper-hi);}
+.event-year{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;color:var(--crimson-hi);margin-bottom:0.2rem;}
+.event-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.4rem;}
+.event-desc{font-size:0.88rem;color:var(--text-dim);line-height:1.7;}
+
+.detail-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.detail-item{background:var(--bg2);padding:1.4rem 1.8rem;display:grid;grid-template-columns:220px 1fr;gap:1.5rem;align-items:flex-start;transition:background 0.2s;}
+.detail-item:hover{background:var(--surface);}
+.detail-label{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;color:var(--crimson-hi);text-transform:uppercase;padding-top:0.15rem;line-height:1.6;}
+.detail-body{font-size:0.88rem;color:var(--text-dim);line-height:1.75;}
+.detail-body strong{color:var(--text);}
+
+.two-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.two-card{background:var(--bg2);padding:2rem;transition:background 0.2s;}
+.two-card:hover{background:var(--surface);}
+.two-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.two-name{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--text-hi);margin-bottom:0.7rem;}
+.two-body{font-size:0.87rem;color:var(--text-dim);line-height:1.75;}
+.two-body strong{color:var(--text);}
+
+.three-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+@media(max-width:800px){.three-grid{grid-template-columns:1fr;}}
+.three-card{background:var(--bg2);padding:1.8rem;transition:background 0.2s;}
+.three-card:hover{background:var(--surface);}
+.three-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.three-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.6rem;}
+.three-body{font-size:0.86rem;color:var(--text-dim);line-height:1.72;}
+.three-body strong{color:var(--text);}
+
+.doctrine-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.doctrine-card{background:var(--bg2);padding:2rem;transition:background 0.2s;position:relative;overflow:hidden;}
+.doctrine-card:hover{background:var(--surface);}
+.doctrine-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+.doctrine-card.thatcher::after{background:linear-gradient(90deg,var(--crimson-hi),transparent);}
+.doctrine-card.reagan::after{background:linear-gradient(90deg,var(--copper-hi),transparent);}
+.doctrine-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.doctrine-name{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--text-hi);margin-bottom:0.3rem;}
+.doctrine-dates{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;color:var(--text-dim);margin-bottom:0.8rem;}
+.doctrine-body{font-size:0.87rem;color:var(--text-dim);line-height:1.75;}
+.doctrine-body strong{color:var(--text);}
+.doctrine-item{margin-bottom:0.5rem;padding-left:1rem;position:relative;font-size:0.87rem;color:var(--text-dim);line-height:1.65;}
+.doctrine-item::before{content:'→';position:absolute;left:0;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--crimson-dim);top:0.05rem;}
+
+.fin-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.fin-item{background:var(--bg2);padding:1.6rem 1.8rem;border-left:3px solid transparent;transition:background 0.2s;}
+.fin-item:hover{background:var(--surface);}
+.fin-item.innovation{border-left-color:var(--crimson-hi);}
+.fin-item.deregulation{border-left-color:var(--copper-hi);}
+.fin-item.ideology{border-left-color:var(--gold);}
+.fin-year{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--crimson-hi);margin-bottom:0.3rem;}
+.fin-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.4rem;}
+.fin-body{font-size:0.87rem;color:var(--text-dim);line-height:1.72;}
+.fin-body strong{color:var(--text);}
+
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin:2rem 0;}
+.stat-cell{background:var(--bg2);padding:1.8rem 1.5rem;text-align:center;}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:600;line-height:1;margin-bottom:0.4rem;}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);line-height:1.4;}
+.stat-note{font-size:0.78rem;color:var(--text-dim);margin-top:0.4rem;line-height:1.4;}
+
+.frame-box{background:var(--surface);border:1px solid var(--border-hi);padding:2.5rem;margin-top:3rem;position:relative;}
+.frame-box-label{position:absolute;top:-0.6rem;left:1.5rem;background:var(--surface);padding:0 0.8rem;font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:var(--crimson-hi);text-transform:uppercase;}
+
+.source-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);}
+.src-card{background:var(--bg2);padding:1.5rem 1.8rem;display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:flex-start;transition:background 0.2s;}
+.src-card:hover{background:var(--surface);}
+.src-type{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.2rem 0.6rem;border:1px solid;white-space:nowrap;margin-top:0.2rem;}
+.src-type.essential{border-color:var(--gold);color:var(--gold);}
+.src-type.primary{border-color:var(--crimson-hi);color:var(--crimson-hi);}
+.src-type.rec{border-color:var(--border-hi);color:var(--text-dim);}
+.src-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;font-style:italic;color:var(--text-hi);line-height:1.4;}
+.src-author{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.05em;color:var(--text-dim);margin-top:0.3rem;}
+.src-note{font-size:0.85rem;color:var(--text-dim);margin-top:0.4rem;line-height:1.6;}
+
+.sidebar-title{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.25em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border);}
+.sidebar-toc{margin-bottom:3rem;}
+.stoc-item{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;color:var(--text-dim);text-decoration:none;padding:0.5rem 0;border-bottom:1px solid var(--border);transition:color 0.2s,padding-left 0.2s;line-height:1.5;}
+.stoc-item:hover,.stoc-item.active{color:var(--crimson-hi);padding-left:0.4rem;}
+.key-figure{margin-bottom:1.5rem;padding:1.2rem;background:var(--surface);border-top:2px solid var(--crimson-dim);}
+.key-figure-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin-bottom:0.3rem;}
+.key-figure-role{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--crimson-dim);text-transform:uppercase;margin-bottom:0.5rem;}
+.key-figure-note{font-size:0.82rem;color:var(--text-dim);line-height:1.6;}
+.concept-pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;color:var(--text-dim);border:1px solid var(--border-hi);padding:0.25rem 0.7rem;margin:0.2rem 0.2rem 0 0;transition:all 0.2s;text-transform:uppercase;cursor:default;}
+.concept-pill:hover{color:var(--crimson-hi);border-color:var(--crimson-dim);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+::selection{background:rgba(204,72,72,0.15);color:var(--text-hi);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-left">
+    <div class="breadcrumb">
+      <a href="us_economy_research_plan.html">← Plan</a> &nbsp;/&nbsp;
+      <a href="econ_phase1_colonial.html">I</a> &nbsp;/&nbsp;
+      <a href="econ_phase2_market_revolution.html">II</a> &nbsp;/&nbsp;
+      <a href="econ_phase3_gilded_age.html">III</a> &nbsp;/&nbsp;
+      <a href="econ_phase4_new_deal.html">IV</a> &nbsp;/&nbsp;
+      <a href="econ_phase5_postwar.html">V</a> &nbsp;/&nbsp; Phase VI
+    </div>
+    <div class="phase-tag">
+      <span class="phase-tag-num">Phase VI</span>
+      <span class="phase-tag-label">3 Weeks</span>
+    </div>
+    <h1 class="hero-title">Stagflation,<br><em>Neoliberalism</em><br>&amp; Financialization</h1>
+    <div class="hero-dates">1973 &nbsp;—&nbsp; 2008</div>
+    <p class="hero-thesis">The thirty-five years between the oil shock and the financial crisis constitute the most consequential ideological revolution in American economic history since the New Deal — a systematic dismantling of the institutional architecture of managed capitalism and its replacement by a set of doctrines whose internal coherence masked a fundamental reorientation of economic power from labor and the state toward capital and finance. The question that remains unresolved: was neoliberalism an intellectual response to real economic problems, or a class project dressed in economic theory?</p>
+  </div>
+  <div class="hero-right">
+    <span class="chapter-numeral">VI</span>
+    <div class="hero-right-top"></div>
+    <div class="pull-quote-block">
+      <div class="pull-quote">"There is no alternative."</div>
+      <div class="pull-quote-attr">Margaret Thatcher · 1980 · on the necessity of free-market economics · the phrase so repeated it acquired its own acronym: TINA</div>
+    </div>
+  </div>
+</section>
+
+<nav class="toc-nav">
+  <a class="toc-item active" href="#context">Overview</a>
+  <a class="toc-item" href="#stagflation">Stagflation</a>
+  <a class="toc-item" href="#volcker">The Volcker Shock</a>
+  <a class="toc-item" href="#neoliberal-theory">Neoliberal Theory</a>
+  <a class="toc-item" href="#reagan-thatcher">Reagan & Thatcher</a>
+  <a class="toc-item" href="#labor-defeat">Labor's Defeat</a>
+  <a class="toc-item" href="#financialization">Financialization</a>
+  <a class="toc-item" href="#deregulation">Deregulation</a>
+  <a class="toc-item" href="#inequality">The Great Divergence</a>
+  <a class="toc-item" href="#globalization">Globalization & NAFTA</a>
+  <a class="toc-item" href="#housing-bubble">Loading the Crisis</a>
+  <a class="toc-item" href="#sources">Reading List</a>
+</nav>
+
+<div class="main-grid">
+<main class="main-content">
+
+  <!-- OVERVIEW -->
+  <div class="section-block" id="context">
+    <div class="section-eyebrow">Overview</div>
+    <h2 class="section-title">The Counter-Revolution: Dismantling Managed Capitalism</h2>
+
+    <p class="body-p">The period from 1973 to 2008 represents the most dramatic reversal of economic policy direction in American history since the New Deal itself — and in important ways, a more complete ideological transformation, because it was accomplished not merely by legislation but by a comprehensive reorientation of economic ideas, institutional frameworks, professional norms, and political coalitions. The New Deal had built the architecture of managed capitalism: regulated finance, union wage-setting, Keynesian demand management, progressive taxation, and social insurance. The neoliberal period dismantled each of these systematically, replacing them with deregulation, capital mobility, monetarist price stability, regressive tax reform, and market-based social provision.</p>
+
+    <p class="body-p">The standard periodization — "stagflation created the opening, Reagan and Thatcher walked through it" — is correct as far as it goes but misses the deeper structural story. The stagflation of the 1970s was a real crisis that discredited the Keynesian consensus and created genuine intellectual and political space for alternatives. But the alternatives chosen — the specific doctrines of monetarism, supply-side economics, and financial deregulation — were not the only intellectually defensible responses to stagflation. They were the responses that happened to align with the interests of financial capital and that were actively promoted by an institutional infrastructure — think tanks, business associations, law firms, and eventually university economics departments — whose funding and ideological commitments made them enthusiastic advocates. <strong>Understanding neoliberalism requires holding simultaneously the real problems it addressed and the class interests it served.</strong></p>
+
+    <p class="body-p">The period's defining outcomes, measured against the golden age's baseline, are stark. The productivity-wage link that had operated through the postwar period was severed: productivity grew 80% between 1979 and 2020; median wages grew 7%. Union density fell from 35% to 10%. The top 1%'s income share, which had reached a postwar low of 10% in 1976, rose to 22% by 2007 — the same level as 1929, the year before the Great Depression. The financial sector's share of corporate profits grew from roughly 15% in 1980 to 40% by 2007. And the deregulation of financial markets, combined with the innovation of new financial instruments, accumulated the specific fragilities that produced the 2008 financial crisis — the worst since 1929, and a direct consequence of the regulatory dismantling this phase describes.</p>
+
+    <div class="stat-row">
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--crimson-hi)">10%</div>
+        <div class="stat-label">Union Density by 2008</div>
+        <div class="stat-note">Down from 35% in 1954</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--copper-hi)">22%</div>
+        <div class="stat-label">Top 1% Income Share</div>
+        <div class="stat-note">2007 — matching 1929 levels</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--gold)">40%</div>
+        <div class="stat-label">Finance Share of Corp. Profits</div>
+        <div class="stat-note">2007; was 15% in 1980</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" style="color:var(--slate-hi)">7%</div>
+        <div class="stat-label">Median Wage Growth</div>
+        <div class="stat-note">1979–2020; productivity grew 80%</div>
+      </div>
+    </div>
+
+    <div class="event-timeline">
+      <div class="event-item shock">
+        <div class="event-year">1973–1974</div>
+        <div class="event-title">First Oil Shock — Stagflation Arrives</div>
+        <div class="event-desc">OPEC embargo quadruples oil prices; U.S. inflation reaches 12% while unemployment rises. The simultaneous increase in both contradicts the Phillips Curve framework and exposes Keynesian demand management's inability to address supply-side price shocks. GDP contracts 3.2% in 1974. The stagflation crisis provides the political and intellectual opening for the neoliberal challenge to Keynesian orthodoxy.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1975–1976</div>
+        <div class="event-title">New York City Fiscal Crisis — Austerity's Template</div>
+        <div class="event-desc">New York City, near bankruptcy, is denied federal bailout and subjected to an Emergency Financial Control Board that imposes wage freezes, layoffs, and service cuts in exchange for creditor forbearance. The NYC crisis was the first major application of the austerity logic that would characterize IMF structural adjustment programs internationally and welfare state retrenchment domestically — and it was explicitly framed as a lesson about the limits of public spending and public sector unions.</div>
+      </div>
+      <div class="event-item shock">
+        <div class="event-year">1979</div>
+        <div class="event-title">Second Oil Shock — Carter's Crisis</div>
+        <div class="event-desc">The Iranian Revolution disrupts oil supply; prices double again. U.S. inflation reaches 14.5%. Carter appoints Paul Volcker as Federal Reserve chairman in August 1979 with an explicit mandate to break inflation through monetary contraction — whatever the cost to employment. The Volcker appointment marks the decisive break: for the first time, the Federal Reserve explicitly subordinates the employment side of its dual mandate to price stability.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1979–1982</div>
+        <div class="event-title">The Volcker Shock — the Great Disinflation</div>
+        <div class="event-desc">Volcker raises the federal funds rate to 20% in 1981 — the highest in American history. The resulting recession (1981–82) reaches 10.8% unemployment — the highest since the Great Depression. Inflation falls from 14.5% to 3.2% by 1983. The Volcker shock "works" by its own criteria: inflation is crushed. But its distributional consequences — devastating unemployment for industrial workers, farm foreclosures, the destruction of Rust Belt manufacturing communities — represent the most deliberate redistribution from labor to capital in the postwar period.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1980–1981</div>
+        <div class="event-title">Reagan and Thatcher — Neoliberalism in Power</div>
+        <div class="event-desc">Reagan's election in 1980 and Thatcher's (1979) bring explicitly neoliberal programs to the world's two most important English-speaking economies. Reagan's Economic Recovery Tax Act (1981) cuts the top marginal income tax rate from 70% to 50% (later 28% in 1986); initiates deregulation across multiple sectors; attacks public sector unions (PATCO strike, August 1981). The political and ideological transformation is as important as the specific policies: "government is not the solution; government is the problem" becomes the era's governing philosophy.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1981</div>
+        <div class="event-title">PATCO Strike — Labor's Decisive Defeat</div>
+        <div class="event-desc">Reagan fires 11,345 striking air traffic controllers and bans them from federal service for life — the most consequential labor confrontation since Homestead. PATCO's defeat had effects far beyond the federal workforce: it demonstrated that the legal and political protections that labor had relied on since the Wagner Act could be overridden when political will existed. Private sector employers took note; the 1980s wave of union-busting, strike-breaking, and contract concession demands operated in the political atmosphere PATCO created.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1986</div>
+        <div class="event-title">Tax Reform Act — Supply-Side Transformation</div>
+        <div class="event-desc">The Tax Reform Act of 1986 reduces the top marginal income tax rate from 50% to 28% — the culmination of the supply-side tax cutting that began in 1981. By cutting rates and broadening the base (eliminating many deductions), the Act is defensible as tax simplification; its distributive effect is to dramatically reduce the progressivity that had characterized the tax system since the New Deal. The corporate tax rate falls from 46% to 34%. The relationship between tax policy and inequality — established as a mechanism in Phase V — operates in reverse: lower rates at the top increase the after-tax return to extreme income concentration and incentivize its pursuit.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1994</div>
+        <div class="event-title">NAFTA — Globalization Institutionalized</div>
+        <div class="event-desc">The North American Free Trade Agreement, signed by Clinton, eliminates most trade barriers between the U.S., Canada, and Mexico. Its economic effects are contested — overall gains from trade are real, but their distribution is not. NAFTA accelerates the offshoring of manufacturing jobs to lower-wage Mexico; its investor-state dispute settlement provisions allow corporations to challenge domestic regulations as barriers to trade. The political consequences — concentrated job losses in specific communities, diffuse consumer gains — produce the geographic and political polarization that characterizes subsequent U.S. politics.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1999</div>
+        <div class="event-title">Gramm-Leach-Bliley — Glass-Steagall Repealed</div>
+        <div class="event-desc">The Financial Services Modernization Act of 1999 repeals the Glass-Steagall separation of commercial and investment banking — removing the regulatory firewall that had kept the banking system stable since 1933. The repeal enables commercial banks to engage in securities underwriting, proprietary trading, and the originate-to-distribute mortgage model that produced the 2008 crisis. The political economy: the financial industry had spent $300 million lobbying for repeal over the previous decade; the Clinton Treasury Department, staffed by former and future Goldman Sachs executives, provided intellectual cover.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">2000</div>
+        <div class="event-title">Commodity Futures Modernization Act — Derivatives Unregulated</div>
+        <div class="event-desc">Explicitly exempts over-the-counter derivatives (credit default swaps, interest rate swaps, collateralized debt obligations) from regulatory oversight — overriding Brooksley Born's 1998 CFTC proposal to regulate the derivatives market. The "Greenspan Put" — the Fed's implicit commitment to bail out financial markets in any serious crisis — combined with derivatives deregulation to create the moral hazard that drove the risk-taking of the 2000s. The notional value of OTC derivatives grows from $95 trillion in 2000 to $680 trillion by 2007.</div>
+      </div>
+      <div class="event-item shock">
+        <div class="event-year">2007–2008</div>
+        <div class="event-title">The Financial Crisis — the Reckoning</div>
+        <div class="event-desc">The subprime mortgage crisis, transmitted through the derivatives market into the global financial system, produces the worst financial crisis since 1929. Bear Stearns fails in March 2008; Lehman Brothers fails in September 2008; AIG requires a $185 billion government bailout; the Reserve Primary Money Market Fund "breaks the buck." The crisis is the direct consequence of the deregulatory policies of the previous thirty years — a natural experiment that could not be cleaner: Phase VI's ideological program produced the catastrophe Phase VII will analyze.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- STAGFLATION -->
+  <div class="section-block" id="stagflation">
+    <div class="section-eyebrow">The Crisis That Changed Everything</div>
+    <h2 class="section-title">Stagflation: Why Keynesian Tools Failed and What That Proved</h2>
+
+    <p class="body-p">Stagflation — simultaneously rising inflation and unemployment — was the 1970s' defining economic pathology and the empirical event that discredited the Keynesian consensus more thoroughly than any theoretical argument could have. The Phillips Curve's apparent breakdown — the simultaneous worsening of both inflation and unemployment that the Curve said could not happen — demonstrated that either the model was wrong or the conditions under which it operated had fundamentally changed. The neoliberal response chose the former interpretation; a more nuanced reading supports the latter.</p>
+
+    <p class="body-p">The stagflation's actual causes were multiple and interacting. The oil shocks of 1973–74 and 1979 were genuine supply shocks — they raised production costs across the entire economy simultaneously, producing cost-push inflation that was entirely distinct from the demand-pull inflation the Keynesian model addressed. <strong>Keynesian demand management had no adequate tool for supply shocks: expanding demand to address unemployment would worsen inflation; contracting demand to address inflation would deepen unemployment.</strong> This was not a failure of Keynesian theory within its domain — it was the application of a demand-management framework to a supply-side problem for which it was not designed.</p>
+
+    <p class="body-p">The wage-price spiral dimension was real and contributed to inflation's persistence. Under the Treaty of Detroit's Cost-of-Living Adjustment clauses, workers automatically received wage increases tied to the CPI — which meant that any inflationary shock was immediately transmitted into wages, which fed into prices, which required further wage increases. The institutional structure of the postwar wage-setting system, designed to protect workers from inflation, became an engine of inflationary momentum once a significant supply shock set the spiral in motion. This is the genuine structural problem that the institutional arrangements of the golden age could not solve.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Supply Shock vs. Demand Inflation</div>
+        <div class="detail-body">The critical analytical distinction that the standard neoliberal narrative obscures: stagflation was primarily a supply-side phenomenon, not a consequence of Keynesian demand mismanagement. Oil price quadrupling is an exogenous cost shock; it raises prices without expanding demand. <strong>The appropriate policy response to a supply shock is different from the response to demand-pull inflation</strong> — it may require accepting temporarily higher prices while protecting real incomes, rather than the demand contraction that kills both inflation and employment simultaneously. The Volcker shock's "success" in crushing inflation through demand contraction was also a massive and unnecessary unemployment shock applied to a problem whose inflation component was substantially supply-side.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Wage-Price Spiral's Institutional Logic</div>
+        <div class="detail-body">The COLA clauses in industrial union contracts — automatic wage adjustments tied to the CPI — were rational responses to the individual firm's and worker's position but collectively destabilizing once an inflationary shock occurred. Each firm, facing higher costs and COLA-driven wage increases, raised prices; those price increases triggered further COLA adjustments, which required further price increases. <strong>The institutional structure of the postwar wage-setting system transformed a supply shock into a sustained inflationary spiral that monetary policy would eventually have to crush at great cost.</strong> This is a genuine argument for institutional reform of wage-setting arrangements — but not the sweeping argument against Keynesian economics and the welfare state that neoliberal economists drew from it.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Genuine Policy Errors</div>
+        <div class="detail-body">Alongside the structural supply-shock problem, genuine policy errors contributed to stagflation's severity. Nixon's 1971 wage and price controls suppressed inflation artificially; when they were removed in 1973–74, the suppressed inflationary pressure erupted simultaneously with the oil shock, producing a worse outcome than either alone would have. Carter's energy policy was incoherent; the Federal Reserve under Arthur Burns was politically deferential to the Nixon and Ford administrations in ways that allowed inflationary expectations to become entrenched. <strong>These were real errors — but they were errors of political judgment and institutional independence, not inherent failures of Keynesian economics.</strong></div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">What Stagflation Actually Proved</div>
+        <div class="detail-body">Stagflation demonstrated that demand management alone cannot address supply-side shocks — a real limitation of the Keynesian framework's application. It demonstrated that the NAIRU (Non-Accelerating Inflation Rate of Unemployment) concept had empirical content — there is some unemployment rate below which inflation accelerates. And it demonstrated that institutional wage-setting arrangements can propagate inflationary shocks beyond their initial impact. <strong>It did not prove that markets are self-correcting, that regulation is always counterproductive, that unions are economically destructive, or that progressive taxation inhibits growth</strong> — all conclusions that neoliberal advocates drew from the stagflation crisis without adequate empirical foundation.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- VOLCKER -->
+  <div class="section-block" id="volcker">
+    <div class="section-eyebrow">The Monetary Turning Point</div>
+    <h2 class="section-title">The Volcker Shock: Deliberate Unemployment as Policy Instrument</h2>
+
+    <p class="body-p">Paul Volcker's appointment as Federal Reserve chairman in August 1979 — and his subsequent decision to raise the federal funds rate to 20% in 1981 — represents the most consequential single act of monetary policy in American economic history. Its stated purpose: to break inflationary expectations by making money sufficiently scarce that price increases became economically unsustainable. Its mechanism: deliberately induced recession sufficient to destroy the wage-price spiral's institutional momentum. Its cost: 10.8% unemployment, the highest since the Depression; the destruction of industrial communities across the Rust Belt; mass farm foreclosures across the Midwest; a severe recession that lasted two years.</p>
+
+    <p class="body-p">The Volcker shock's distributional consequences deserve explicit analysis because they were not incidental to its operation — they were its mechanism. Inflation is a generalized tax on creditors (because it reduces the real value of nominal assets) and a subsidy to debtors (because it reduces the real burden of nominal debts). Disinflation — what the Volcker shock produced — is the mirror image: a transfer from debtors to creditors, from workers (whose wages are the nominal price being suppressed) to capital owners (whose assets gain real value as price levels stabilize). <strong>The Volcker shock was simultaneously an economic policy and a class policy — it solved the inflation problem in a way that specifically shifted income from labor to capital.</strong> An incomes policy (negotiated wage and price moderation) could have broken the wage-price spiral with far less unemployment cost; it was not adopted because it would have required accepting union participation in economic governance that the emerging neoliberal coalition was committed to eliminating.</p>
+
+    <blockquote>
+      <p>The standard of living of the average American has to decline. I don't think you can escape that.</p>
+      <cite>Paul Volcker · 1979 · on the necessary consequences of disinflation policy</cite>
+    </blockquote>
+
+    <p class="body-p">The Volcker shock's long-run institutional legacy was as important as its immediate economic effects. By demonstrating that the Federal Reserve would prioritize price stability over employment when the two conflicted — and by doing so with explicit presidential support — it established the institutional precedent for central bank "independence" as a commitment to creditor-friendly monetary policy. <strong>The subsequent elevation of "central bank independence" and "inflation targeting" to institutional orthodoxy across the developed world was built on the Volcker precedent</strong> — insulating monetary policy from democratic accountability in ways that systematically favored creditors over debtors, capital over labor, price stability over full employment.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- NEOLIBERAL THEORY -->
+  <div class="section-block" id="neoliberal-theory">
+    <div class="section-eyebrow">The Intellectual Architecture</div>
+    <h2 class="section-title">Neoliberal Theory: The Ideas and Their Institutional Infrastructure</h2>
+
+    <p class="body-p">Neoliberalism was not a spontaneous response to stagflation — it was a carefully constructed intellectual tradition with a decades-long institutional infrastructure that was ready to move from the margins to the center of policy debate when the stagflation crisis created the political opening. The Mont Pelerin Society (founded 1947 by Hayek), the Chicago School (Friedman, Stigler, Becker, Lucas), the Cato Institute (1977), the Heritage Foundation (1973), and the American Enterprise Institute provided the intellectual production; the Business Roundtable (1972) and the U.S. Chamber of Commerce provided the corporate financing and political deployment. Understanding this institutional infrastructure is as important as understanding the ideas themselves.</p>
+
+    <div class="three-grid">
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--crimson-hi)">Hayek & Mont Pelerin</div>
+        <div class="three-name">The Road to Serfdom Argument</div>
+        <div class="three-body">Hayek's <em>Road to Serfdom</em> (1944) argued that economic planning was not merely inefficient but a path to totalitarianism — that any significant government intervention in the economy set in motion a logic of increasing state control that must eventually destroy political freedom. <strong>The argument was specifically directed at the wartime planning consensus</strong> and at the socialist left; it was a warning about coordination mechanisms rather than a blueprint for economic policy. The Mont Pelerin Society (1947) assembled the intellectual opponents of postwar Keynesianism and social democracy in an international network that sustained neoliberal ideas through the decades of their political irrelevance. The patient institutional investment paid off in 1979–80.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--gold)">Chicago School</div>
+        <div class="three-name">Monetarism & Price Theory</div>
+        <div class="three-body">The Chicago School's contributions were analytically more rigorous than Hayek's political philosophy: Friedman's monetarism (money supply determines nominal income; discretionary policy destabilizes; central banks should follow rules not discretion); Stigler's regulatory capture theory (regulators serve regulated industries); Becker's human capital theory (education and training as investment); Lucas's rational expectations (policy cannot systematically fool economic agents). <strong>Each of these contributions addressed real problems with the Keynesian framework</strong>, but their policy implications — the k-percent rule, deregulation, supply-side tax cuts — went beyond what the analytical results warranted. The Chicago School's intellectual achievement was genuine; its policy application was selective and ideologically inflected.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--copper-hi)">Supply-Side Economics</div>
+        <div class="three-name">The Laffer Curve & Trickle-Down</div>
+        <div class="three-body">Supply-side economics — associated with Arthur Laffer, Jude Wanniski, and the editorial pages of the Wall Street Journal — argued that high marginal tax rates so suppressed economic activity that cutting them would actually increase tax revenues (the Laffer Curve). The empirical evidence for this claim at 1970s U.S. tax levels was essentially nonexistent; Reagan's 1981 tax cuts produced large deficits rather than the promised revenue surge. <strong>Supply-side economics was, as George H.W. Bush called it, "voodoo economics"</strong> — a political rationalization for upper-income tax cuts dressed in economic theory. Its persistence, despite empirical refutation, illustrates how economic ideas that serve powerful interests maintain political viability independent of their analytical merit.</div>
+      </div>
+    </div>
+
+    <p class="body-p">The Powell Memo (1971) — a confidential memorandum from future Supreme Court Justice Lewis Powell to the U.S. Chamber of Commerce — is the period's essential primary document for understanding the deliberate construction of the neoliberal institutional infrastructure. Powell argued that American business faced an existential threat from the consumer movement, environmental regulation, and academic critics of capitalism, and that corporations needed to invest systematically in intellectual, political, and legal infrastructure to defend the free enterprise system. <strong>The think-tank network, the business school funding, the legal foundation movement (which produced the Federalist Society), and the corporate political action committee expansion of the 1970s all followed the blueprint Powell laid out.</strong> The transformation of the intellectual environment that made Reaganism possible was not spontaneous — it was the result of a decade of deliberate institutional investment.</p>
+
+    <div class="frame-box">
+      <div class="frame-box-label">The "Washington Consensus" — Neoliberalism Exported</div>
+      <p class="body-p">The Washington Consensus — John Williamson's 1989 codification of the policy package that IMF, World Bank, and U.S. Treasury promoted for developing countries — was neoliberalism's international expression: fiscal discipline (balanced budgets), trade liberalization, privatization of state enterprises, deregulation, and protection of property rights. Applied through IMF conditionality (borrowing countries must implement the package as a condition of loans), it structured economic policy across Latin America, sub-Saharan Africa, and post-communist Eastern Europe throughout the 1980s and 1990s.</p>
+      <p class="body-p" style="margin-bottom:0">The Washington Consensus's empirical record is deeply mixed. Countries that followed it most faithfully (Argentina, Bolivia) experienced serious crises; countries that deviated from it most significantly (South Korea, Taiwan, China) achieved the period's most spectacular development successes. Dani Rodrik's "growth diagnostics" approach — identifying the specific binding constraints on each country's growth rather than applying a universal template — emerged as the most credible alternative framework. The contrast between the Washington Consensus's poor record and East Asia's state-led development success is the most important empirical evidence against the neoliberal claim that government intervention is inherently growth-inhibiting.</p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- REAGAN-THATCHER -->
+  <div class="section-block" id="reagan-thatcher">
+    <div class="section-eyebrow">The Political Revolution</div>
+    <h2 class="section-title">Reagan and Thatcher: The Neoliberal Program in Power</h2>
+
+    <div class="doctrine-grid">
+      <div class="doctrine-card thatcher">
+        <div class="doctrine-tag" style="color:var(--crimson-hi)">United Kingdom · 1979–1990</div>
+        <div class="doctrine-name">Margaret Thatcher</div>
+        <div class="doctrine-dates">Conservative Prime Minister · May 1979 – November 1990</div>
+        <div class="doctrine-body">
+          <p style="margin-bottom:0.8rem;">Thatcher's program was more coherent and more radical than Reagan's — she genuinely believed in monetarism and applied it more consistently, with immediate severe consequences for British industrial employment. Her economic revolution had five major components:</p>
+          <div class="doctrine-item"><strong>Monetarist contraction:</strong> tight money policy producing severe recession in 1980–81; manufacturing employment fell 20% in two years; unemployment reached 3.3 million (12%). The Falklands War (1982) and the subsequent recovery saved her political position.</div>
+          <div class="doctrine-item"><strong>Union legislation:</strong> six successive acts of Parliament restricting union rights — outlawing secondary picketing, requiring secret ballots before strikes, limiting closed shops. The 1984–85 miners' strike — the most dramatic industrial confrontation since the General Strike of 1926 — was deliberately provoked and decisively won, destroying the NUM and symbolically breaking the labor movement's political power.</div>
+          <div class="doctrine-item"><strong>Privatization:</strong> British Telecom, British Gas, British Airways, water utilities, electricity — the systematic sale of state-owned enterprises created the model for privatization programs worldwide. Share sales to the public ("Tell Sid") created a broader shareholder base but concentrated control in institutional investors.</div>
+          <div class="doctrine-item"><strong>Financial deregulation (Big Bang, 1986):</strong> eliminated fixed commission rates on stock exchange transactions and ownership restrictions on financial firms, opening London to international competition and transforming the City into the global financial center it remains.</div>
+          <div class="doctrine-item"><strong>Tax reform:</strong> top income tax rate cut from 83% to 40%; VAT doubled from 8% to 15% — a regressive shift from income to consumption taxation whose distributional consequences were explicit and deliberate.</div>
+        </div>
+      </div>
+      <div class="doctrine-card reagan">
+        <div class="doctrine-tag" style="color:var(--copper-hi)">United States · 1981–1989</div>
+        <div class="doctrine-name">Ronald Reagan</div>
+        <div class="doctrine-dates">40th President · January 1981 – January 1989</div>
+        <div class="doctrine-body">
+          <p style="margin-bottom:0.8rem;">Reagan's "Revolution" was politically more successful than Thatcher's but economically less coherent — supply-side tax cuts combined with defense spending increases produced large deficits that Keynesian theory would have predicted. Its five major transformations:</p>
+          <div class="doctrine-item"><strong>Tax cuts (ERTA 1981):</strong> top marginal rate from 70% to 50%, accelerated by Tax Reform Act 1986 to 28%. The revenue loss, combined with defense spending increases, produced deficits of 4–6% of GDP throughout the 1980s — "Keynesianism for the rich" as critics noted: deficit-financed stimulus delivered primarily through upper-income tax cuts rather than public investment.</div>
+          <div class="doctrine-item"><strong>Deregulation:</strong> rollback of environmental, safety, and financial regulations across multiple agencies; the Garn-St. Germain Act (1982) deregulating savings and loans produced the S&L crisis of the late 1980s — the largest financial debacle since the Depression, costing taxpayers $160 billion.</div>
+          <div class="doctrine-item"><strong>PATCO and labor:</strong> the air traffic controllers' strike dismissal in August 1981 — 11,345 workers fired by presidential order — set the political and legal framework for the corporate union-busting of the 1980s. Private employers proceeded to use replacement workers in strikes, demand contract concessions, and relocate production to avoid unionization, in a political environment that made clear the state would not intervene to protect workers' rights.</div>
+          <div class="doctrine-item"><strong>Anti-Keynesian rhetoric:</strong> "Government is not the solution; government is the problem" — the ideological transformation of public attitudes toward government spending, public sector workers, and the welfare state that made subsequent retrenchment politically viable. Reagan did not eliminate the welfare state; he delegitimized it.</div>
+          <div class="doctrine-item"><strong>Defense buildup:</strong> military spending from 4.9% to 6.2% of GDP — simultaneously the Cold War's final push and a continuation of military Keynesianism that sustained aggregate demand while maintaining the ideological fiction that government spending was being cut.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="body-p">The Clinton administration's economic legacy deserves attention here because it represents the Democratic Party's assimilation of the neoliberal framework — what was called the "Third Way." Clinton's economic team (Robert Rubin, Lawrence Summers, Alan Greenspan's ally) prioritized deficit reduction over public investment, trade liberalization over manufacturing protection, and financial deregulation over Glass-Steagall preservation. NAFTA (1994), welfare reform (1996), and Gramm-Leach-Bliley (1999) were Clinton-era achievements that consolidated the Reagan revolution rather than reversing it. <strong>The Democratic Party's abandonment of its New Deal economic identity — its transformation from the party of labor and manufacturing to the party of knowledge workers, finance, and professional class — was completed under Clinton, not Reagan.</strong></p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- LABOR'S DEFEAT -->
+  <div class="section-block" id="labor-defeat">
+    <div class="section-eyebrow">The Institutional Dismantling</div>
+    <h2 class="section-title">Labor's Defeat: How the Wage-Setting System Was Destroyed</h2>
+
+    <p class="body-p">The collapse of American union density — from 35% in 1954 to 10% today — is the single most important structural change in the American economy over this period, because it is the primary explanation for the severance of the productivity-wage link that had characterized the golden age. Understanding how and why it happened requires distinguishing between the structural causes (deindustrialization, globalization, sectoral shift from manufacturing to services) and the political-legal causes (PATCO, NLRB appointments, state right-to-work laws, management strategy) — because the political-legal causes were choices, not economic inevitabilities.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">PATCO and the Legal Framework</div>
+        <div class="detail-body">Reagan's dismissal of PATCO strikers was not only symbolically important — it changed the legal and political framework within which labor-management relations operated. Before PATCO, permanent replacement of striking workers existed as a legal option but was rarely used; the political cost was prohibitive. After PATCO, the use of permanent replacements — effectively the elimination of the strike as a labor weapon — spread rapidly in private industry. <strong>Continental Airlines declared bankruptcy in 1983 specifically to void its union contracts;</strong> Greyhound, Hormel, International Paper, and many others followed the strategy of provoking strikes, hiring replacements, and winning decertification votes from the replacement workforce. The Wagner Act's protections were not repealed — they were circumvented through strategies that the NLRB, with Reagan-appointed members, declined to prevent.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The NLRB's Political Capture</div>
+        <div class="detail-body">Presidential appointments to the National Labor Relations Board determine whether the Wagner Act's protections are vigorously or minimally enforced. Reagan's NLRB appointments produced an agency that systematically favored employer interpretations of the Act: longer election delays (during which employers could conduct anti-union campaigns), weaker remedies for unfair labor practices (back pay minus interim earnings, making illegal firing of organizers economically rational), and narrow interpretations of protected concerted activity. <strong>The NLRB's effective abandonment of its protective function under Reagan and subsequent Republican administrations was as consequential as any legislative change</strong> — it made the Wagner Act's formal protections effectively unenforceable in practice. Thomas Ferguson and Joel Rogers documented that NLRB election win rates for unions fell from 55% in 1975 to 45% by 1985, while the time between petition and election (during which employer pressure operates) increased dramatically.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Deindustrialization and Offshoring</div>
+        <div class="detail-body">The structural transformation of the economy — from manufacturing to services — would have reduced union density regardless of political choices, because service sector unionization is genuinely more difficult than industrial unionization. But the pace and form of deindustrialization were shaped by political choices. <strong>The combination of NAFTA's trade preferences, the dollar's reserve currency appreciation (which made U.S. exports expensive), and the NLRA's failure to protect organizing in Southern right-to-work states accelerated manufacturing's relocation</strong> in ways that were not economically inevitable. Germany, with comparable manufacturing wage levels, maintained manufacturing employment throughout the same period — through institutions (codetermination, sectoral bargaining, active industrial policy) that the U.S. had never built and now was actively dismantling.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Management Counteroffensive</div>
+        <div class="detail-body">A generation of management consultants, labor lawyers, and business school faculty developed systematic union avoidance strategies: moving facilities to right-to-work states, hiring "union-busting" consultants (a $340 million industry by 1980), threatening plant closure during organizing campaigns, requiring mandatory meetings where supervisors delivered anti-union messages, and designing workplace cultures that emphasized individual identification with the employer over collective worker identity. <strong>These strategies operated in the political space that PATCO and the Reagan NLRB created</strong> — technically legal, in practice an effective nullification of the Wagner Act's organizing protections. Kate Bronfenbrenner's research documented that employer threats to close plants occurred in 51% of organizing campaigns by 1995; actual plant closings following certification occurred in 15% of cases.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- FINANCIALIZATION -->
+  <div class="section-block" id="financialization">
+    <div class="section-eyebrow">The Economy's Transformation</div>
+    <h2 class="section-title">Financialization: When Finance Stopped Serving the Economy and Started Running It</h2>
+
+    <p class="body-p">Financialization — the increasing dominance of financial motives, financial markets, financial actors, and financial institutions in the operation of the economy and its governing institutions — is the period's defining structural transformation. By 2007, the financial sector accounted for 40% of all corporate profits, up from 15% in 1980; financial assets as a share of GDP had grown from roughly 4x to over 10x; and the compensation of financial sector employees had risen to multiples of comparably educated workers in other sectors. <strong>This was not the natural result of economic development — it was the consequence of specific regulatory choices, ideological transformations, and political realignments that systematically favored financial activity over productive activity.</strong></p>
+
+    <p class="body-p">The analytical framework for understanding financialization comes from several sources: Gerald Epstein's definition (the increasing role of financial motives, markets, actors, and institutions); Greta Krippner's empirical documentation of the sectoral shift in profits; and the broader "varieties of capitalism" literature's distinction between patient capital (oriented toward long-term productive investment) and impatient capital (oriented toward short-term financial returns). The shift from patient to impatient capital — from retained earnings and long-term bank relationships to stock market discipline and shareholder value maximization — is the micro-level story behind the macro-level financialization statistics.</p>
+
+    <div class="fin-stack">
+      <div class="fin-item innovation">
+        <div class="fin-year">1970s–1980s</div>
+        <div class="fin-title">Financial Innovation: Securitization and Derivatives</div>
+        <div class="fin-body">The creation of mortgage-backed securities (Ginnie Mae, 1970; Freddie Mac, 1971; Salomon Brothers' private-label MBS, 1977) and the subsequent development of collateralized mortgage obligations (1983), collateralized debt obligations (1987), and credit default swaps (1994) transformed the financial system's structure. <strong>Securitization — pooling loans and selling claims on the pool to investors — converted illiquid loans into tradable securities</strong>, spreading credit risk across the financial system and theoretically improving capital allocation efficiency. In practice, it created the "originate-to-distribute" model in which loan originators had no incentive to maintain lending standards because they would not hold the loans they made. The information asymmetries this created — originators knew loan quality; securities purchasers did not — were the proximate mechanism of the 2008 crisis.</div>
+      </div>
+      <div class="fin-item deregulation">
+        <div class="fin-year">1980s–1990s</div>
+        <div class="fin-title">Shareholder Value Maximization — Jensen and Meckling's Revolution</div>
+        <div class="fin-body">Michael Jensen and William Meckling's 1976 paper "Theory of the Firm: Managerial Behavior, Agency Costs and Ownership Structure" provided the intellectual foundation for the shareholder value revolution — the proposition that corporations' sole legitimate objective is maximizing returns to shareholders, and that managers' incentives should be aligned with shareholders through stock-based compensation. <strong>The practical consequence: the replacement of the "managerial capitalism" of the postwar era</strong> — in which corporate managers balanced the interests of workers, communities, customers, and shareholders — with a shareholder-primacy model that subordinated all other interests to stock price maximization. CEO stock option compensation, which became universal in the 1990s, gave executives powerful personal incentives to prioritize short-term stock price over long-term investment — producing the share buyback epidemic (Phase VII's defining corporate financial behavior).</div>
+      </div>
+      <div class="fin-item ideology">
+        <div class="fin-year">1980s–2000s</div>
+        <div class="fin-title">The Efficient Markets Hypothesis and Its Policy Consequences</div>
+        <div class="fin-body">Eugene Fama's Efficient Markets Hypothesis (EMH) — the proposition that financial market prices reflect all available information and therefore cannot be systematically beaten by active investors — was the academic foundation for financial deregulation. If markets are efficient, there is no case for regulatory intervention: prices already incorporate all relevant information, and any regulation that constrains market participants' behavior reduces efficiency. <strong>The EMH's policy application — that financial markets are self-correcting and require no regulatory oversight</strong> — was far stronger than the empirical evidence justified. Financial markets exhibit numerous well-documented departures from efficiency: momentum effects, value anomalies, herding behavior, bubbles, and crashes. The regulatory vacuum the EMH justified created the conditions for the 2008 crisis.</div>
+      </div>
+      <div class="fin-item innovation">
+        <div class="fin-year">1980s–2000s</div>
+        <div class="fin-title">Private Equity and Leveraged Buyouts</div>
+        <div class="fin-body">The leveraged buyout industry — taking companies private using borrowed money secured against the acquired company's assets, extracting value through asset sales, cost-cutting, and financial engineering, then re-listing at a profit — grew from a boutique activity to a major economic force. KKR's $31 billion buyout of RJR Nabisco (1989) — the subject of <em>Barbarians at the Gate</em> — was the decade's defining transaction. <strong>Private equity's economic logic was partly about efficiency gains (removing agency costs of public markets) and partly about value extraction:</strong> the debt used in LBOs was tax-deductible, creating a tax subsidy for financial engineering over productive investment. The workers of acquired companies typically experienced wage cuts, benefit reductions, and layoffs as the "efficiency" that justified the premium paid. Mitt Romney's Bain Capital, the most politically prominent PE firm of the subsequent era, was the archetype.</div>
+      </div>
+      <div class="fin-item deregulation">
+        <div class="fin-year">1990s–2000s</div>
+        <div class="fin-title">The Rise of "Too Big to Fail"</div>
+        <div class="fin-body">The financial consolidation enabled by Glass-Steagall's repeal and other deregulatory moves produced a handful of financial institutions large enough that their failure would threaten the entire system — institutions whose systemic importance gave them an implicit government guarantee that allowed them to borrow more cheaply than smaller competitors and take more risk than their own capital could absorb. <strong>The "Greenspan Put" — the Fed's demonstrated willingness to cut rates and provide liquidity whenever financial markets experienced stress</strong> — reinforced this implicit guarantee. The combination of too-big-to-fail status and the Greenspan Put created a moral hazard at the heart of the financial system: large institutions could privatize profits during booms while socializing losses during busts. This is the mechanism that Minsky's instability hypothesis had theorized would eventually produce a major financial crisis.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- DEREGULATION -->
+  <div class="section-block" id="deregulation">
+    <div class="section-eyebrow">Dismantling the Guardrails</div>
+    <h2 class="section-title">Financial Deregulation: A Chronology of Removed Guardrails</h2>
+
+    <p class="body-p">The financial crisis of 2008 was not a natural disaster — it was the consequence of a specific series of legislative and regulatory decisions that removed the guardrails erected after the 1929 crash. Tracing this chronology is essential for understanding that the crisis was not an accident but the predictable result of choices made over thirty years — choices that each individually seemed defensible in the intellectual environment of financial deregulation but that cumulatively produced a system of extraordinary fragility.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Garn–St. Germain Act · 1982</div>
+        <div class="detail-body">Deregulated savings and loan institutions — thrifts — by allowing them to expand from home mortgage lending into commercial real estate, junk bonds, and other high-risk assets, while maintaining federal deposit insurance. The result was predictable: thrift managers, able to attract deposits at insured rates and invest in high-risk assets, had every incentive to "bet the bank" — and many did. <strong>The S&L crisis of the late 1980s produced 747 thrift failures costing taxpayers approximately $160 billion</strong> — the largest financial crisis since the Depression at the time. It was a dress rehearsal for 2008, with the same moral hazard mechanism (deposit insurance without adequate regulation) producing the same result (excessive risk-taking followed by government bailout).</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Riegle-Neal Act · 1994</div>
+        <div class="detail-body">Eliminated restrictions on interstate banking — allowing banks to acquire branches across state lines for the first time since the Depression-era regulations. The result was the consolidation of the banking industry: thousands of small and medium banks absorbed into a shrinking number of large institutions. <strong>The "too big to fail" problem grew directly from interstate banking deregulation</strong> — by enabling the creation of institutions large enough to threaten systemic stability if they failed, Riegle-Neal removed the geographic firebreak that had prevented any single institution's failure from threatening the national financial system.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Gramm-Leach-Bliley Act · 1999</div>
+        <div class="detail-body">Repealed the Glass-Steagall separation of commercial banking from investment banking — enabling the creation of universal banks that combined deposit-taking with securities underwriting, proprietary trading, and derivatives dealing. <strong>Glass-Steagall's repeal directly enabled the business model that produced 2008:</strong> banks that held insured deposits could now use those deposits to fund proprietary trading and the purchase of mortgage-backed securities, knowing that deposit insurance protected their funding base regardless of trading losses. Citigroup, which had already merged commercial and investment banking activities before the formal repeal, was the primary corporate beneficiary and the institution that most dramatically illustrated the resulting risks.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Commodity Futures Modernization Act · 2000</div>
+        <div class="detail-body">Explicitly exempted OTC derivatives — credit default swaps, interest rate swaps, collateralized debt obligations — from regulatory oversight by either the CFTC or the SEC. The Act was passed over Brooksley Born's objections (she had proposed regulatory oversight of the derivatives market in 1998) and represented the explicit political defeat of financial regulation by the financial lobby. <strong>The OTC derivatives market grew from $95 trillion notional value in 2000 to $680 trillion by 2007</strong> — a market of extraordinary size operating with essentially no capital requirements, no central clearing, no transparency, and no regulatory oversight. When AIG's credit default swap portfolio collapsed in 2008, requiring a $185 billion government bailout, it was the direct consequence of this regulatory vacuum.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The SEC's Net Capital Rule Change · 2004</div>
+        <div class="detail-body">In 2004, the Securities and Exchange Commission allowed the five largest investment banks (Goldman Sachs, Morgan Stanley, Merrill Lynch, Lehman Brothers, Bear Stearns) to use their own internal risk models to calculate required capital — effectively allowing them to dramatically increase their leverage ratios. <strong>Leverage at the major investment banks rose from roughly 12:1 to 30:1 or higher</strong> — meaning a 3.3% decline in asset values would wipe out all equity. When mortgage-backed securities began declining in 2007, these extraordinarily thin capital cushions were rapidly exhausted, producing the cascade of failures and near-failures that characterized the 2008 crisis. The SEC's 2004 decision was, in Bethany McLean's analysis, "the single most important event in the financial crisis."</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- INEQUALITY -->
+  <div class="section-block" id="inequality">
+    <div class="section-eyebrow">The Great Divergence</div>
+    <h2 class="section-title">The Great Divergence: How the Golden Age's Compression Was Reversed</h2>
+
+    <p class="body-p">Paul Krugman coined the term "Great Divergence" for the reversal of the postwar period's income compression — the process by which the broadly shared prosperity of 1945–1973 gave way to the increasing inequality of 1973–2008 and after. Understanding the Great Divergence requires distinguishing its causes — because different causal explanations lead to different policy implications, and the neoliberal claim that rising inequality was the inevitable result of technological change rather than policy choice is itself an ideological position that the evidence does not clearly support.</p>
+
+    <div class="two-grid">
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--crimson-hi)">The Standard Economic Explanation</div>
+        <div class="two-name">Skill-Biased Technological Change</div>
+        <div class="two-body">The consensus economic explanation for rising inequality: computers and information technology increased the demand for high-skilled workers (who complement technology) while reducing demand for routine-task workers (who are substituted by technology). The resulting premium for education and skill drove apart the earnings of workers at the top and bottom of the distribution. <strong>Goldin and Katz's "race between education and technology"</strong> places this in historical context: when education expanded faster than skill-biased technology (as in the postwar period), inequality compressed; when technology outpaced educational attainment growth (after 1980), inequality expanded. This explanation has genuine empirical support but leaves significant variation in inequality trends unexplained — countries with similar technologies but different institutions (stronger unions, coordinated wage bargaining, more progressive taxes) maintained more equal distributions than the U.S.</div>
+      </div>
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--gold)">The Political Economy Explanation</div>
+        <div class="two-name">Institutional Change & Policy Choice</div>
+        <div class="two-body">The institutional explanation: the Great Divergence reflects deliberate policy choices — union decline (which reduced the bargaining power of middle- and lower-wage workers), tax cuts (which increased the after-tax return to high incomes), deregulation (which increased the rents available to financial sector workers), and trade liberalization (which increased competition for manufacturing wages while reducing competition for professional and financial sector workers). <strong>The evidence that policy choices drove inequality</strong> comes from the international comparison: the U.S. experienced far greater inequality increase than other developed economies with similar technologies but different institutional arrangements. If technology were the primary driver, we would expect similar inequality trends across technologically similar economies; the observed variation suggests that institutions and policies matter at least as much as technology.</div>
+      </div>
+    </div>
+
+    <p class="body-p">Thomas Piketty, Emmanuel Saez, and Gabriel Zucman's long-run income and wealth data — the most important empirical contribution to inequality research of the past twenty years — document the Great Divergence in granular detail. Their finding: between 1980 and 2016, the bottom 50% of income distribution received 2% of the total growth in national income; the top 1% received 28%; the top 0.001% received income growth rates exceeding 600%. <strong>This is not "the economy grew and some people benefited more than others" — this is the effective capture by the top of essentially all income growth for a generation.</strong> The mechanism was not only technology but the specific institutional choices that determined how productivity gains were distributed between labor and capital, between routine and non-routine workers, between the financial sector and the rest of the economy.</p>
+
+    <blockquote>
+      <p>The United States has not always been a land of gaping inequality. For much of the 20th century it was, on the contrary, a relatively middle-class society... The America we've lost was not a perfect society, but it was a more equal society, and that equality was not accidental. It was the result of policies that created a middle class — and policies that can be revived.</p>
+      <cite>Paul Krugman · The Conscience of a Liberal · 2007</cite>
+    </blockquote>
+  </div>
+
+  <hr class="rule">
+
+  <!-- GLOBALIZATION -->
+  <div class="section-block" id="globalization">
+    <div class="section-eyebrow">The International Dimension</div>
+    <h2 class="section-title">Globalization and NAFTA: Trade Liberalization's Distributional Consequences</h2>
+
+    <p class="body-p">The trade liberalization of the 1980s–2000s — the Uruguay Round GATT agreement (1994), NAFTA (1994), China's WTO accession (2001) — produced the most rapid expansion of international trade in history. The aggregate economic gains from trade are real and substantial: consumers benefit from lower prices; comparative advantage produces genuine efficiency gains; global supply chains allow specialization at an international scale. The problem is not trade liberalization itself — it is the distribution of its gains and losses, and the political economy that determines whether the losers are compensated or simply abandoned.</p>
+
+    <p class="body-p">David Autor, David Dorn, and Gordon Hanson's "China Shock" research (2013) is the essential empirical contribution: their finding that Chinese import competition between 1990 and 2007 directly cost 2–2.4 million U.S. manufacturing jobs, concentrated in specific communities (the "China Shock" areas) with cascading effects on wages, employment, family formation, and — in subsequent research — political preferences. <strong>These losses were not distributed randomly or absorbed smoothly by labor market adjustment, as standard trade models had predicted.</strong> They were concentrated geographically and demographically — in older manufacturing communities, among workers without college education, in regions with no obvious alternative employment — and they persisted for decades rather than being rapidly absorbed through labor market adjustment.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">NAFTA's Actual Effects</div>
+        <div class="detail-body">NAFTA's economic consequences are genuinely contested, with different studies producing different estimates depending on methodology and time horizon. The distributional conclusion is clearer: <strong>NAFTA produced large aggregate gains from trade and concentrated losses in specific sectors and communities.</strong> The U.S. auto industry lost roughly 350,000 jobs to Mexico over fifteen years; agricultural communities in Mexico were devastated by U.S. corn imports (flooding Mexican markets with subsidized corn that drove smallholders off the land, contributing to the migration flows that subsequently dominated immigration politics). The Trade Adjustment Assistance program that was supposed to compensate displaced workers was chronically underfunded and administratively cumbersome — compensating less than 20% of job losers with benefits insufficient to fund meaningful retraining.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Dollar as Competitive Handicap</div>
+        <div class="detail-body">The dollar's reserve currency status — which gives the U.S. "exorbitant privilege" in borrowing — also gives the U.S. a structural current account deficit problem: foreigners' demand for dollar assets requires the U.S. to run trade deficits to supply them. The sustained appreciation of the dollar in the 1980s and 1990s — driven partly by the Volcker shock's interest rate differentials and partly by capital inflows seeking dollar assets — made U.S. manufacturing exports expensive and imports cheap, accelerating deindustrialization beyond what pure cost-of-production comparisons would have produced. <strong>The dollar's reserve currency status is both a benefit (cheap borrowing) and a cost (uncompetitive manufacturing)</strong> — a distributional arrangement that systematically advantages financial sector interests over manufacturing worker interests.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">China's WTO Accession — the Decisive Shock</div>
+        <div class="detail-body">China's WTO accession in 2001 produced a trade shock of a scale and speed unprecedented in economic history: a country of 1.3 billion people with manufacturing wage levels roughly 3% of U.S. levels suddenly gained unrestricted access to U.S. markets. The standard trade adjustment model — displaced workers move to expanding sectors — could not operate at this speed or scale. <strong>Autor, Dorn, and Hanson's finding that the China Shock's employment losses were larger, more concentrated, and more persistent than standard models predicted</strong> contributed to the intellectual crisis of trade economics and eventually to the political crisis of 2016, when the communities most severely affected by the China Shock delivered some of the largest swings toward Trump's anti-NAFTA, anti-China campaign.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- LOADING THE CRISIS -->
+  <div class="section-block" id="housing-bubble">
+    <div class="section-eyebrow">The Accumulating Fragility</div>
+    <h2 class="section-title">Loading the Crisis: The Housing Bubble and Its Detonators</h2>
+
+    <p class="body-p">The 2007–2008 financial crisis was not a bolt from the blue — it was the predictable consequence of the specific institutional arrangements that thirty years of financial deregulation had created. The housing bubble was the immediate vehicle; the deregulated financial system that turned subprime mortgages into globally held securities of fraudulent quality was the transmission mechanism; the absence of capital requirements for off-balance-sheet vehicles and OTC derivatives was the accelerant. Understanding the specific mechanism — not just "there was a housing bubble" — is essential for evaluating the subsequent regulatory response (Dodd-Frank) and the question of whether 2008's conditions have been adequately addressed.</p>
+
+    <p class="body-p">The bubble's foundations: the Federal Reserve's post-dot-com-bust low interest rate policy (2001–2004) — the "Greenspan Put" in its most aggressive form — drove investors seeking yield into mortgage-backed securities, creating insatiable demand for mortgages of any quality. The originate-to-distribute model (originators sell loans rather than holding them) eliminated loan quality incentives. Private-label securitization (investment banks issuing MBS without GSE backing) allowed lower lending standards than Fannie and Freddie permitted. Rating agencies — paid by the issuers they rated — assigned AAA ratings to securities that were, in the words of the Financial Crisis Inquiry Commission, "mortgage-related securities that were, in the words of the Financial Crisis Inquiry Commission, built to fail." And the credit default swap market allowed financial institutions to take unlimited exposures to mortgage market risk without holding commensurate capital.</p>
+
+    <div class="three-grid">
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--crimson-hi)">The Origination Machine</div>
+        <div class="three-name">Subprime's Institutional Logic</div>
+        <div class="three-body">The subprime mortgage industry's business model was not accidental predation — it was the rational product of the incentive structure that deregulation and securitization created. Mortgage brokers were paid on volume, not loan quality; originators sold loans within days of origination; investment banks were paid to securitize; rating agencies were paid to rate; investors believed AAA ratings without examining underlying collateral. <strong>Every actor in the chain was operating rationally within the incentive structure the deregulated system had created</strong>. The information problem — nobody with the incentive to look had the information to assess loan quality — was the predictable result of the originate-to-distribute model's severing of the relationship between originator and ultimate risk-bearer.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--gold)">The Rating Agency Failure</div>
+        <div class="three-name">Conflicts of Interest at Scale</div>
+        <div class="three-body">Moody's, S&P, and Fitch rated mortgage-backed securities based on models calibrated to historical data that did not include a nationwide housing price decline — because there had never been one in the postwar period. They were paid by the issuers they rated, creating an obvious conflict of interest. And they competed for rating business, creating pressure to provide the most favorable ratings to win mandates. <strong>The result: $3.2 trillion in subprime mortgages received AAA ratings between 2004 and 2007</strong>. When housing prices stopped rising (2006) and began falling (2007), the models' assumptions collapsed, and securities rated AAA were rapidly downgraded to junk. The simultaneous downgrade of trillions in securities that institutional investors were required to hold at investment grade triggered forced sales that crashed the market.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--copper-hi)">The Minsky Moment</div>
+        <div class="three-name">Instability's Culmination</div>
+        <div class="three-body">Hyman Minsky's financial instability hypothesis — that stability breeds instability, that long periods of financial calm generate the risk-taking that makes crises inevitable — found its most dramatic empirical confirmation in 2007–08. The fifteen-year period of relatively low volatility (the "Great Moderation") had progressively encouraged greater leverage, more complex instruments, and lower risk premiums. <strong>The "Minsky Moment" — when the Ponzi finance structure could no longer be sustained by rising asset prices — arrived in the summer of 2007</strong> when the Bear Stearns hedge funds collapsed and the interbank lending market began to seize. What followed was the debt-deflation spiral that Irving Fisher had analyzed in 1933: forced asset sales depressing prices, depressed prices triggering more forced sales, collapsing credit reducing real economic activity.</div>
+      </div>
+    </div>
+
+    <div class="frame-box">
+      <div class="frame-box-label">The Period's Unresolved Question: Inevitability or Choice?</div>
+      <p class="body-p">The central analytical question of Phase VI — was neoliberalism an inevitable response to real economic problems, or a class project dressed in economic theory? — does not have a clean answer, and the evidence cuts in multiple directions. The stagflation was real and the Keynesian framework genuinely inadequate to address supply-side inflation. Some deregulation was genuinely efficiency-improving (airline, trucking, and telecommunications deregulation produced real consumer gains). Globalization's aggregate gains are real even where their distribution is unjust.</p>
+      <p class="body-p">But the specific form that the neoliberal response took — prioritizing creditor interests over debtor interests in monetary policy; eliminating the institutional protections that gave labor bargaining power; removing the financial regulations that kept the banking system stable; cutting taxes at the top while reducing public investment — reflected choices that happened to align with the interests of financial capital and the top of the income distribution. <strong>Germany, Sweden, and other developed economies faced the same stagflation, the same technological changes, and the same globalization pressures — and produced far smaller increases in inequality and far more durable industrial employment.</strong> The fact that different institutional choices produced different distributional outcomes in similar external environments is the strongest evidence that the Great Divergence was not inevitable but was the consequence of specifically American political and institutional choices.</p>
+      <p class="body-p" style="margin-bottom:0">This question is not merely historical — it directly structures the debate about what to do next. If neoliberalism was the inevitable response to genuine economic constraints, the policy response must accept its basic framework while addressing its worst excesses. If it was a class project that happened to be justified by economic theory, a more fundamental restructuring — rebuilding labor institutions, reimposing financial regulation, restoring progressive taxation — is both analytically justified and politically necessary.</p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SOURCES -->
+  <div class="section-block" id="sources">
+    <div class="section-eyebrow">Reading List</div>
+    <h2 class="section-title">Phase VI Sources</h2>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Primary Sources</div>
+    <div class="source-stack" style="margin-bottom:2rem">
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">The Powell Memo (Confidential Memorandum: Attack on American Free Enterprise System)</div>
+          <div class="src-author">Lewis F. Powell Jr. · August 23, 1971</div>
+          <div class="src-note">The essential primary document for understanding the deliberate construction of the neoliberal institutional infrastructure. Powell, then a corporate lawyer and future Supreme Court Justice, laid out a systematic program for corporate America to defend the free enterprise system against its critics through investment in think tanks, business schools, media, and political lobbying. Read this document alongside the Heritage Foundation's founding (1973), the Business Roundtable's establishment (1972), and the subsequent proliferation of corporate-funded economic policy institutes. The transformation of the intellectual environment that made Reaganism possible was not spontaneous — it is traceable to this memo.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Stabilizing an Unstable Economy</div>
+          <div class="src-author">Hyman Minsky · 1986</div>
+          <div class="src-note">Minsky's full treatment of the financial instability hypothesis — his argument that capitalist economies are inherently unstable, that stability breeds the risk-taking that produces instability, and that the financial system requires active regulatory oversight to prevent the speculative excess that leads to crises. Published in 1986, at the height of the Reagan deregulatory period, it was largely ignored until 2007–08 made its predictions undeniable. Read Chapter 1 (the fundamental thesis), Chapter 8 (the financial instability hypothesis in its formal version), and Chapter 13 (policy implications). Minsky provides both the theoretical framework for understanding the 2008 crisis and the clearest argument for why financial deregulation was always going to produce it.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Greenspan's Admission (Testimony to the House Oversight Committee)</div>
+          <div class="src-author">Alan Greenspan · October 23, 2008</div>
+          <div class="src-note">Greenspan's testimony to the House Oversight Committee, in which he acknowledges finding "a flaw" in his ideology — the belief that financial institutions' self-interest would protect shareholders and the broader economy from the excessive risk-taking that produced 2008. "Those of us who have looked to the self-interest of lending institutions to protect shareholders' equity, myself included, are in a state of shocked disbelief." The admission is historically important both for its content (the Fed chairman's acknowledgment that the efficient markets ideology that governed his 18-year tenure was empirically wrong) and for what it does not say (the specific regulatory decisions that the ideology justified).</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin:2rem 0 1rem">Secondary Sources</div>
+    <div class="source-stack">
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">A Brief History of Neoliberalism</div>
+          <div class="src-author">David Harvey · 2005</div>
+          <div class="src-note">Harvey's essential critical account — concise (200 pages), analytically rigorous, and explicitly Marxist in its framework. His central argument: neoliberalism is best understood not as an economic theory seeking efficient market outcomes but as a political project seeking to restore the power of economic elites whose position had been threatened by the institutional arrangements of managed capitalism. The evidence: neoliberal policies consistently produced concentration of wealth at the top even when they failed by their own economic criteria (growth, stability, efficiency). Read critically — Harvey's framework sometimes oversimplifies the genuine intellectual content of neoliberal theory — but his political economy analysis of who benefited and how is essential.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Great Divergence: America's Growing Inequality Crisis and What We Can Do About It</div>
+          <div class="src-author">Timothy Noah · 2012</div>
+          <div class="src-note">The most accessible comprehensive account of the Great Divergence's causes — Noah systematically evaluates each proposed explanation (globalization, technology, immigration, the decline of unions, tax policy, the rise of the one percent) against the evidence and assesses its relative contribution. His conclusion: no single factor explains the Great Divergence; it is the consequence of multiple mutually reinforcing changes in institutions, policies, and norms. Particularly strong on the union decline's contribution and on the political economy of why the policy causes of inequality are so difficult to reverse. Essential reading before engaging the more technical Piketty-Saez literature.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Big Short: Inside the Doomsday Machine</div>
+          <div class="src-author">Michael Lewis · 2010</div>
+          <div class="src-note">Lewis's account of the handful of investors who correctly identified the subprime mortgage market's fraudulent quality and bet against it is simultaneously the most readable account of the 2008 crisis's mechanics and the most devastating indictment of the financial system's institutional failures. His narrative technique — following specific individuals whose stories illuminate the system's pathologies — makes the abstract mechanisms of securitization, CDOs, and credit default swaps viscerally comprehensible. Read as essential narrative texture alongside the analytical treatments (Minsky, Acharya et al.). Lewis's moral: the financial system's catastrophic failure was not the result of a few bad actors but of institutional arrangements that systematically rewarded short-term risk-taking and punished skepticism.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">13 Bankers: The Wall Street Takeover and the Next Financial Meltdown</div>
+          <div class="src-author">Simon Johnson &amp; James Kwak · 2010</div>
+          <div class="src-note">Johnson (former IMF chief economist) and Kwak's argument: the U.S. financial sector achieved the kind of political capture of the state previously seen only in developing countries — a "financial oligarchy" that used its political and ideological power to block regulatory constraints on its risk-taking. Their comparison between the IMF's advice to developing countries experiencing financial crises (break up the banks, remove political capture) and what the U.S. refused to do in 2008–09 is the book's most powerful analytical move. Essential for understanding the political economy of financial deregulation and the 2008 bailout's design.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Conscience of a Liberal</div>
+          <div class="src-author">Paul Krugman · 2007</div>
+          <div class="src-note">Krugman's argument that the Great Divergence was primarily the result of political choices — specifically the deliberate weakening of labor institutions and the use of racial politics to prevent the cross-racial coalition that would otherwise have sustained a more egalitarian distributive politics. His "movement conservatism" analysis — the argument that the Republican Party's rightward shift was driven by the Southern Strategy's racial politics rather than genuine economic ideology — is the essential political economy account of how the New Deal coalition's collapse enabled the neoliberal program. The book also provides the clearest economic case for rebuilding labor institutions as the primary mechanism for reversing the Great Divergence.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type rec">Recommended</div>
+        <div>
+          <div class="src-title">The China Shock: Learning from Labor Market Adjustment to Large Changes in Trade</div>
+          <div class="src-author">David Autor, David Dorn &amp; Gordon Hanson · American Economic Review, 2016</div>
+          <div class="src-note">The paper that changed economists' consensus view of trade's distributional consequences — demonstrating empirically that the China Shock's job losses were larger, more geographically concentrated, and more persistent than standard trade adjustment models had predicted. Its methodology (comparing regions with high vs. low exposure to Chinese import competition and tracking labor market outcomes) is exemplary; its findings are politically important. The paper's implicit argument: the political backlash against trade liberalization in 2016 was not irrational nativism but a rational response to real economic losses that the economic and policy establishment had systematically underestimated and inadequately addressed.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-toc">
+    <div class="sidebar-title">In This Chapter</div>
+    <a class="stoc-item active" href="#context">Overview & Timeline</a>
+    <a class="stoc-item" href="#stagflation">Stagflation's True Nature</a>
+    <a class="stoc-item" href="#volcker">The Volcker Shock</a>
+    <a class="stoc-item" href="#neoliberal-theory">Neoliberal Theory & Infrastructure</a>
+    <a class="stoc-item" href="#reagan-thatcher">Reagan & Thatcher</a>
+    <a class="stoc-item" href="#labor-defeat">Labor's Defeat</a>
+    <a class="stoc-item" href="#financialization">Financialization</a>
+    <a class="stoc-item" href="#deregulation">Deregulation Chronology</a>
+    <a class="stoc-item" href="#inequality">The Great Divergence</a>
+    <a class="stoc-item" href="#globalization">Globalization & NAFTA</a>
+    <a class="stoc-item" href="#housing-bubble">Loading the Crisis</a>
+    <a class="stoc-item" href="#sources">Reading List</a>
+  </div>
+
+  <div>
+    <div class="sidebar-title">Key Figures</div>
+    <div class="key-figure">
+      <div class="key-figure-name">Paul Volcker</div>
+      <div class="key-figure-role">Fed Chairman 1979–1987 · The Great Disinflation</div>
+      <div class="key-figure-note">The most consequential central banker in American history — his willingness to raise rates to 20% and hold them there through 10.8% unemployment demonstrated that monetary policy could prioritize price stability over employment regardless of the political cost. His "success" became the template for central bank independence and inflation targeting worldwide. Later in life, Volcker expressed serious doubts about the financialization his era had enabled — the Volcker Rule (the modest proprietary trading restriction in Dodd-Frank) was his attempt to restore a Glass-Steagall-like firewall.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Alan Greenspan</div>
+      <div class="key-figure-role">Fed Chairman 1987–2006 · "The Maestro"</div>
+      <div class="key-figure-note">The architect of the "Great Moderation" mythology — the belief that improved monetary policy and financial innovation had tamed the business cycle. His Ayn Rand-influenced conviction that financial markets were self-regulating led him to oppose derivatives regulation (blocking Brooksley Born), support Glass-Steagall repeal, and maintain the "Greenspan Put" that encouraged excessive risk-taking. His October 2008 congressional testimony — acknowledging a "flaw" in his ideology — was the neoliberal era's intellectual autopsy.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Milton Friedman</div>
+      <div class="key-figure-role">Chicago School · Monetarism's Architect</div>
+      <div class="key-figure-note">The period's dominant intellectual figure — his monetarism provided the framework for the Volcker shock, his regulatory capture theory justified deregulation, his shareholder value argument (1970 NYT essay) provided the intellectual foundation for corporate governance transformation. Friedman's analytical contributions were genuine; his policy prescriptions were applied far beyond the domain where his analysis was demonstrably correct. The gap between Friedman's careful empirical economics and the ideological applications made in his name is itself an important story about how economic ideas become political weapons.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Hyman Minsky</div>
+      <div class="key-figure-role">Economist · Financial Instability Hypothesis</div>
+      <div class="key-figure-note">The period's most important and most ignored economist — his financial instability hypothesis, developed through the 1970s and 1980s, provided the clearest theoretical prediction that the deregulation this phase describes would eventually produce a major financial crisis. "Stability is destabilizing" — his core insight — was completely absent from the mainstream macroeconomics that guided policy throughout the period. The "Minsky Moment" of 2007 vindicated his framework; the subsequent decades of attempts to reconstruct macroeconomics with adequate financial sector modeling are his intellectual legacy.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Brooksley Born</div>
+      <div class="key-figure-role">CFTC Chair 1996–1999 · The Unheeded Warning</div>
+      <div class="key-figure-note">The figure whose regulatory proposal for OTC derivatives oversight was explicitly blocked by Greenspan, Rubin, and Summers in 1998 — producing the regulatory vacuum that allowed the derivatives market to grow to $680 trillion without adequate capital requirements. Born's testimony and the subsequent CFMA that overrode her proposal is the clearest example of regulatory capture in the period: financial industry lobbying, combined with ideological opposition to any market regulation among the Clinton economic team, explicitly created the conditions that produced AIG's derivatives-driven collapse a decade later.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Key Concepts</div>
+    <span class="concept-pill">Stagflation</span>
+    <span class="concept-pill">Phillips Curve Breakdown</span>
+    <span class="concept-pill">NAIRU</span>
+    <span class="concept-pill">Volcker Shock</span>
+    <span class="concept-pill">Central Bank Independence</span>
+    <span class="concept-pill">Neoliberalism</span>
+    <span class="concept-pill">Mont Pelerin Society</span>
+    <span class="concept-pill">Chicago School</span>
+    <span class="concept-pill">Supply-Side Economics</span>
+    <span class="concept-pill">Laffer Curve</span>
+    <span class="concept-pill">PATCO</span>
+    <span class="concept-pill">Union Decline</span>
+    <span class="concept-pill">Deindustrialization</span>
+    <span class="concept-pill">Shareholder Value</span>
+    <span class="concept-pill">Financialization</span>
+    <span class="concept-pill">Efficient Markets Hypothesis</span>
+    <span class="concept-pill">Glass-Steagall Repeal</span>
+    <span class="concept-pill">Securitization</span>
+    <span class="concept-pill">Originate-to-Distribute</span>
+    <span class="concept-pill">Credit Default Swaps</span>
+    <span class="concept-pill">Greenspan Put</span>
+    <span class="concept-pill">Too Big to Fail</span>
+    <span class="concept-pill">Great Divergence</span>
+    <span class="concept-pill">Washington Consensus</span>
+    <span class="concept-pill">NAFTA</span>
+    <span class="concept-pill">China Shock</span>
+    <span class="concept-pill">Minsky Moment</span>
+    <span class="concept-pill">Powell Memo</span>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Duration</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:600;color:var(--crimson-hi);line-height:1">3</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-top:0.3rem">Weeks</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);margin-top:0.8rem;line-height:1.6">Read the Powell Memo first — it reframes every subsequent development. Then Harvey (political economy frame), Minsky (financial instability theory), and Lewis (narrative mechanics of the crisis). Krugman for the inequality-politics connection. Autor et al. immediately before Phase VII to understand globalization's political consequences.</div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Navigation</div>
+    <a href="econ_phase5_postwar.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:0.6rem 0;border-bottom:1px solid var(--border);transition:color 0.2s;text-transform:uppercase" onmouseover="this.style.color='var(--crimson-hi)'" onmouseout="this.style.color='var(--text-dim)'">← Phase V · Postwar Prosperity</a>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin:1rem 0 0.3rem">Phase VII · Financial Crisis &amp; Contemporary Economy</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);line-height:1.6">2008–present · The crisis, the inadequate response, and the political-economic landscape that produced Trump, the pandemic economy, and the uncertain restructuring of global capitalism.</div>
+  </div>
+</aside>
+</div>
+
+<footer style="padding:2.5rem 8vw;border-top:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase">U.S. Economy Research Plan · Phase VI of VII</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-style:italic;color:var(--text-dim)">Stagflation, Neoliberalism &amp; Financialization, 1973–2008</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(
+  entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold:0.07 }
+);
+document.querySelectorAll('.section-block').forEach(el => observer.observe(el));
+const navLinks = document.querySelectorAll('.toc-item,.stoc-item');
+const navObs = new IntersectionObserver(
+  entries => entries.forEach(e => {
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      document.querySelectorAll(`[href="#${e.target.id}"]`).forEach(l=>l.classList.add('active'));
+    }
+  }),
+  { threshold:0.3 }
+);
+document.querySelectorAll('[id]').forEach(s=>navObs.observe(s));
+</script>
+</body>
+</html>

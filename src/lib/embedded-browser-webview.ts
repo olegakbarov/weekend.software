@@ -3,6 +3,10 @@ import { LogicalPosition, LogicalSize } from "@tauri-apps/api/dpi";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { Webview } from "@tauri-apps/api/webview";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import {
+  getInactiveBrowserPaneWebviewLabels,
+  isBrowserPaneWebviewLabel,
+} from "@/lib/browser-pane-webviews";
 
 export const BROWSER_WEBVIEW_PAGE_LOAD_EVENT = "browser-webview-page-load";
 
@@ -40,6 +44,59 @@ export function buildEmbeddedBrowserWebviewLabel(
       .replace(/_+/g, "_")
       .slice(0, 64) || "project";
   return `browser-pane:${normalizedProjectKey}:${frameVersion}`;
+}
+
+async function listEmbeddedBrowserWebviews(): Promise<Webview[]> {
+  try {
+    const webviews = await Webview.getAll();
+    return webviews.filter(({ label }) => isBrowserPaneWebviewLabel(label));
+  } catch (error) {
+    console.warn("[Browser] failed to enumerate native webviews", {
+      error,
+    });
+    return [];
+  }
+}
+
+export async function hideInactiveEmbeddedBrowserWebviews(
+  activeLabel?: string | null
+): Promise<void> {
+  const webviews = await listEmbeddedBrowserWebviews();
+  const inactiveLabels = new Set(
+    getInactiveBrowserPaneWebviewLabels(
+      webviews.map(({ label }) => label),
+      activeLabel
+    )
+  );
+  if (inactiveLabels.size === 0) return;
+
+  await Promise.all(
+    webviews.map(async (webview) => {
+      if (!inactiveLabels.has(webview.label)) return;
+      await webview.hide().catch(() => undefined);
+    })
+  );
+}
+
+export async function closeInactiveEmbeddedBrowserWebviews(
+  activeLabel?: string | null
+): Promise<void> {
+  const webviews = await listEmbeddedBrowserWebviews();
+  const inactiveLabels = new Set(
+    getInactiveBrowserPaneWebviewLabels(
+      webviews.map(({ label }) => label),
+      activeLabel
+    )
+  );
+  if (inactiveLabels.size === 0) return;
+
+  await Promise.all(
+    webviews.map(async (webview) => {
+      if (!inactiveLabels.has(webview.label)) return;
+      await webview.hide().catch(() => undefined);
+      await webview.close().catch(() => undefined);
+    })
+  );
 }
 
 function readContainerBounds(container: HTMLElement): Bounds | null {

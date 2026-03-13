@@ -20,7 +20,7 @@ type WorkspaceMode =
 export function BrowserToolbar({
   workspaceMode,
   onWorkspaceModeChange,
-  selectedProject,
+  projectId,
   // Address bar
   urlInputDraft,
   addressBarError,
@@ -44,7 +44,7 @@ export function BrowserToolbar({
   onWorkspaceModeChange: (
     mode: "browser" | "editor" | "agent" | "settings"
   ) => void;
-  selectedProject: string | null;
+  projectId: string | null;
   // Address bar
   urlInputDraft: string;
   addressBarError: string | null;
@@ -245,7 +245,7 @@ export function BrowserToolbar({
               ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/60 text-foreground transition-colors"
               : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground"
           }
-          disabled={!selectedProject}
+          disabled={!projectId}
           onClick={() => onWorkspaceModeChange("settings")}
           title="Project settings"
           type="button"

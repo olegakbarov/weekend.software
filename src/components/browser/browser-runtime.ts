@@ -50,21 +50,21 @@ function buildProjectConfigInvalidReason(
 }
 
 export function resolveBrowserRuntimeTarget({
-  selectedProject,
+  projectId,
   playState,
   hasHealthyRuntimeProcess,
   isProjectConfigLoading,
   projectConfigError,
   projectConfigSnapshot,
 }: {
-  selectedProject: string | null;
+  projectId: string | null;
   playState: PlayState;
   hasHealthyRuntimeProcess: boolean;
   isProjectConfigLoading: boolean;
   projectConfigError: string | null;
   projectConfigSnapshot: ProjectConfigReadSnapshot | null;
 }): BrowserRuntimeTarget {
-  if (!selectedProject) {
+  if (!projectId) {
     return {
       status: "blocked",
       message: "Select a project to open the runtime browser.",
@@ -79,7 +79,7 @@ export function resolveBrowserRuntimeTarget({
       status: "blocked",
       message: configPath
         ? `Failed to read runtime config at ${configPath}: ${projectConfigError}`
-        : `Failed to read runtime config for ${selectedProject}: ${projectConfigError}`,
+        : `Failed to read runtime config for ${projectId}: ${projectConfigError}`,
       url: null,
       action: null,
     };
@@ -89,8 +89,8 @@ export function resolveBrowserRuntimeTarget({
     return {
       status: isProjectConfigLoading ? "loading" : "blocked",
       message: isProjectConfigLoading
-        ? `Reading runtime config for ${selectedProject}...`
-        : `Runtime config is not ready for ${selectedProject}.`,
+        ? `Reading runtime config for ${projectId}...`
+        : `Runtime config is not ready for ${projectId}.`,
       url: null,
       action: isProjectConfigLoading ? null : "play",
     };
@@ -148,7 +148,7 @@ export function resolveBrowserRuntimeTarget({
       status: "loading",
       message: hasHealthyRuntimeProcess
         ? `Loading ${runtimeUrl}...`
-        : `Starting runtime for ${selectedProject}...`,
+        : `Starting runtime for ${projectId}...`,
       url: runtimeUrl,
       action: null,
     };

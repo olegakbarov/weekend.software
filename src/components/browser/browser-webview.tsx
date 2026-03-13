@@ -3,10 +3,13 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import {
   buildEmbeddedBrowserWebviewLabel,
+  closeInactiveEmbeddedBrowserWebviews,
   createEmbeddedBrowserWebview,
+  hideInactiveEmbeddedBrowserWebviews,
   type EmbeddedBrowserWebviewHandle,
 } from "@/lib/embedded-browser-webview";
 import type { PlayState } from "@/lib/controller";
+import { planBrowserPaneVisibility } from "@/lib/browser-pane-webviews";
 import { MOCK_MODE } from "@/lib/tauri-mock";
 import {
   isLocalDevUrl,
@@ -462,9 +465,13 @@ export function useBrowserWebview({
       if (!hostElement) return;
 
       try {
+        const nextLabel = buildEmbeddedBrowserWebviewLabel(
+          projectKey,
+          frameVersion
+        );
         const webview = await createEmbeddedBrowserWebview({
           container: hostElement,
-          label: buildEmbeddedBrowserWebviewLabel(projectKey, frameVersion),
+          label: nextLabel,
           url: displayRuntimeSurfaceUrl,
           onPageLoad: (payload) => {
             if (payload.phase === "started") {
@@ -485,6 +492,12 @@ export function useBrowserWebview({
           },
         });
 
+        if (disposed) {
+          await webview.close();
+          return;
+        }
+
+        await closeInactiveEmbeddedBrowserWebviews(nextLabel);
         if (disposed) {
           await webview.close();
           return;
@@ -529,15 +542,46 @@ export function useBrowserWebview({
   // Show/hide webview based on mode and loading state
   useEffect(() => {
     if (MOCK_MODE) return;
-    const webview = embeddedWebviewRef.current;
-    if (!webview) return;
+    let cancelled = false;
 
-    if (workspaceMode !== "browser" || isFrameLoading || frameErrorMessage) {
-      void webview.hide();
-      return;
-    }
-    void webview.show();
-  }, [frameErrorMessage, isFrameLoading, workspaceMode]);
+    const syncBrowserVisibility = async (): Promise<void> => {
+      const activeWebview = embeddedWebviewRef.current;
+      const visibilityPlan = planBrowserPaneVisibility({
+        activeLabel: activeWebview?.label ?? null,
+        shouldShowActivePane:
+          workspaceMode === "browser" && !isFrameLoading && !frameErrorMessage,
+      });
+
+      if (!visibilityPlan.showActivePaneViaHandle) {
+        if (visibilityPlan.hideActivePaneViaHandle) {
+          await activeWebview?.hide();
+        }
+        await hideInactiveEmbeddedBrowserWebviews(
+          visibilityPlan.inactivePaneExclusionLabel
+        );
+        return;
+      }
+
+      await hideInactiveEmbeddedBrowserWebviews(
+        visibilityPlan.inactivePaneExclusionLabel
+      );
+      if (cancelled) return;
+      await embeddedWebviewRef.current?.show();
+    };
+
+    void syncBrowserVisibility();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    displayRuntimeSurfaceUrl,
+    frameErrorMessage,
+    frameVersion,
+    isFrameLoading,
+    projectKey,
+    workspaceMode,
+  ]);
 
   // Handle Cmd/Ctrl+R when focus is in the main Tauri window
   useEffect(() => {

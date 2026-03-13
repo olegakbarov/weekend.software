@@ -1,0 +1,22 @@
+{
+  "runtime": {
+    "mode": "portless",
+    "url": "http://home.localhost:1355/"
+  },
+  "startup": {
+    "commands": [
+      "pnpm dev"
+    ]
+  },
+  "processes": {
+    "agent": {
+      "command": "claude --dangerously-skip-permissions",
+      "role": "agent"
+    },
+    "dev": {
+      "command": "pnpm dev",
+      "role": "dev-server"
+    }
+  },
+  "archived": false
+}

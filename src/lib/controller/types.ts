@@ -104,7 +104,7 @@ export type WorkspaceControllerState = {
   initialized: boolean;
   shellName: string;
   projects: string[];
-  selectedProject: string | null;
+  focusedProject: string | null;
   projectTreeByProject: Record<string, ProjectTreeNode[]>;
   projectTreeLoadingByProject: Record<string, boolean>;
   projectTreeErrorByProject: Record<string, string | null>;

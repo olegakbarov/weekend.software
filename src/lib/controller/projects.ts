@@ -193,20 +193,20 @@ export function selectProject(
   project: string | null
 ): void {
   const state = ctx.getState();
-  const nextSelectedProject =
+  const nextFocusedProject =
     project && state.projects.includes(project) ? project : null;
 
   ctx.setState((previous) => {
-    if (previous.selectedProject === nextSelectedProject) return previous;
+    if (previous.focusedProject === nextFocusedProject) return previous;
     return {
       ...previous,
-      selectedProject: nextSelectedProject,
+      focusedProject: nextFocusedProject,
     };
   });
 
-  if (!nextSelectedProject) return;
-  void refreshProjectTree(ctx, projectInternals, nextSelectedProject).catch(() => undefined);
-  void refreshProjectConfig(ctx, projectInternals, runtimeInternals, nextSelectedProject).catch(() => undefined);
+  if (!nextFocusedProject) return;
+  void refreshProjectTree(ctx, projectInternals, nextFocusedProject).catch(() => undefined);
+  void refreshProjectConfig(ctx, projectInternals, runtimeInternals, nextFocusedProject).catch(() => undefined);
 }
 
 export async function loadProjects(
@@ -223,40 +223,40 @@ export async function loadProjects(
     const projects = reconcileProjectOrder(savedOrder, backendProjects);
     persistProjectOrder(projects);
 
-    const currentSelectedProject = ctx.getState().selectedProject;
-    let nextSelectedProject: string | null;
+    const currentFocusedProject = ctx.getState().focusedProject;
+    let nextFocusedProject: string | null;
 
     if (preferredProject && projects.includes(preferredProject)) {
-      nextSelectedProject = preferredProject;
+      nextFocusedProject = preferredProject;
     } else if (
-      currentSelectedProject &&
-      projects.includes(currentSelectedProject)
+      currentFocusedProject &&
+      projects.includes(currentFocusedProject)
     ) {
-      nextSelectedProject = currentSelectedProject;
+      nextFocusedProject = currentFocusedProject;
     } else {
-      nextSelectedProject = findDefaultProject(projects);
+      nextFocusedProject = findDefaultProject(projects);
     }
 
     ctx.setState((previous) => ({
       ...previous,
       projects,
-      selectedProject: nextSelectedProject,
+      focusedProject: nextFocusedProject,
     }));
 
-    if (!nextSelectedProject) {
+    if (!nextFocusedProject) {
       reconcileAllProjectRuntimeStates(ctx, runtimeInternals);
       return;
     }
     await Promise.all([
-      refreshProjectTree(ctx, projectInternals, nextSelectedProject).catch(() => undefined),
-      refreshProjectConfig(ctx, projectInternals, runtimeInternals, nextSelectedProject).catch(() => undefined),
+      refreshProjectTree(ctx, projectInternals, nextFocusedProject).catch(() => undefined),
+      refreshProjectConfig(ctx, projectInternals, runtimeInternals, nextFocusedProject).catch(() => undefined),
     ]);
     reconcileAllProjectRuntimeStates(ctx, runtimeInternals);
   } catch {
     ctx.setState((previous) => ({
       ...previous,
       projects: [],
-      selectedProject: null,
+      focusedProject: null,
     }));
   }
 }
@@ -283,7 +283,7 @@ export async function createProject(
   const state = ctx.getState();
   const resolvedProject =
     (createdName && state.projects.includes(createdName) ? createdName : null) ??
-    state.selectedProject;
+    state.focusedProject;
 
   if (!resolvedProject) {
     throw new Error("created project name could not be resolved");
@@ -398,10 +398,10 @@ export async function renameProject(
       projects: previous.projects.map((p) =>
         p === trimmedOld ? resolvedName : p
       ),
-      selectedProject:
-        previous.selectedProject === trimmedOld
+      focusedProject:
+        previous.focusedProject === trimmedOld
           ? resolvedName
-          : previous.selectedProject,
+          : previous.focusedProject,
       projectTreeByProject: rekey(previous.projectTreeByProject),
       projectTreeLoadingByProject: rekey(previous.projectTreeLoadingByProject),
       projectTreeErrorByProject: rekey(previous.projectTreeErrorByProject),
@@ -475,8 +475,8 @@ export async function deleteProject(
 
     const next = {
       ...previous,
-      selectedProject:
-        previous.selectedProject === projectName ? null : previous.selectedProject,
+      focusedProject:
+        previous.focusedProject === projectName ? null : previous.focusedProject,
       projectTreeByProject: nextProjectTreeByProject,
       projectTreeLoadingByProject: nextProjectTreeLoadingByProject,
       projectTreeErrorByProject: nextProjectTreeErrorByProject,
@@ -538,8 +538,8 @@ export async function archiveProject(
 
     const next = {
       ...previous,
-      selectedProject:
-        previous.selectedProject === projectName ? null : previous.selectedProject,
+      focusedProject:
+        previous.focusedProject === projectName ? null : previous.focusedProject,
       projectTreeByProject: nextProjectTreeByProject,
       projectTreeLoadingByProject: nextProjectTreeLoadingByProject,
       projectTreeErrorByProject: nextProjectTreeErrorByProject,

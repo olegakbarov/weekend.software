@@ -6,9 +6,9 @@ import {
 } from "@tanstack/react-router";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Sidebar } from "@/components/sidebar/sidebar";
+import { useAppActions } from "@/hooks/use-app-actions";
 import { useFullscreen } from "@/hooks/use-fullscreen";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { useWorkspaceActions } from "@/hooks/use-workspace-actions";
 import type { WorkspaceController } from "@/hooks/use-workspace-controller";
 import { useWorkspaceState } from "@/hooks/use-workspace-state";
 import { cn } from "@/lib/utils";
@@ -86,11 +86,11 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
   const { controller } = Route.useRouteContext();
   const state = useWorkspaceState(controller);
   const navigate = useNavigate();
-  const { isFullscreen, isSidebarVisible, setIsSidebarVisible } =
+  const { isFullscreen, isSidebarVisible, setIsSidebarVisible, isSidebarCollapsed, toggleSidebarCollapsed } =
     useFullscreen();
-  const actions = useWorkspaceActions(controller, state);
+  const appActions = useAppActions(controller, state);
 
-  useKeyboardShortcuts(controller, routeInfo.project, routeInfo.route === "workspace" ? routeInfo.view : null);
+  useKeyboardShortcuts(controller, routeInfo.project, routeInfo.route === "workspace" ? routeInfo.view : null, toggleSidebarCollapsed);
 
   const sidebar = (
     <Sidebar
@@ -99,29 +99,26 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
       activeTerminalId={routeInfo.view === "terminal" ? routeInfo.terminalId : null}
       isFullscreen={isFullscreen}
       onOpenHome={() => void navigate({ to: "/home" })}
-      onCreateTerminal={actions.createTerminal}
+      onCreateTerminal={appActions.createTerminal}
       onOpenLogs={() => void navigate({ to: "/logs" })}
       onOpenSettings={() => void navigate({ to: "/settings" })}
-      onRenameTerminal={(terminalId, newLabel) => {
-        controller.renameTerminalSession(terminalId, newLabel);
-      }}
-      onPlay={actions.play}
-      onStop={actions.stop}
-      onRemoveTerminal={(terminalId) => {
-        controller.removeTerminalSession(terminalId);
-      }}
-      onReorderProjects={actions.reorderProjects}
-      onRenameProject={actions.renameProject}
-      onSelectBrowser={actions.selectBrowser}
-      onSelectTerminal={actions.selectTerminal}
-      playStateByProject={state.playStateByProject}
-      playErrorByProject={state.playErrorByProject}
-      projects={state.projects}
-      terminalSessionsByProject={state.terminalSessionsByProject}
-      showArchived={state.showArchived}
-      archivedProjects={state.archivedProjects}
-      onToggleShowArchived={actions.toggleShowArchived}
-      onUnarchiveProject={actions.unarchiveProject}
+      onRenameTerminal={appActions.renameTerminal}
+      onPlay={appActions.play}
+      onStop={appActions.stop}
+      onRemoveTerminal={appActions.removeTerminal}
+      onReorderProjects={appActions.reorderProjects}
+      onRenameProject={appActions.renameProject}
+      onSelectBrowser={appActions.selectBrowser}
+      onSelectTerminal={appActions.selectTerminal}
+      playStateByProject={appActions.playStateByProject}
+      playErrorByProject={appActions.playErrorByProject}
+      projects={appActions.projects}
+      terminalSessionsByProject={appActions.terminalSessionsByProject}
+      showArchived={appActions.showArchived}
+      archivedProjects={appActions.archivedProjects}
+      onToggleShowArchived={appActions.toggleShowArchived}
+      onUnarchiveProject={appActions.unarchiveProject}
+      onToggleSidebar={toggleSidebarCollapsed}
     />
   );
 
@@ -159,7 +156,19 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
           </div>
         </>
       ) : (
-        sidebar
+        <div
+          className="relative h-full shrink-0 overflow-hidden transition-[width] duration-150 ease-out"
+          style={{
+            width: isSidebarCollapsed ? "0px" : `${FULLSCREEN_SIDEBAR_WIDTH_PX}px`,
+          }}
+        >
+          <div
+            className="h-full"
+            style={{ width: `${FULLSCREEN_SIDEBAR_WIDTH_PX}px` }}
+          >
+            {sidebar}
+          </div>
+        </div>
       )}
       <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
         <ErrorBoundary name="root-outlet">

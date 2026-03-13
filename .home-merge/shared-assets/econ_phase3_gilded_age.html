@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase III — Gilded Age & Industrial Capitalism</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #08070d;
+  --bg2:       #0c0a16;
+  --surface:   #131020;
+  --surface2:  #1c1830;
+  --border:    #28224a;
+  --border-hi: #3a3260;
+  --gold:      #c9a84c;
+  --gold-dim:  #7a6030;
+  --gold-pale: #e8d9a8;
+  --amber:     #c47a1a;
+  --amber-hi:  #e8971e;
+  --amber-dim: #7a4a0a;
+  --copper:    #b06030;
+  --copper-hi: #d07840;
+  --copper-dim:#6a3818;
+  --violet:    #7a4a9a;
+  --violet-hi: #9a6aba;
+  --violet-dim:#3a2050;
+  --text:      #c8c4bb;
+  --text-dim:  #57607a;
+  --text-hi:   #ece7de;
+  --ink:       #d2cdc5;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Libre Baskerville',Georgia,serif;
+  font-size:16px;line-height:1.85;overflow-x:hidden;
+}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--border);overflow:hidden;position:relative;
+}
+.hero-left{
+  padding:7rem 5vw 5rem 8vw;display:flex;flex-direction:column;
+  justify-content:center;position:relative;z-index:1;
+  border-right:1px solid var(--border);
+}
+.hero-left::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 5% 65%,rgba(196,122,26,0.06) 0%,transparent 60%);
+}
+.hero-right{
+  padding:7rem 8vw 5rem 5vw;display:flex;flex-direction:column;
+  justify-content:flex-end;background:var(--bg2);position:relative;overflow:hidden;
+}
+.hero-right::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 75% 25%,rgba(122,74,154,0.06) 0%,transparent 55%),
+    radial-gradient(ellipse at 20% 80%,rgba(196,122,26,0.04) 0%,transparent 50%);
+}
+.chapter-numeral{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(9rem,18vw,20rem);font-weight:700;
+  color:var(--surface2);line-height:0.85;
+  position:absolute;right:-1.5rem;top:2rem;
+  user-select:none;pointer-events:none;z-index:0;
+  opacity:0;animation:fadeIn 1.8s 0.4s forwards;
+}
+.breadcrumb{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.25em;color:var(--copper-dim);text-transform:uppercase;
+  margin-bottom:2.5rem;opacity:0;animation:fadeUp 0.6s 0.1s forwards;
+}
+.breadcrumb a{color:inherit;text-decoration:none;}
+.breadcrumb a:hover{color:var(--amber-hi);}
+.phase-tag{
+  display:inline-flex;align-items:center;gap:0.8rem;
+  margin-bottom:1.5rem;opacity:0;animation:fadeUp 0.6s 0.2s forwards;
+}
+.phase-tag-num{
+  font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:600;
+  color:var(--amber-hi);border:1px solid var(--amber-dim);padding:0.15rem 0.7rem;letter-spacing:0.1em;
+}
+.phase-tag-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;
+}
+.hero-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.8rem,5.5vw,5.5rem);font-weight:300;
+  line-height:1.05;color:var(--text-hi);letter-spacing:-0.02em;
+  opacity:0;animation:fadeUp 0.9s 0.3s forwards;
+}
+.hero-title em{font-style:italic;color:var(--amber-hi);}
+.hero-dates{
+  font-family:'JetBrains Mono',monospace;font-size:0.8rem;
+  color:var(--amber-dim);letter-spacing:0.2em;
+  margin-top:1.5rem;margin-bottom:2.5rem;
+  opacity:0;animation:fadeUp 0.6s 0.5s forwards;
+}
+.hero-thesis{
+  font-size:1.05rem;font-style:italic;color:var(--text-dim);
+  line-height:1.8;max-width:480px;
+  border-left:2px solid var(--amber-dim);padding-left:1.5rem;
+  opacity:0;animation:fadeUp 0.6s 0.65s forwards;
+}
+.pull-quote-block{opacity:0;animation:fadeIn 1.2s 0.8s forwards;}
+.pull-quote{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.05rem,1.9vw,1.7rem);font-weight:300;
+  font-style:italic;color:var(--text-hi);line-height:1.6;margin-bottom:1rem;
+}
+.pull-quote-attr{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.15em;color:var(--amber-dim);text-transform:uppercase;
+}
+.hero-right-top{flex:1;}
+
+/* ── NAV ── */
+.toc-nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(8,7,13,0.96);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;padding:0 8vw;overflow-x:auto;scrollbar-width:none;
+}
+.toc-nav::-webkit-scrollbar{display:none;}
+.toc-item{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;
+  color:var(--text-dim);text-decoration:none;padding:1rem 0.9rem;
+  border-bottom:2px solid transparent;white-space:nowrap;
+  transition:all 0.2s;text-transform:uppercase;
+}
+.toc-item:hover{color:var(--amber-hi);border-bottom-color:var(--amber-dim);}
+.toc-item.active{color:var(--amber-hi);border-bottom-color:var(--amber-hi);}
+
+/* ── LAYOUT ── */
+.main-grid{display:grid;grid-template-columns:680px 1fr;max-width:1400px;margin:0 auto;}
+@media(max-width:1100px){
+  .main-grid{grid-template-columns:1fr;}
+  .hero{grid-template-columns:1fr;}
+  .hero-right,.sidebar{display:none;}
+}
+.main-content{padding:5rem 5vw 5rem 8vw;border-right:1px solid var(--border);}
+.sidebar{
+  padding:5rem 4vw 5rem 3vw;position:sticky;top:52px;
+  height:calc(100vh - 52px);overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;
+  background:var(--bg2);
+}
+
+/* ── CONTENT ── */
+.section-block{
+  margin-bottom:5rem;opacity:0;transform:translateY(28px);
+  transition:opacity 0.7s ease,transform 0.7s ease;
+}
+.section-block.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:0.62rem;
+  letter-spacing:0.28em;color:var(--amber-hi);text-transform:uppercase;
+  margin-bottom:1.2rem;display:flex;align-items:center;gap:0.8rem;
+}
+.section-eyebrow::after{content:'';width:40px;height:1px;background:var(--amber-dim);}
+.section-title{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,3vw,2.4rem);
+  font-weight:300;color:var(--text-hi);line-height:1.2;
+  letter-spacing:-0.01em;margin-bottom:2rem;
+}
+.body-p{font-size:0.97rem;line-height:1.9;color:var(--ink);margin-bottom:1.4rem;}
+.body-p strong{color:var(--text-hi);font-weight:700;}
+.body-p em{color:var(--gold-pale);font-style:italic;}
+.rule{width:100%;height:1px;background:linear-gradient(90deg,var(--amber-dim),transparent);margin:3rem 0;border:none;}
+
+blockquote{
+  margin:2.5rem 0;padding:1.8rem 2rem 1.8rem 2.5rem;
+  background:var(--surface);border-left:3px solid var(--amber-hi);position:relative;
+}
+blockquote::before{
+  content:'\201C';font-family:'Cormorant Garamond',serif;font-size:5rem;
+  color:var(--amber-dim);position:absolute;top:-0.5rem;left:0.5rem;
+  line-height:1;pointer-events:none;
+}
+blockquote p{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;color:var(--text-hi);line-height:1.7;position:relative;z-index:1;}
+blockquote cite{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--amber-dim);text-transform:uppercase;margin-top:0.8rem;font-style:normal;}
+
+/* ── EVENT TIMELINE ── */
+.event-timeline{margin:2rem 0;position:relative;padding-left:2.5rem;}
+.event-timeline::before{
+  content:'';position:absolute;left:0.6rem;top:0.5rem;bottom:0.5rem;
+  width:1px;background:linear-gradient(to bottom,var(--amber-dim),transparent);
+}
+.event-item{position:relative;margin-bottom:2rem;}
+.event-item::before{
+  content:'';position:absolute;left:-1.9rem;top:0.45rem;
+  width:8px;height:8px;border-radius:50%;background:var(--amber-dim);border:1px solid var(--amber-hi);
+}
+.event-item.pivot::before{background:var(--violet-hi);border-color:var(--violet-hi);}
+.event-item.tension::before{background:var(--copper-hi);border-color:var(--copper-hi);}
+.event-year{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;color:var(--amber-hi);margin-bottom:0.2rem;}
+.event-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.4rem;}
+.event-desc{font-size:0.88rem;color:var(--text-dim);line-height:1.7;}
+
+/* ── DETAIL STACK ── */
+.detail-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.detail-item{
+  background:var(--bg2);padding:1.4rem 1.8rem;
+  display:grid;grid-template-columns:220px 1fr;
+  gap:1.5rem;align-items:flex-start;transition:background 0.2s;
+}
+.detail-item:hover{background:var(--surface);}
+.detail-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.68rem;
+  letter-spacing:0.1em;color:var(--amber-hi);text-transform:uppercase;
+  padding-top:0.15rem;line-height:1.6;
+}
+.detail-body{font-size:0.88rem;color:var(--text-dim);line-height:1.75;}
+.detail-body strong{color:var(--text);}
+
+/* ── ROBBER BARONS GRID ── */
+.baron-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.baron-card{background:var(--bg2);padding:2rem;transition:background 0.2s;position:relative;overflow:hidden;}
+.baron-card:hover{background:var(--surface);}
+.baron-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.baron-card.oil::before{background:var(--amber-hi);}
+.baron-card.steel::before{background:var(--copper-hi);}
+.baron-card.rail::before{background:var(--violet-hi);}
+.baron-card.finance::before{background:var(--gold);}
+.baron-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.baron-name{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--text-hi);margin-bottom:0.3rem;}
+.baron-industry{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;color:var(--text-dim);text-transform:uppercase;margin-bottom:0.8rem;}
+.baron-body{font-size:0.87rem;color:var(--text-dim);line-height:1.75;}
+.baron-body strong{color:var(--text);}
+
+/* ── THREE-COL ── */
+.three-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+@media(max-width:800px){.three-grid{grid-template-columns:1fr;}}
+.three-card{background:var(--bg2);padding:1.8rem;transition:background 0.2s;}
+.three-card:hover{background:var(--surface);}
+.three-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.three-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.6rem;}
+.three-body{font-size:0.86rem;color:var(--text-dim);line-height:1.72;}
+.three-body strong{color:var(--text);}
+
+/* ── INTERPRETATION GRID ── */
+.interp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+@media(max-width:900px){.interp-grid{grid-template-columns:1fr;}}
+.interp-card{background:var(--bg2);padding:2rem;transition:background 0.2s;}
+.interp-card:hover{background:var(--surface);}
+.interp-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.interp-name{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--text-hi);margin-bottom:0.6rem;line-height:1.3;}
+.interp-thinker{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.7rem;}
+.interp-body{font-size:0.86rem;color:var(--text-dim);line-height:1.72;}
+.interp-body strong{color:var(--text);}
+
+/* ── AGENCY TABLE ── */
+.agency-table{width:100%;border-collapse:collapse;margin:2rem 0;}
+.agency-table th{
+  font-family:'JetBrains Mono',monospace;font-size:0.6rem;
+  letter-spacing:0.18em;text-transform:uppercase;color:var(--text-hi);
+  background:var(--surface2);padding:0.8rem 1.2rem;
+  border:1px solid var(--border);text-align:left;
+}
+.agency-table td{
+  padding:0.9rem 1.2rem;border:1px solid var(--border);
+  vertical-align:top;line-height:1.55;font-size:0.87rem;color:var(--text-dim);
+}
+.agency-table tr:hover td{background:var(--surface);}
+.agency-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);}
+
+/* ── LABOR GRID ── */
+.labor-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.labor-card{background:var(--bg2);padding:2rem;transition:background 0.2s;}
+.labor-card:hover{background:var(--surface);}
+.labor-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.labor-name{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--text-hi);margin-bottom:0.6rem;}
+.labor-body{font-size:0.87rem;color:var(--text-dim);line-height:1.75;}
+.labor-body strong{color:var(--text);}
+.labor-item{margin-bottom:0.5rem;padding-left:1rem;position:relative;font-size:0.87rem;color:var(--text-dim);line-height:1.6;}
+.labor-item::before{content:'→';position:absolute;left:0;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--amber-dim);top:0.05rem;}
+
+/* ── FRAME BOX ── */
+.frame-box{
+  background:var(--surface);border:1px solid var(--border-hi);
+  padding:2.5rem;margin-top:3rem;position:relative;
+}
+.frame-box-label{
+  position:absolute;top:-0.6rem;left:1.5rem;
+  background:var(--surface);padding:0 0.8rem;
+  font-family:'JetBrains Mono',monospace;font-size:0.6rem;
+  letter-spacing:0.2em;color:var(--amber-hi);text-transform:uppercase;
+}
+
+/* ── SOURCE CARDS ── */
+.source-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);}
+.src-card{
+  background:var(--bg2);padding:1.5rem 1.8rem;
+  display:grid;grid-template-columns:auto 1fr;
+  gap:1.5rem;align-items:flex-start;transition:background 0.2s;
+}
+.src-card:hover{background:var(--surface);}
+.src-type{
+  font-family:'JetBrains Mono',monospace;font-size:0.58rem;
+  letter-spacing:0.12em;text-transform:uppercase;
+  padding:0.2rem 0.6rem;border:1px solid;white-space:nowrap;margin-top:0.2rem;
+}
+.src-type.essential{border-color:var(--gold);color:var(--gold);}
+.src-type.primary{border-color:var(--amber-hi);color:var(--amber-hi);}
+.src-type.rec{border-color:var(--border-hi);color:var(--text-dim);}
+.src-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;font-style:italic;color:var(--text-hi);line-height:1.4;}
+.src-author{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.05em;color:var(--text-dim);margin-top:0.3rem;}
+.src-note{font-size:0.85rem;color:var(--text-dim);margin-top:0.4rem;line-height:1.6;}
+
+/* ── SIDEBAR ── */
+.sidebar-title{
+  font-family:'JetBrains Mono',monospace;font-size:0.6rem;
+  letter-spacing:0.25em;color:var(--text-dim);text-transform:uppercase;
+  margin-bottom:1.5rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border);
+}
+.sidebar-toc{margin-bottom:3rem;}
+.stoc-item{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.08em;color:var(--text-dim);text-decoration:none;
+  padding:0.5rem 0;border-bottom:1px solid var(--border);
+  transition:color 0.2s,padding-left 0.2s;line-height:1.5;
+}
+.stoc-item:hover,.stoc-item.active{color:var(--amber-hi);padding-left:0.4rem;}
+.key-figure{
+  margin-bottom:1.5rem;padding:1.2rem;
+  background:var(--surface);border-top:2px solid var(--amber-dim);
+}
+.key-figure-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin-bottom:0.3rem;}
+.key-figure-role{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--amber-dim);text-transform:uppercase;margin-bottom:0.5rem;}
+.key-figure-note{font-size:0.82rem;color:var(--text-dim);line-height:1.6;}
+.concept-pill{
+  display:inline-block;font-family:'JetBrains Mono',monospace;
+  font-size:0.62rem;letter-spacing:0.08em;color:var(--text-dim);
+  border:1px solid var(--border-hi);padding:0.25rem 0.7rem;
+  margin:0.2rem 0.2rem 0 0;transition:all 0.2s;text-transform:uppercase;cursor:default;
+}
+.concept-pill:hover{color:var(--amber-hi);border-color:var(--amber-dim);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+::selection{background:rgba(232,151,30,0.15);color:var(--text-hi);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="breadcrumb">
+      <a href="us_economy_research_plan.html">← Research Plan</a>
+      &nbsp;/&nbsp;
+      <a href="econ_phase1_colonial.html">Phase I</a>
+      &nbsp;/&nbsp;
+      <a href="econ_phase2_market_revolution.html">Phase II</a>
+      &nbsp;/&nbsp; Phase III
+    </div>
+    <div class="phase-tag">
+      <span class="phase-tag-num">Phase III</span>
+      <span class="phase-tag-label">3 Weeks</span>
+    </div>
+    <h1 class="hero-title">Gilded Age &amp;<br><em>Industrial</em><br>Capitalism</h1>
+    <div class="hero-dates">1877 &nbsp;—&nbsp; 1929</div>
+    <p class="hero-thesis">Industrial capitalism concentrated wealth at a scale previously unimaginable, produced the most violent labor conflicts in American history, and generated a Progressive regulatory response whose most important legacy may be that it legitimized the corporate power it claimed to tame. The question Gabriel Kolko forced onto the table — did regulation discipline corporations or capture the state for them? — has never been answered to anyone's satisfaction, because both things happened simultaneously.</p>
+  </div>
+  <div class="hero-right">
+    <span class="chapter-numeral">III</span>
+    <div class="hero-right-top"></div>
+    <div class="pull-quote-block">
+      <div class="pull-quote">"The growth of a large business is merely a survival of the fittest... The American Beauty rose can be produced in the splendor and fragrance which bring cheer to its beholder only by sacrificing the early buds which grow up around it. This is not an evil tendency in business. It is merely the working-out of a law of nature and a law of God."</div>
+      <div class="pull-quote-attr">John D. Rockefeller Sr. · Sunday School Address · c. 1900</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ NAV ═══ -->
+<nav class="toc-nav">
+  <a class="toc-item active" href="#context">Overview</a>
+  <a class="toc-item" href="#second-industrial">Second Industrial Revolution</a>
+  <a class="toc-item" href="#robber-barons">Robber Barons & Trusts</a>
+  <a class="toc-item" href="#mechanisms">Mechanisms of Capture</a>
+  <a class="toc-item" href="#labor">The Labor Question</a>
+  <a class="toc-item" href="#populism">Populism & the Money Question</a>
+  <a class="toc-item" href="#progressive">What Was Progressivism?</a>
+  <a class="toc-item" href="#kolko">The Kolko Problem</a>
+  <a class="toc-item" href="#federal-reserve">The Federal Reserve</a>
+  <a class="toc-item" href="#twenties">The 1920s Boom</a>
+  <a class="toc-item" href="#sources">Reading List</a>
+</nav>
+
+<!-- ═══ BODY ═══ -->
+<div class="main-grid">
+<main class="main-content">
+
+  <!-- OVERVIEW -->
+  <div class="section-block" id="context">
+    <div class="section-eyebrow">Overview</div>
+    <h2 class="section-title">The Concentration of Power and the Question of Its Limits</h2>
+
+    <p class="body-p">The half-century between the end of Reconstruction (1877) and the eve of the Great Depression (1929) was the most economically transformative period in American history since the Market Revolution — and arguably the most consequential for the structural shape of the economy that exists today. It produced the large corporation as the dominant economic institution; the organized industrial working class as a political actor; the regulatory state as the government's response to concentrated private power; the Federal Reserve as the institutional architecture of American monetary policy; and the consumer credit economy as the foundation of the mass market. All of these persist in forms directly traceable to their Gilded Age and Progressive Era origins.</p>
+
+    <p class="body-p">The period's defining tension: industrial capitalism generated extraordinary wealth and concentrated it at a scale that democratic republican ideology could not accommodate. By 1890, the top 1% of American households held 51% of the country's wealth. Standard Oil controlled 91% of U.S. refining capacity. J.P. Morgan's banking house could — and in 1895 and 1907 did — bail out the United States Treasury from financial crises, demonstrating that private financial power had exceeded the capacity of the federal government. <strong>The question was not whether to respond but how — and the Progressive Era's answer, the regulatory state, was contested from the moment of its creation by the question of whose interests it actually served.</strong></p>
+
+    <p class="body-p">The period also encompasses the first serious political challenge to industrial capitalism from below: the Populist movement of the 1880s–90s, which came closer to structural economic reform than any subsequent reform movement until the New Deal, and which was defeated by a combination of political manipulation, economic coercion, and the racial division that separated Black and white farmers who shared economic interests. Understanding Populism's defeat is essential for understanding why the Progressive Era's subsequent regulatory response was so much more accommodating to corporate power.</p>
+
+    <div class="event-timeline">
+      <div class="event-item">
+        <div class="event-year">1877</div>
+        <div class="event-title">The Great Railroad Strike — the Labor Question Arrives</div>
+        <div class="event-desc">The first nationwide strike in American history, triggered by wage cuts on the Baltimore & Ohio Railroad during a depression. Strikes spread rapidly across the railroad network; in Pittsburgh, striking workers and sympathizers burned railroad property worth millions. President Hayes deployed federal troops — the first use of federal military force against a labor dispute. The strike was suppressed but the "labor question" — what to do about the dependent industrial working class that capitalism was creating — became the central domestic political issue of the Gilded Age.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1879</div>
+        <div class="event-title">Progress and Poverty — Henry George's Challenge</div>
+        <div class="event-desc">Henry George's <em>Progress and Poverty</em> — asking why poverty persisted and intensified alongside economic progress — became the 19th century's best-selling economics text and launched a mass movement for a "single tax" on land values. George's analysis: the rent captured by landowners (who contributed nothing to rising land values) was the primary mechanism of inequality in a growing economy. His influence on progressive thought, urban reform, and economic theory was enormous and lasting — Tolstoy, Shaw, and Sun Yat-sen counted themselves Georgists.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1882–1890</div>
+        <div class="event-title">Trust Formation at Scale</div>
+        <div class="event-desc">Standard Oil's trust agreement (1882) — the first major corporate trust — established the legal structure for combining competing corporations into a single centrally managed enterprise while maintaining the fiction of separate ownership. The trust form spread rapidly: the Sugar Trust, the Steel Trust, the Tobacco Trust, the Beef Trust. By 1904, 318 industrial trusts controlled two-fifths of American manufacturing capital, representing a consolidation of economic power without precedent in human history.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1890</div>
+        <div class="event-title">Sherman Antitrust Act — the State Responds</div>
+        <div class="event-desc">The first federal antitrust law, prohibiting "every contract, combination, or conspiracy in restraint of trade" and monopolization. Its passage was nearly unanimous — the political consensus against monopoly was broad. But the Act's vague language, the courts' narrow interpretation (applying it more aggressively to labor unions than to corporations in its early years), and the inadequacy of its enforcement mechanisms meant that it did not reverse the trust movement. The Northern Securities case (1904) demonstrated that vigorous enforcement was possible; the Standard Oil dissolution (1911) was its greatest success — though the seven successor companies were worth more separately than Standard had been as a single entity.</div>
+      </div>
+      <div class="event-item tension">
+        <div class="event-year">1892</div>
+        <div class="event-title">Homestead Strike — Corporate Violence</div>
+        <div class="event-desc">Carnegie Steel's lockout of the Amalgamated Association of Iron and Steel Workers at the Homestead, Pennsylvania works — the most violent industrial confrontation of the Gilded Age. Carnegie's manager Henry Clay Frick hired 300 Pinkerton agents to break the strike; the resulting battle on the Monongahela River killed seven workers and three Pinkertons. Pennsylvania's governor deployed 8,000 National Guard troops to end the strike. The union was broken; Carnegie Steel became non-union for the next 44 years. Homestead established the pattern: corporations would use private violence and state military force to defeat unions; the law would not protect workers' organizing rights.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1893–1896</div>
+        <div class="event-title">Panic of 1893 and the Populist Moment</div>
+        <div class="event-desc">The worst depression in American history to that point — 500 bank failures, 15,000 business failures, 20% unemployment. The depression supercharged the Populist Party, which had been building since the late 1880s around farmers' grievances about railroad rates, credit conditions, and commodity prices. The 1896 election — Bryan vs. McKinley, silver vs. gold, agrarian populism vs. industrial capitalism — was the decisive confrontation between the two competing political economies. McKinley's victory established industrial capital's political dominance for the next generation.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1901–1909</div>
+        <div class="event-title">The Roosevelt Era — the Regulatory State Emerges</div>
+        <div class="event-desc">Theodore Roosevelt's presidency established the regulatory state's basic architecture: the Bureau of Corporations (1903), the Hepburn Act (1906) strengthening railroad regulation, the Pure Food and Drug Act (1906), the Meat Inspection Act (1906). Roosevelt's "stewardship theory" of presidential power — that the president could act on any matter not explicitly prohibited — expanded executive authority in ways that set the precedent for the 20th century's activist presidency. His Northern Securities prosecution (1904) demonstrated that antitrust law could be used against large corporations, not just labor unions.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1907</div>
+        <div class="event-title">The Panic of 1907 — the Federal Reserve's Origin</div>
+        <div class="event-desc">A banking panic triggered by a failed attempt to corner the copper market — contained only when J.P. Morgan personally organized a private rescue, convening New York's leading bankers in his library and refusing to let them leave until they agreed to commit funds to stabilize the system. The spectacle of the U.S. Treasury depending on a private banker to prevent financial collapse made the inadequacy of the existing system undeniable. The Aldrich Commission and the subsequent legislative process produced the Federal Reserve Act (1913) — the most important financial legislation in American history.</div>
+      </div>
+      <div class="event-item>
+        <div class="event-year">1913–1914</div>
+        <div class="event-title">The Progressive Amendments & the Clayton Act</div>
+        <div class="event-desc">The 16th Amendment (federal income tax), the 17th Amendment (direct election of senators), the Federal Reserve Act, and the Clayton Antitrust Act together constituted the Wilson administration's legislative achievement — the most substantial reform program since the Civil War. The 16th Amendment in particular reversed a Supreme Court decision (Pollock v. Farmers' Loan, 1895) and established the constitutional basis for the progressive income tax that would fund the 20th century's activist federal government.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1914–1918</div>
+        <div class="event-title">World War I — the Managed Economy Preview</div>
+        <div class="event-desc">American mobilization for World War I required the first systematic experiment in federal economic management: the War Industries Board, the Food Administration, the Fuel Administration, the War Labor Board, the Railroad Administration. Bernard Baruch's War Industries Board allocated raw materials, set prices, and coordinated production across the entire industrial economy. The experience demonstrated both the possibility and the limits of wartime economic planning — and established many of the institutional forms that the New Deal would revive in the 1930s.</div>
+      </div>
+      <div class="event-item tension">
+        <div class="event-year">1920–1929</div>
+        <div class="event-title">The 1920s Boom — Loading the Crash</div>
+        <div class="event-desc">The decade of apparent prosperity that loaded the conditions for the Depression: electrification, automobiles, consumer durables, radio, installment credit, and speculative stock market expansion. Productivity growth was real and substantial; its benefits went almost entirely to capital rather than labor. Union membership fell sharply under the "American Plan" of open-shop campaigns. Agricultural prices fell throughout the decade, creating a farm depression that preceded the industrial crash. Stock market speculation on margin credit created the financial fragility that made the 1929 crash catastrophic rather than merely severe.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SECOND INDUSTRIAL REVOLUTION -->
+  <div class="section-block" id="second-industrial">
+    <div class="section-eyebrow">Technological Foundation</div>
+    <h2 class="section-title">The Second Industrial Revolution: Steel, Oil, Electricity, and the Logic of Scale</h2>
+
+    <p class="body-p">The second industrial revolution — roughly 1870–1920 — differed from the first in a crucial way: its technologies rewarded scale in ways the first had not. A textile mill twice the size of another was not twice as efficient; a steel mill twice the size of another could be dramatically more efficient per unit of output through better furnace utilization, cheaper raw material procurement, and lower per-unit overhead. The logic of scale — what economists call "economies of scale" — drove the consolidation of American industry into ever-larger units, and the concentration of ownership of those units into ever-fewer hands.</p>
+
+    <p class="body-p">Steel was the paradigmatic industry of the second industrial revolution. The Bessemer process (1856) and the open-hearth furnace (1860s) made steel production economically viable at industrial scale for the first time; Carnegie's vertical integration of the entire production chain — from iron ore mines in Minnesota's Mesabi Range through coal fields, railroads, blast furnaces, and rolling mills to the final product — extracted maximum efficiency from the scale economies available. By 1900, Carnegie Steel produced more steel than all of Britain. The company's 1901 sale to J.P. Morgan, creating U.S. Steel — the world's first billion-dollar corporation — was itself a demonstration of financial capitalism's capacity to aggregate industrial capital at a scale that exceeded any individual's wealth.</p>
+
+    <p class="body-p">Electricity's diffusion in the 1880s–1910s transformed both industrial production and daily life. Thomas Edison's direct-current system and Nikola Tesla's alternating-current system (adopted after the "War of Currents" of the late 1880s) created the infrastructure for electric power distribution. The consequences for industrial organization were profound: steam power had required factories to be built around central engines; electric power allowed flexible shop-floor layouts, individual machine motors, and the spatial reorganization of production that enabled the assembly line. <strong>Henry Ford's Highland Park plant (1913) — the first moving assembly line, reducing Model T assembly time from 12.5 hours to 93 minutes — was built on the organizational possibilities that electrification created.</strong></p>
+
+    <p class="body-p">The organizational revolution that accompanied the technological one was, Alfred Chandler argued, as consequential as the technology itself. The large vertically integrated corporation — controlling its own raw materials, transportation, production, and distribution — required management structures that did not exist in 1870. The railroad had pioneered them (middle managers, divisional organization, systematic accounting); the industrial corporations of the Gilded Age extended them. The separation of ownership from control — shareholders owning corporations managed by professional executives who were not the owners — created the organizational form of 20th-century capitalism and the principal-agent problems (whose interests do managers serve?) that became central to economic theory in the 1970s.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- ROBBER BARONS -->
+  <div class="section-block" id="robber-barons">
+    <div class="section-eyebrow">Concentrated Power</div>
+    <h2 class="section-title">The Robber Barons: How Monopoly Capital Was Built</h2>
+
+    <p class="body-p">The men who built the great industrial fortunes of the Gilded Age — Rockefeller, Carnegie, Morgan, Vanderbilt, Harriman — have been celebrated as entrepreneurial geniuses and condemned as predatory monopolists. Both characterizations capture something real and miss something important. They were genuine organizers of productive capacity at unprecedented scale; they were also systematic users of economic coercion, political corruption, and legal manipulation to eliminate competition and extract monopoly rents. The two things were not separate — the coercive methods were instrumentally necessary for achieving the scale that made the productive achievements possible.</p>
+
+    <div class="baron-grid">
+      <div class="baron-card oil">
+        <div class="baron-tag" style="color:var(--amber-hi)">Petroleum · Standard Oil</div>
+        <div class="baron-name">John D. Rockefeller</div>
+        <div class="baron-industry">Standard Oil Company · est. 1870</div>
+        <div class="baron-body">Standard Oil's path to controlling 91% of U.S. refining capacity was not primarily technological innovation — it was systematic economic coercion. Rockefeller negotiated secret rebates from railroads (receiving kickbacks on both his own shipments and his competitors') that gave him a decisive cost advantage. Competitors faced a choice: sell to Standard at Rockefeller's price or be driven out of business. <strong>The trust structure (1882) allowed Standard to coordinate pricing and production across nominally separate corporations while evading the legal prohibition on one corporation owning stock in another.</strong> Ida Tarbell's 1904 muckraking investigation documented the mechanism in detail that the public had not previously seen. The Supreme Court's 1911 dissolution order broke Standard into 34 companies — but the Rockefeller family retained shares in all of them, becoming the wealthiest family in American history.</div>
+      </div>
+      <div class="baron-card steel">
+        <div class="baron-tag" style="color:var(--copper-hi)">Steel · Carnegie Steel</div>
+        <div class="baron-name">Andrew Carnegie</div>
+        <div class="baron-industry">Carnegie Steel Company · sold 1901</div>
+        <div class="baron-body">Carnegie's genius was vertical integration — controlling every input from Mesabi iron ore to the finished beam — and the relentless application of the latest technology (he would tear down a functioning mill to install a newer furnace if the economics justified it). His labor philosophy: pay the lowest possible wages, break every union, work the longest possible hours. The Homestead Strike (1892) was the direct consequence — and Carnegie was vacationing in Scotland while Frick managed the violence, preserving his public image as a philanthropist. <strong>Carnegie sold his steel empire to J.P. Morgan in 1901 for $480 million (approximately $17 billion today) and spent the rest of his life giving it away</strong> — endowing libraries, universities, and the Carnegie Endowment for International Peace. His philanthropy did not undo the labor conditions under which the fortune was made.</div>
+      </div>
+      <div class="baron-card finance">
+        <div class="baron-tag" style="color:var(--gold)">Finance · Investment Banking</div>
+        <div class="baron-name">J.P. Morgan</div>
+        <div class="baron-industry">J.P. Morgan & Co. · est. 1871</div>
+        <div class="baron-body">Morgan occupied a unique position: not an industrial producer but the financial architect of industrial concentration. His "Morganization" of railroads — buying up competing lines, recapitalizing them, installing his representatives on their boards, and establishing price agreements — eliminated ruinous railroad competition and stabilized returns for bondholders. His creation of U.S. Steel (1901) was the most ambitious financial consolidation in history. <strong>The Pujo Committee investigation (1912–13) documented the "money trust" — an interlocking network of corporate directorships centered on Morgan's house that effectively controlled American industrial and financial corporations.</strong> Louis Brandeis's response, <em>Other People's Money</em> (1914), argued that concentrated financial power was incompatible with democratic governance — a thesis whose relevance to 21st-century finance requires no elaboration.</div>
+      </div>
+      <div class="baron-card rail">
+        <div class="baron-tag" style="color:var(--violet-hi)">Railroads · Transportation</div>
+        <div class="baron-name">Cornelius Vanderbilt / Jay Gould</div>
+        <div class="baron-industry">New York Central · Erie Railroad</div>
+        <div class="baron-body">The railroad barons represented the period's most visible form of economic coercion — charging farmers and small businesses whatever the traffic would bear, with no competitive alternative. Rate discrimination (charging small shippers more than large ones, charging rural shippers more than urban ones) transferred income systematically from agricultural and small business interests to railroad shareholders. Jay Gould's Erie Railroad was notorious for stock manipulation and "watered" stock issuance. <strong>The railroads' political corruption — their systematic bribery of state legislatures and Congress — was so widespread that it was barely contested.</strong> The Granger movement's response (state railroad regulation in the 1870s) was the first attempt at public utility regulation in American history; its defeat in Wabash v. Illinois (1886) led directly to the Interstate Commerce Act (1887).</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- MECHANISMS -->
+  <div class="section-block" id="mechanisms">
+    <div class="section-eyebrow">How Power Was Consolidated</div>
+    <h2 class="section-title">Four Mechanisms of Political Capture</h2>
+
+    <p class="body-p">The Gilded Age's concentration of economic power was not achieved through market competition alone — it required the systematic use of political power to create and protect monopoly positions. Understanding how economic power was converted into political power — and how political power was then used to protect and expand economic power — is the essential analytical task of the period. Four mechanisms were primary:</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Corruption — Direct Purchase</div>
+        <div class="detail-body">The most straightforward mechanism: corporations paid legislators directly. The Credit Mobilier scandal (1872) — in which Crédit Mobilier of America, the construction company for the Union Pacific Railroad, distributed shares to Congress members who then voted on railroad legislation — was the period's most spectacular example, but not its most representative. <strong>Standard Oil's political expenditures were systematic and documented:</strong> John Archbold's letters (leaked in 1904) showed the company paying regular retainers to senators and governors across multiple states. Mark Hanna's management of McKinley's 1896 campaign — raising $3.5 million from corporations and banks — established the template for corporate political finance that persisted through the 20th century. The Senate was widely called "a millionaires' club" — its membership overlapping substantially with corporate boards, its elections controlled by state legislatures that corporations had already bought.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Legal Architecture — Favorable Rules</div>
+        <div class="detail-body">Beyond direct corruption, corporations shaped the legal framework within which they operated. <strong>The 14th Amendment's equal protection clause — designed to protect the rights of freed Black citizens — was weaponized by corporations claiming "personhood" and constitutional protection from state regulation.</strong> Between 1868 and 1912, of the 14th Amendment cases heard by the Supreme Court, 28 involved Black litigants and 288 involved corporations. The doctrine of "substantive due process" — that the 14th Amendment protected corporations' "liberty of contract" from government regulation — was used to strike down minimum wage laws, maximum hours laws, and child labor restrictions as unconstitutional interference with freedom of contract. This doctrine dominated constitutional law from Lochner v. New York (1905) to West Coast Hotel v. Parrish (1937) — three decades during which the courts actively prevented democratic governance of the economy.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Tariff Politics — Embedded Protection</div>
+        <div class="detail-body">The protective tariff, originally justified by Hamilton's infant-industry argument, had by the Gilded Age become a mechanism for permanently protecting established industries from foreign competition at consumers' expense. <strong>The tariff-writing process was a direct auction of protection:</strong> industries hired lobbyists to insert favorable provisions; Congress members traded votes; the resulting tariff schedules were incomprehensibly complex and precisely calibrated to maximize corporate profits. The McKinley Tariff (1890), the Dingley Tariff (1897), and the Payne-Aldrich Tariff (1909) each raised protection further, transferring income from consumers to manufacturers in amounts that dwarfed any other federal subsidy program. The tariff's political economy — manufactured by and for the Republican Party's corporate base — was the clearest example of what political economists would later call "rent-seeking": using political power to capture income rather than creating it.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Courts — Anti-Labor Deployment</div>
+        <div class="detail-body">Perhaps the most consequential mechanism of political capture was the systematic use of the judiciary against labor organizing. <strong>The Sherman Antitrust Act — passed to restrain corporate monopolies — was applied far more aggressively to labor unions than to corporations in its early years.</strong> The Debs injunction (1894), which imprisoned Eugene Debs for leading the Pullman Strike in violation of a federal court injunction, established the use of injunctions as a standard anti-labor tool. Courts issued thousands of injunctions against strikes and boycotts in the 1880s–1910s, effectively making the most effective forms of labor action legally risky. Combined with the corporations' ability to hire private police forces (Pinkertons, Coal and Iron Police) with more legal standing than picketers, the judiciary made union organizing extremely dangerous and expensive throughout the Gilded Age.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- LABOR -->
+  <div class="section-block" id="labor">
+    <div class="section-eyebrow">The Working Class Responds</div>
+    <h2 class="section-title">The Labor Question: Four Organizational Models</h2>
+
+    <p class="body-p">The industrial working class of the Gilded Age faced conditions that were, by any standard, brutal: twelve-hour days in steel mills, six-day weeks, child labor in coal mines and textile factories, company towns where employers controlled housing, stores, and the local government, wages that fell with every depression and rose less than productivity in every boom. The labor movement that emerged in response was not a single movement but several competing movements with incompatible organizational theories and political strategies.</p>
+
+    <div class="labor-grid">
+      <div class="labor-card">
+        <div class="labor-tag" style="color:var(--amber-hi)">Org. Model I · 1869–1890s</div>
+        <div class="labor-name">Knights of Labor</div>
+        <div class="labor-body">
+          <p style="margin-bottom:0.8rem;">The Knights of Labor under Terence Powderly was the Gilded Age's most ambitious labor organization — a genuinely radical attempt to organize all workers (skilled and unskilled, Black and white, men and women) into a single movement that would transform the wage labor system rather than simply bargain within it.</p>
+          <div class="labor-item"><strong>Inclusive organizing:</strong> explicitly welcomed Black workers, women, and unskilled workers at a time when most unions excluded all three</div>
+          <div class="labor-item"><strong>Anti-wage-labor ideology:</strong> aimed for producer cooperatives that would replace the wage system, not better wages within it</div>
+          <div class="labor-item"><strong>Peak membership:</strong> 700,000 in 1886, including a remarkable proportion of the Southern Black working class</div>
+          <div class="labor-item"><strong>Collapse:</strong> the Haymarket bombing (1886) — falsely attributed to labor radicals — triggered a wave of repression; the Knights' internal contradictions between skilled and unskilled workers accelerated the decline</div>
+        </div>
+      </div>
+      <div class="labor-card">
+        <div class="labor-tag" style="color:var(--gold)">Org. Model II · 1886–present</div>
+        <div class="labor-name">American Federation of Labor</div>
+        <div class="labor-body">
+          <p style="margin-bottom:0.8rem;">Samuel Gompers's AFL represented the defeat of the Knights' radicalism and the consolidation of "pure and simple unionism" — organizing skilled craft workers to win better wages and conditions within the capitalist system rather than challenging the system itself.</p>
+          <div class="labor-item"><strong>Exclusionary strategy:</strong> organized by craft, excluded unskilled workers, women, and (in most affiliates) Black workers — the structural racism of the "labor aristocracy"</div>
+          <div class="labor-item"><strong>Gompers's "voluntarism":</strong> opposition to government intervention in labor markets, relying on collective bargaining rather than legislation — making the AFL politically dependent on corporate Democrats</div>
+          <div class="labor-item"><strong>Durability through accommodation:</strong> the AFL's strategy of accepting capitalism while organizing within it produced a durable institution but one that represented only the most privileged stratum of the working class</div>
+          <div class="labor-item"><strong>Peak pre-Wagner:</strong> 4 million members by 1920, concentrated in construction, printing, and skilled manufacturing</div>
+        </div>
+      </div>
+      <div class="labor-card">
+        <div class="labor-tag" style="color:var(--copper-hi)">Org. Model III · 1905–1920s</div>
+        <div class="labor-name">Industrial Workers of the World</div>
+        <div class="labor-body">
+          <p style="margin-bottom:0.8rem;">The IWW ("Wobblies") represented the syndicalist alternative: organize all workers in an industry regardless of skill, use direct action (strikes, slowdowns, sabotage) rather than collective bargaining contracts, and ultimately abolish the wage system through a general strike.</p>
+          <div class="labor-item"><strong>One Big Union:</strong> attempted to organize migratory farm workers, lumber workers, textile workers, and dock workers — the most exploited and least organized segments of the working class</div>
+          <div class="labor-item"><strong>Racial inclusion:</strong> more consistently anti-racist than the AFL, organizing Black dockworkers and Mexican agricultural workers</div>
+          <div class="labor-item"><strong>Lawrence Strike (1912):</strong> "Bread and Roses" — a textile workers' strike that won wage increases for 275,000 New England textile workers and became the IWW's greatest triumph</div>
+          <div class="labor-item"><strong>Repression:</strong> the Espionage Act (1917) and the Palmer Raids (1919–20) effectively destroyed the IWW through mass arrests, deportations, and vigilante violence; its leadership was imprisoned</div>
+        </div>
+      </div>
+      <div class="labor-card">
+        <div class="labor-tag" style="color:var(--violet-hi)">Org. Model IV · 1890s–1912</div>
+        <div class="labor-name">Socialist Party / Labor Politics</div>
+        <div class="labor-body">
+          <p style="margin-bottom:0.8rem;">The Socialist Party under Eugene Debs represented the electoral-political path: organize workers as voters, elect socialist candidates, and use state power to reform capitalism's worst features while building toward its eventual replacement.</p>
+          <div class="labor-item"><strong>Electoral peak:</strong> Debs received 6% of the popular vote in 1912 — the Socialist Party's best showing, reflecting genuine working-class support for the socialist program</div>
+          <div class="labor-item"><strong>Municipal successes:</strong> socialist mayors and councils elected in Milwaukee, Schenectady, and dozens of other industrial cities, implementing genuine reforms</div>
+          <div class="labor-item"><strong>WWI destruction:</strong> Debs's opposition to the war and his Canton, Ohio speech (1918) led to his 10-year federal prison sentence under the Espionage Act; the party was effectively destroyed by war-era repression and post-war Red Scare</div>
+          <div class="labor-item"><strong>Legacy:</strong> the failure of a labor-based socialist party to establish itself permanently in American politics — unlike every other industrialized democracy — is one of American political economy's defining structural features</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="body-p">The great labor confrontations of the period — the Great Railroad Strike (1877), Homestead (1892), the Pullman Strike (1894), the Colorado mine wars (1903–1914), the Triangle Shirtwaist fire (1911) — established the terms of the labor question that the New Deal would eventually resolve, imperfectly, through the Wagner Act. <strong>The 146 workers (mostly young immigrant women) who died in the Triangle fire when the stairwell doors were locked from the outside — to prevent unauthorized breaks — gave the Progressive reform movement its most powerful symbol and accelerated the legislative response that produced New York's factory inspection system and eventually federal labor standards.</strong></p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- POPULISM -->
+  <div class="section-block" id="populism">
+    <div class="section-eyebrow">The Challenge from Below</div>
+    <h2 class="section-title">Populism and the Money Question: The Last Anti-Monopoly Movement</h2>
+
+    <p class="body-p">The Populist movement of the 1880s–90s was the most serious challenge to industrial capitalism from below in American history — more radical in its structural critique, more broadly based in its coalition, and closer to actual power than any subsequent reform movement until the New Deal. Its defeat by the McKinley coalition in 1896 closed the window on structural economic reform for a generation and established the limits within which the Progressive Era's more accommodating reformism would subsequently operate.</p>
+
+    <p class="body-p">The Populists' structural diagnosis: farmers were being systematically exploited by a combination of railroad rate discrimination, tight money that deflated commodity prices while leaving debt obligations fixed, and the commodity marketing system that extracted rents at every stage between farmer and consumer. Their program was correspondingly structural: government ownership of railroads, a "sub-treasury" plan for government commodity storage and crop loans (anticipating the New Deal's Agricultural Adjustment Administration), a graduated income tax, the direct election of senators, and — most controversially — the "free coinage of silver" to expand the money supply and relieve the debt deflation that was driving farmers into bankruptcy.</p>
+
+    <p class="body-p">The money question — gold vs. silver, tight money vs. easy money — was the period's central economic policy debate and one whose relevance to contemporary monetary economics is direct. <strong>Deflation (falling prices) transfers income from debtors to creditors: if you borrowed $1,000 to buy land and the price level falls 30%, you must earn $1,430 in current prices to repay a debt worth $1,000 in original prices.</strong> The gold standard maintained deflation; silver coinage would have expanded the money supply and raised prices, relieving the debt burden. Eastern financial interests — banks, bond holders, insurance companies — preferred deflation because it increased the real value of their assets. Western and Southern farmers — debtors — preferred inflation. William Jennings Bryan's Cross of Gold speech ("You shall not crucify mankind upon a cross of gold") translated this economic analysis into the most electrifying political rhetoric of the era.</p>
+
+    <p class="body-p">The Populists' defeat in 1896 involved all four mechanisms of capture described above: McKinley's campaign was financed at an unprecedented scale by the corporate interests that feared Bryan's program; the press was uniformly hostile; economic coercion was widespread (employers told workers that factories would close if Bryan won); and the racial politics of the South prevented the Black-white farmer coalition that the Populists had briefly attempted. The historical significance: Populism's defeat meant that the subsequent Progressive Era reforms would be conducted within the framework of corporate capitalism rather than challenging it — accommodation rather than transformation.</p>
+
+    <blockquote>
+      <p>You shall not press down upon the brow of labor this crown of thorns. You shall not crucify mankind upon a cross of gold.</p>
+      <cite>William Jennings Bryan · Democratic National Convention · July 9, 1896</cite>
+    </blockquote>
+  </div>
+
+  <hr class="rule">
+
+  <!-- PROGRESSIVE ERA -->
+  <div class="section-block" id="progressive">
+    <div class="section-eyebrow">The Reform Response</div>
+    <h2 class="section-title">What Was Progressivism? Three Competing Interpretations</h2>
+
+    <p class="body-p">Progressivism was not a single movement with a coherent program — it was a coalition of reformers with incompatible theories of what was wrong with industrial capitalism and how to fix it. Understanding its internal contradictions is as important as understanding its legislative achievements, because those contradictions determined what the Progressive Era's regulatory state could and could not do.</p>
+
+    <div class="interp-grid">
+      <div class="interp-card">
+        <div class="interp-tag" style="color:var(--amber-hi)">Interpretation I</div>
+        <div class="interp-name">The Status Anxiety Thesis</div>
+        <div class="interp-thinker">Richard Hofstadter · The Age of Reform (1955)</div>
+        <div class="interp-body">Hofstadter argued that Progressivism was primarily a middle-class response to status anxiety — the professional and old-gentry classes felt displaced by the new industrial tycoons and the immigrant masses simultaneously, and channeled that anxiety into moral reform. The Progressive reformer's complaint was less about economic exploitation than about the loss of a genteel Protestant culture's social primacy. <strong>This interpretation captures something real about Progressive rhetoric's moralistic character</strong> (the obsession with corruption, efficiency, and civic virtue) but underestimates the genuine structural reforms the movement produced. Its limitation: it treats Progressivism as primarily psychological rather than political-economic.</div>
+      </div>
+      <div class="interp-card">
+        <div class="interp-tag" style="color:var(--violet-hi)">Interpretation II</div>
+        <div class="interp-name">The Corporate Liberal Thesis</div>
+        <div class="interp-thinker">Gabriel Kolko · The Triumph of Conservatism (1963)</div>
+        <div class="interp-body">Kolko's argument — the most important and most contested in the period's historiography — is that the Progressive Era's regulatory legislation was not a response to corporate power from outside but an initiative by large corporations to use the federal government to stabilize their market positions against the competitive pressure of smaller firms. <strong>Large corporations supported railroad regulation, food and drug standards, and antitrust enforcement because these served their interests:</strong> regulation eliminated price competition, raised barriers to entry, and legitimized corporate power by subjecting it to nominal public oversight. The evidence is substantial: railroad executives supported the Hepburn Act; large food manufacturers supported the Pure Food and Drug Act; major corporations funded the Bureau of Corporations. Read critically but seriously — the capture dynamic he describes is real even if his claim that corporations initiated rather than merely shaped the regulatory agenda is overstated.</div>
+      </div>
+      <div class="interp-card">
+        <div class="interp-tag" style="color:var(--copper-hi)">Interpretation III</div>
+        <div class="interp-name">The Organizational Synthesis</div>
+        <div class="interp-thinker">Robert Wiebe · The Search for Order (1967)</div>
+        <div class="interp-body">Wiebe argued that Progressivism reflected the emergence of new professional middle-class groups — engineers, doctors, social workers, public health officials — who shared a "bureaucratic" worldview emphasizing expertise, efficiency, and systematic administration over the older localist politics of parties and patronage. The new professionals sought to apply their expertise to social problems through institutional reform. <strong>This interpretation explains the Progressive Era's characteristic institutional forms</strong> — the regulatory commission, the professional bureau, the expert administrator — better than either Hofstadter's psychological account or Kolko's corporate capture thesis. Its limitation: it underestimates the role of political conflict in determining which problems got addressed and in whose interest.</div>
+      </div>
+    </div>
+
+    <p class="body-p">The historiographic debate matters because it determines how you evaluate the regulatory state's subsequent development. If Hofstadter is right, Progressivism was limited by its class character — it reflected middle-class anxieties more than working-class interests. If Kolko is right, the regulatory state was captured from the start — reform was a more sophisticated form of corporate domination. If Wiebe is right, the administrative apparatus created by Progressivism was a genuine institutional achievement, however imperfect in its distribution of authority. <strong>The most defensible reading incorporates all three: Progressivism produced real institutional reforms (Wiebe), those reforms were shaped by corporate interests in ways that limited their transformative potential (Kolko), and their political appeal drew on anxieties about cultural displacement as much as economic grievance (Hofstadter).</strong></p>
+
+    <p class="body-p">The Progressive Era's racial blind spot demands direct attention. The movement that produced the regulatory state, the income tax, direct democracy, and the Federal Reserve was also the movement that systematically excluded Black Americans from its beneficiaries, that tolerated and in some cases supported the Jim Crow regime's consolidation, that deployed Social Darwinist arguments about racial hierarchy to justify both domestic exclusion and imperial expansion, and whose leading figures — including Wilson — presided over the re-segregation of the federal government. Progressivism's racism was not incidental to its politics; it was structurally embedded in the same coalition-building that made its legislative achievements possible.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- KOLKO PROBLEM -->
+  <div class="section-block" id="kolko">
+    <div class="section-eyebrow">The Central Analytical Problem</div>
+    <h2 class="section-title">The Kolko Problem: Did Regulation Discipline Corporations or Capture the State?</h2>
+
+    <p class="body-p">Gabriel Kolko's "capture thesis" is the most analytically productive provocation in the history of American regulatory economics, and the most important framework for understanding not just the Progressive Era but every subsequent regulatory initiative. The basic argument: when the government creates an agency to regulate an industry, the regulated industry has strong incentives to capture that agency — to staff it with industry representatives, shape its rules to serve industry interests, and use its authority to suppress competition. The regulators, meanwhile, lack the information, resources, and long-run incentives to resist. Over time, regulatory agencies tend to serve the industries they regulate rather than the public they were designed to protect.</p>
+
+    <p class="body-p">The Progressive Era's regulatory record provides the most important historical test of the thesis. The evidence is mixed in ways that illuminate the capture dynamic's nuances.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Interstate Commerce Commission (1887, expanded 1906)</div>
+        <div class="detail-body">The ICC was created to regulate railroad rates after the Supreme Court's Wabash decision eliminated state authority. Its early history illustrates both capture dynamics and genuine public interest enforcement. <strong>Railroad executives initially opposed the ICC but came to appreciate it</strong> as it developed: the Commission provided a forum for rate-setting that stabilized railroad revenues and gave large shippers a mechanism for resolving disputes without competitive rate wars. By the 1910s, the ICC had become a cooperative institution that managed the railroad industry's interests as much as it regulated them — though it also provided genuine protection against the worst rate discrimination for small shippers. Verdict: partial capture, with genuine regulatory function.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Pure Food and Drug Act (1906)</div>
+        <div class="detail-body">Upton Sinclair's <em>The Jungle</em> (1906) — intended as a critique of wage labor's degradation — instead produced a public reaction against food safety that forced legislative action. The large meatpackers — Swift, Armour, Morris — <strong>actively supported federal meat inspection precisely because it imposed costs they could absorb more easily than their smaller competitors</strong> and because it restored consumer confidence in products that had been falling in export markets due to contamination scandals. The USDA inspection stamp became a marketing asset. Kolko's thesis fits precisely: large corporations supported regulation that raised their competitors' compliance costs while certifying their own products. The genuine consumer protection in the Act coexisted with this corporate capture logic.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Federal Trade Commission (1914)</div>
+        <div class="detail-body">Created to prevent "unfair methods of competition," the FTC was the Wilson administration's preferred alternative to the "big stick" antitrust enforcement of the Roosevelt era — replacing case-by-case prosecution with ongoing commission oversight. In practice, <strong>the FTC quickly developed close relationships with the industries it regulated</strong> and was criticized from its early years for pursuing small businesses more aggressively than large ones. The capture dynamic was built into the FTC's institutional design: it needed industry cooperation to get information, and it needed to maintain a working relationship with regulated firms to function at all. George Stigler's formal theory of regulatory capture (1971) drew heavily on the FTC's institutional history.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Sherman Antitrust Enforcement</div>
+        <div class="detail-body">The most instructive case for the capture thesis's limits: the Standard Oil dissolution (1911) and the American Tobacco dissolution (1911) demonstrated that vigorous antitrust enforcement against large corporations was legally and politically possible. <strong>But the Standard Oil case also illustrated the capture thesis's deepest insight:</strong> the seven successor companies (Standard Oil of New Jersey, New York, Indiana, California, Ohio, etc.) were collectively worth more than the original Standard Oil had been as a single company — the dissolution created a competitive oligopoly that served consumer interests better than monopoly had, but the Rockefeller family retained controlling shares in all seven successors and became wealthier as a result. "Regulation" dissolved the legal monopoly while preserving the economic concentration.</div>
+      </div>
+    </div>
+
+    <div class="frame-box">
+      <div class="frame-box-label">The Capture Thesis Applied Forward</div>
+      <p class="body-p">Kolko's capture thesis is not merely a historical argument about the Progressive Era — it is a general theory about the dynamics of regulation whose implications run through every subsequent phase. George Stigler's formal version (1971) argued that regulation is typically acquired by the industry being regulated and operated for its industry's benefit. Sam Peltzman extended it to show how both producer and consumer groups compete for regulatory outcomes, with producers typically winning due to their organizational advantages. James Q. Wilson's analysis of regulatory politics showed how concentrated benefits (to producers) and diffuse costs (to consumers) systematically bias regulatory outcomes toward producer interests.</p>
+      <p class="body-p" style="margin-bottom:0">The practical implication: every regulatory initiative from the Progressive Era to Dodd-Frank should be analyzed not just for its stated purpose but for the capture dynamic that shaped its actual operation. This does not mean that regulation is always captured or never serves public interests — the evidence for that stronger claim is too mixed. It means that capture is a structural tendency that must be actively resisted through institutional design, adequate funding, professional independence, and democratic accountability. The Progressive Era created the regulatory state; the capture thesis explains why that regulatory state so often served the interests it was supposed to discipline.</p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- FEDERAL RESERVE -->
+  <div class="section-block" id="federal-reserve">
+    <div class="section-eyebrow">The Monetary Architecture</div>
+    <h2 class="section-title">The Federal Reserve: Founding Politics and Institutional Design</h2>
+
+    <p class="body-p">The Federal Reserve Act of 1913 was the most consequential piece of financial legislation in American history — creating the institutional architecture of American monetary policy that persists, in substantially modified form, to the present. Understanding its founding politics is essential for understanding what the Fed was designed to do, for whom, and why its institutional design embedded specific tensions that have produced recurring conflicts ever since.</p>
+
+    <p class="body-p">The Fed's creation was driven by the Panic of 1907 — the banking crisis that J.P. Morgan's personal intervention temporarily resolved, demonstrating that the absence of a lender of last resort left the financial system dangerously vulnerable. The Aldrich Commission (1908–1912) — led by Senator Nelson Aldrich, whose daughter married a Rockefeller — proposed a private central bank closely modeled on the Bank of England, controlled by its member banks. The Jekyll Island meeting (November 1910) — a secret gathering of Aldrich and senior bankers at a private island off the Georgia coast — produced the plan that became the basis of the Federal Reserve Act.</p>
+
+    <p class="body-p">The final Act was a political compromise between three competing visions: Wall Street banks wanted a private central bank they controlled; Southern and Western agrarians wanted a government-controlled institution that would expand agricultural credit; Wilson's administration wanted to break the "money trust" while maintaining financial stability. <strong>The result was a hybrid that satisfied no one completely and embedded three structural tensions that have defined the Fed's history.</strong></p>
+
+    <div class="three-grid">
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--amber-hi)">Tension I</div>
+        <div class="three-name">Public vs. Private Authority</div>
+        <div class="three-body">The Fed is simultaneously a public institution (its Board of Governors is a federal agency, its chair appointed by the President and confirmed by the Senate) and a private one (the twelve Federal Reserve Banks are owned by their member commercial banks, which receive dividends). <strong>This hybrid design institutionalized the ambiguity of who the Fed serves</strong> — the public interest in stable prices and full employment, or the banking industry's interest in stable profits. The New York Fed's special role — its proximity to Wall Street and its domination of the Fed's open market operations — has consistently given large banks disproportionate influence over monetary policy.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--violet-hi)">Tension II</div>
+        <div class="three-name">Price Stability vs. Full Employment</div>
+        <div class="three-body">The Fed's original mandate emphasized financial stability and the "real bills" doctrine — the theory that the money supply should expand to accommodate legitimate commercial transactions. The dual mandate (price stability AND full employment) was not added until the Employment Act of 1946. <strong>The tension between fighting inflation (which benefits creditors and financial assets) and supporting employment (which benefits workers and debtors) is the distributional core of monetary policy</strong> — a zero-sum conflict between different economic classes dressed in the neutral language of macroeconomic management. The Volcker shock (1979–82, Phase VI) is the most dramatic modern example of the Fed explicitly prioritizing creditor interests over worker employment.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--copper-hi)">Tension III</div>
+        <div class="three-name">Independence vs. Accountability</div>
+        <div class="three-body">"Fed independence" — the principle that monetary policy should be insulated from political pressure — is simultaneously a genuine institutional value (preventing short-term electoral cycles from distorting monetary policy) and an ideological position (insulating monetary policy from democratic accountability). <strong>Independence tends to mean independence from elected officials representing workers and debtors</strong> while maintaining close relationships with the banking industry the Fed regulates. The case for Fed independence is strongest when the inflation threat is real (1979–82) and weakest when the distributional consequences of monetary policy — who bears the cost of disinflation — are most visible.</div>
+      </div>
+    </div>
+
+    <p class="body-p">The Federal Reserve's catastrophic failure during the Great Depression — allowing the money supply to contract by one-third between 1929 and 1933, turning a severe recession into the worst economic catastrophe in American history — is the defining event in the institution's history. Friedman and Schwartz's documentation of this failure in <em>A Monetary History of the United States</em> (1963) transformed central banking practice worldwide: the commitment to "never again" allow deflationary money supply contraction became the consensus monetary policy response to any serious financial crisis. Ben Bernanke's response to the 2008 financial crisis — "helicopter Ben's" willingness to expand the Fed's balance sheet by trillions — was a direct application of the lesson Friedman and Schwartz drew from the 1930s.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- 1920S -->
+  <div class="section-block" id="twenties">
+    <div class="section-eyebrow">Loading the Crash</div>
+    <h2 class="section-title">The 1920s Boom: Consumer Capitalism, Productivity, and Fragility</h2>
+
+    <p class="body-p">The 1920s — the decade that ended with the worst financial crash in American history — were a period of genuine and substantial economic growth, technological diffusion, and productivity improvement, whose benefits were so unequally distributed and whose financial expansion was so recklessly overleveraged that they guaranteed the Depression that followed. Understanding the 1920s is essential for understanding the Depression: not as a random catastrophe but as the predictable consequence of specific structural features of the 1920s economy.</p>
+
+    <p class="body-p">The decade's genuine achievements: electrification reached two-thirds of American homes by 1929. Automobile ownership, negligible in 1910, reached 23 million registered vehicles by 1929 — one for every five Americans. Radio broadcasting, commercial aviation, and talking pictures were all developed and commercialized in the decade. Total factor productivity growth was rapid by any historical standard. The consumer goods industries that would define 20th-century American life — refrigerators, washing machines, vacuum cleaners, radios — were created and mass-marketed in the 1920s.</p>
+
+    <p class="body-p"><strong>But the productivity gains went almost entirely to capital, not labor.</strong> Real wages rose modestly in the 1920s — about 2% per year for manufacturing workers — while output per worker grew at roughly twice that rate. The share of income going to the top 1% peaked in 1928 at 23.9% — a level not reached again until 2007. Union membership, 5 million in 1920, fell to 3.5 million by 1929 under the "American Plan" (open-shop campaigns backed by employer associations and courts). Agriculture was in depression throughout the decade — commodity prices that had surged during World War I collapsed after 1920, leaving farm mortgage debt at levels that could not be serviced at the new lower prices. The rural depression of the 1920s — ignored by the Coolidge and Hoover administrations — was the structural weakness underlying the apparent prosperity.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">Consumer Credit</div>
+        <div class="detail-body">The 1920s were the decade in which consumer credit was invented as a mass financial product. Installment buying — purchasing durable goods on monthly payment plans — allowed working- and middle-class households to consume beyond their current incomes and drove the explosive growth of automobile, appliance, and radio sales. <strong>By 1929, 60–75% of automobiles were purchased on installment credit.</strong> This credit-driven consumption was not sustainable: it required continuously rising incomes to service; when incomes fell in the Depression, the debt burden became crushing, and the consumer goods industries collapsed simultaneously. The 1920s consumer credit economy was the first version of the credit-driven demand structure that would reappear, at much larger scale, in the housing bubble of the 2000s.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Stock Market Speculation</div>
+        <div class="detail-body">The stock market's rise from 1924 to 1929 was driven not by the underlying companies' earnings but by speculative margin buying — purchasing stocks with 10% down, borrowing the remaining 90% against the stocks' value. <strong>Broker loans — lending to stock speculators — grew from $1 billion in 1921 to $8.5 billion in 1929.</strong> The Fed, under Chairman Benjamin Strong (who died in 1928), had kept interest rates low in the mid-1920s partly to help Britain return to the gold standard; the resulting easy credit flowed into stock speculation rather than productive investment. When the bubble burst in October 1929, the margin calls triggered cascading sales, the broker loan market collapsed, and the financial system's fragility was instantly revealed.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Banking Fragility</div>
+        <div class="detail-body">The American banking system in the 1920s was dangerously fragile: 30,000 small unit banks, no deposit insurance, no federal supervision of state-chartered banks, and a Federal Reserve that had not yet learned to function as a lender of last resort. Small rural banks had been failing throughout the decade — 5,000 bank failures in the 1920s, before the Depression began. <strong>When the Depression hit, this fragile system collapsed in three waves of bank panics</strong> (1930, 1931, 1933) that destroyed approximately one-third of all U.S. banks and wiped out the deposits of millions of ordinary Americans. The banking collapse was not an inevitable consequence of the stock market crash — it was the product of institutional failures (no deposit insurance, no lender of last resort) that could have been designed differently, and that the New Deal subsequently corrected through the FDIC and the Banking Act of 1933.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Minsky Dynamic — Retrospective</div>
+        <div class="detail-body">Applying the Minsky framework retrospectively: the stability of the 1920s expansion — low inflation, high growth, rising asset prices — generated exactly the increased risk-taking and leverage that Minsky's hypothesis predicts. Hedge finance (borrowing against income) gave way to speculative finance (borrowing against expected capital gains) which gave way to Ponzi finance (borrowing that could only be sustained by rising asset prices). <strong>The 1929 crash was not a bolt from the blue — it was the culmination of a dynamic built into the preceding boom's financial structure.</strong> The lesson that Minsky drew: stability itself is destabilizing, and the longer the boom the more fragile the system becomes. No one in 1929 was willing to act on this insight; the equivalent insight was equally ignored in 2006–07.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SOURCES -->
+  <div class="section-block" id="sources">
+    <div class="section-eyebrow">Reading List</div>
+    <h2 class="section-title">Phase III Sources</h2>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Primary Sources</div>
+    <div class="source-stack" style="margin-bottom:2rem">
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">The History of the Standard Oil Company</div>
+          <div class="src-author">Ida Tarbell · McClure's Magazine, 1902–04; book 1904</div>
+          <div class="src-note">The defining work of muckraking journalism and the essential primary source for Standard Oil's methods. Tarbell documented — through leaked documents, interviews with competitors, and meticulous financial analysis — exactly how Rockefeller's rebate system and predatory pricing worked. Her credibility rested on her scrupulous accuracy: she stated only what she could prove. The series ran in McClure's simultaneously with Lincoln Steffens's "The Shame of the Cities" and Ray Stannard Baker's labor coverage — the peak of muckraking journalism's influence on progressive politics. Read alongside Chernow's biography for the full picture.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">The Theory of the Leisure Class</div>
+          <div class="src-author">Thorstein Veblen · 1899</div>
+          <div class="src-note">The Gilded Age's most penetrating economic satire and the source of "conspicuous consumption" — Veblen's term for the wealthy class's use of wasteful expenditure as status display. Beyond the memorable coinage, Veblen's economic analysis is serious: he argues that the "leisure class" derives income from ownership rather than production (a distinction he develops through the concept of "absentee ownership") and that the predatory business culture it maintains is fundamentally at odds with the engineer's productive instincts. His "instinct of workmanship" and his critique of business as predation vs. industry as production anticipates the financialization critique of Phase VI.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">Other People's Money and How the Bankers Use It</div>
+          <div class="src-author">Louis Brandeis · 1914</div>
+          <div class="src-note">Brandeis's response to the Pujo Committee's documentation of the money trust — a rigorous argument that concentrated financial power (Morgan's interlocking directorates) was incompatible with democratic capitalism. His analysis of how investment bankers used "other people's money" (depositors' funds, insurance company reserves, savings bank assets) to exercise control over industrial corporations that those depositors nominally owned is as relevant to contemporary finance as it was in 1914. Wilson appointed Brandeis to the Supreme Court partly on the strength of this work.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">The Jungle</div>
+          <div class="src-author">Upton Sinclair · 1906</div>
+          <div class="src-note">Sinclair intended The Jungle as a novel about the immigrant working class's degradation in the Chicago stockyards — "I aimed at the public's heart and by accident I hit it in the stomach." The food safety passages produced the regulatory response (Pure Food and Drug Act, Meat Inspection Act); the labor conditions Sinclair actually cared about produced almost nothing. This gap between Sinclair's intent and the political response is itself the most instructive thing about the novel: it illustrates exactly how the Progressive Era's consumer-focused regulatory response consistently took priority over its labor-focused structural reform agenda.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin:2rem 0 1rem">Secondary Sources</div>
+    <div class="source-stack">
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Triumph of Conservatism: A Reinterpretation of American History, 1900–1916</div>
+          <div class="src-author">Gabriel Kolko · 1963</div>
+          <div class="src-note">The essential provocation of Progressive Era historiography. Kolko's argument that large corporations were the driving force behind Progressive regulation — using the federal government to stabilize their market positions against competitive pressure from smaller firms — is the most productive analytical lens for the period even where it overstates. Read critically: his claim that business was generally competitive and that corporations sought regulation to restrain competition is empirically contested. But the capture dynamic he documents in specific industries (railroads, meatpacking, banking) is real and important. Every subsequent analysis of regulatory politics begins by engaging Kolko's thesis.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Titan: The Life of John D. Rockefeller, Sr.</div>
+          <div class="src-author">Ron Chernow · 1998</div>
+          <div class="src-note">The definitive biography — exhaustive, balanced, and analytically serious about Standard Oil's methods and Rockefeller's economic reasoning. Chernow is sympathetic without being hagiographic: he documents the rebate system and predatory pricing alongside the genuine organizational innovations. Particularly good on the relationship between Standard Oil's business practices and the antitrust response, and on Rockefeller's theology of wealth (the "Gospel of Wealth" and its social consequences). The chapters on the Standard Oil trust's legal structure and the dissolution case are essential for understanding antitrust law's development.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Visible Hand: The Managerial Revolution in American Business</div>
+          <div class="src-author">Alfred Chandler · 1977</div>
+          <div class="src-note">Chandler's Pulitzer Prize-winning argument that the modern business enterprise superseded the market as the primary coordinator of economic activity — that the large corporation's "visible hand" of managerial coordination was more efficient than the market's "invisible hand" for high-volume, capital-intensive industries. Essential for understanding the organizational revolution that accompanied industrialization: why the large vertically integrated corporation emerged when it did, how it was managed, and what its emergence meant for competition. Chandler is consciously focused on organizational efficiency rather than distribution or labor relations — read alongside Montgomery or Foner for the working-class perspective he omits.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Fall of the House of Labor: The Workplace, the State, and American Labor Activism, 1865–1925</div>
+          <div class="src-author">David Montgomery · 1987</div>
+          <div class="src-note">Montgomery's meticulous account of how workers resisted the transformation of industrial capitalism — the "workers' control" movements in steel, coal, and machinery manufacturing; the craft union defense of "manly" labor autonomy; the immigrant industrial workers' solidarity cultures. Essential complement to Chandler: where Chandler sees the managerial revolution from the executive suite, Montgomery sees it from the shop floor, where it was experienced as systematic deskilling, speed-up, and the destruction of craft autonomy. His chapters on scientific management (Taylorism) are essential for understanding the ideological justification for industrial discipline.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Great Merger Movement in American Business, 1895–1904</div>
+          <div class="src-author">Naomi Lamoreaux · 1985</div>
+          <div class="src-note">The essential economic history of how and why the trust movement happened when it did. Lamoreaux's argument: mergers were primarily a response to the deflationary price competition of the 1880s–90s — firms consolidated to control prices and prevent the ruinous competition that was destroying profit margins. The merger wave of 1895–1904 was thus rational from the firms' perspective, driven by competitive pressure rather than simply by predatory ambition. This economic explanation complements Kolko's political-regulatory account and Chernow's biographical account: the trust movement had genuine economic logic that the antitrust response only partially addressed.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type rec">Recommended</div>
+        <div>
+          <div class="src-title">The Age of Reform: From Bryan to F.D.R.</div>
+          <div class="src-author">Richard Hofstadter · 1955</div>
+          <div class="src-note">The status anxiety thesis applied to both Populism and Progressivism — essential reading both for its argument and for the response it provoked. Hofstadter's Populism chapter is now substantially discredited (his claim that Populists were proto-fascist nativists has been convincingly refuted by subsequent scholarship) but his Progressivism analysis retains value as an account of the movement's class character and moralistic rhetoric. Read alongside Kolko to understand the historiographic revolution the 1960s produced: where Hofstadter saw well-intentioned middle-class reformers with psychological limitations, Kolko saw corporate architects of their own regulation.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type rec">Recommended</div>
+        <div>
+          <div class="src-title">A Monetary History of the United States, 1867–1960 (Chapters 1–5)</div>
+          <div class="src-author">Milton Friedman & Anna Jacobson Schwartz · 1963</div>
+          <div class="src-note">The chapters on the gold standard era (1867–1913) are directly relevant to Phase III — documenting the deflationary dynamics of the gold standard and their consequences for agricultural and debtor interests; the banking panics of 1873, 1893, and 1907; and the monetary conditions that loaded the 1929 Depression. Read Chapters 1–5 for Phase III context; Chapters 6–9 for Phase IV. The essential quantitative foundation for understanding the money question debates of the Populist era and the institutional failures that the Federal Reserve was created to address.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-toc">
+    <div class="sidebar-title">In This Chapter</div>
+    <a class="stoc-item active" href="#context">Overview & Timeline</a>
+    <a class="stoc-item" href="#second-industrial">Second Industrial Revolution</a>
+    <a class="stoc-item" href="#robber-barons">Robber Barons & Trusts</a>
+    <a class="stoc-item" href="#mechanisms">Four Mechanisms of Capture</a>
+    <a class="stoc-item" href="#labor">The Labor Question</a>
+    <a class="stoc-item" href="#populism">Populism & the Money Question</a>
+    <a class="stoc-item" href="#progressive">What Was Progressivism?</a>
+    <a class="stoc-item" href="#kolko">The Kolko Problem</a>
+    <a class="stoc-item" href="#federal-reserve">The Federal Reserve</a>
+    <a class="stoc-item" href="#twenties">The 1920s Boom</a>
+    <a class="stoc-item" href="#sources">Reading List</a>
+  </div>
+
+  <div>
+    <div class="sidebar-title">Key Figures</div>
+    <div class="key-figure">
+      <div class="key-figure-name">John D. Rockefeller</div>
+      <div class="key-figure-role">Standard Oil · 1870–1911</div>
+      <div class="key-figure-note">The Gilded Age's defining figure — simultaneously the most successful organizer of productive capacity in American history and the most systematic practitioner of economic coercion. His rebate system, predatory pricing, and trust structure defined the monopoly capitalism that the Progressive Era's regulatory response tried to address. His philanthropy — funding the University of Chicago, the Rockefeller Institute for Medical Research, and thousands of other institutions — was itself an exercise of private power over public institutions that Brandeis identified as incompatible with democratic governance.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">J.P. Morgan</div>
+      <div class="key-figure-role">Investment Banking · Financial Architecture</div>
+      <div class="key-figure-note">The financial architect of industrial concentration — "Morganization" of the railroads, creation of U.S. Steel, rescue of the Treasury in 1895 and of the banking system in 1907. His role in the 1907 panic — personally organizing the private rescue of the financial system — demonstrated more clearly than any argument that private financial power had exceeded the capacity of democratic government. The Federal Reserve was created partly to ensure this situation never recurred.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">William Jennings Bryan</div>
+      <div class="key-figure-role">Democratic Presidential Nominee · 1896, 1900, 1908</div>
+      <div class="key-figure-note">The Populist movement's Democratic Party vehicle and the closest thing to a genuinely transformative economic candidate in the period between the Civil War and FDR. His Cross of Gold speech (1896) remains the most rhetorically powerful statement of the debtor-creditor conflict in American political history. His three defeats established the limits of popular economic radicalism within the two-party system — a structural constraint whose consequences ran through the Progressive Era and beyond.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Eugene Debs</div>
+      <div class="key-figure-role">Socialist Party · Labor Leader</div>
+      <div class="key-figure-note">The American labor movement's most charismatic leader and the figure whose imprisonment (for opposing World War I) most clearly exposed the limits of civil liberties during wartime mobilization. His 6% of the popular vote in 1912 — running from a prison cell in 1920, he received nearly a million votes — represented a genuine socialist constituency that the two-party system and war-era repression combined to eliminate. His analysis of why American workers needed political organization, not just collective bargaining, remains compelling.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Theodore Roosevelt</div>
+      <div class="key-figure-role">President 1901–1909 · Progressive Era's first architect</div>
+      <div class="key-figure-note">The most important Progressive Era president — establishing the regulatory state's basic architecture and the "stewardship theory" of executive power. His Northern Securities prosecution demonstrated antitrust law's potential; his Bureau of Corporations created the first systematic federal oversight of corporate behavior; his conservation program (150 million acres of national forests) was the most consequential environmental policy in American history. His 1912 Progressive Party campaign — running as a third-party candidate after Taft's conservatism — split the Republican vote and elected Wilson.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Key Concepts</div>
+    <span class="concept-pill">Second Industrial Revolution</span>
+    <span class="concept-pill">Vertical Integration</span>
+    <span class="concept-pill">Trust Formation</span>
+    <span class="concept-pill">Sherman Antitrust</span>
+    <span class="concept-pill">Robber Baron</span>
+    <span class="concept-pill">Morganization</span>
+    <span class="concept-pill">Money Trust</span>
+    <span class="concept-pill">Regulatory Capture</span>
+    <span class="concept-pill">Kolko Thesis</span>
+    <span class="concept-pill">Knights of Labor</span>
+    <span class="concept-pill">AFL Voluntarism</span>
+    <span class="concept-pill">IWW Syndicalism</span>
+    <span class="concept-pill">Populism</span>
+    <span class="concept-pill">Gold Standard</span>
+    <span class="concept-pill">Free Silver</span>
+    <span class="concept-pill">Debt Deflation</span>
+    <span class="concept-pill">Federal Reserve</span>
+    <span class="concept-pill">Lender of Last Resort</span>
+    <span class="concept-pill">Muckraking</span>
+    <span class="concept-pill">Taylorism</span>
+    <span class="concept-pill">Economies of Scale</span>
+    <span class="concept-pill">Conspicuous Consumption</span>
+    <span class="concept-pill">Installment Credit</span>
+    <span class="concept-pill">Margin Buying</span>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Duration</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:600;color:var(--amber-hi);line-height:1">3</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-top:0.3rem">Weeks</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);margin-top:0.8rem;line-height:1.6">Read Kolko first to set the analytical frame — then read Tarbell, Chernow, and Brandeis as detailed case studies of what Kolko describes in the abstract. Montgomery for the labor perspective Chandler omits. Lamoreaux for the economic logic of merger. Friedman & Schwartz Ch. 1–5 for the monetary context of the money question debate.</div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Navigation</div>
+    <a href="econ_phase2_market_revolution.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:0.6rem 0;border-bottom:1px solid var(--border);transition:color 0.2s;text-transform:uppercase" onmouseover="this.style.color='var(--amber-hi)'" onmouseout="this.style.color='var(--text-dim)'">← Phase II · Market Revolution</a>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin:1rem 0 0.3rem">Phase IV · Depression, New Deal &amp; War Economy</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);line-height:1.6">1929–1945 · Why the Depression happened, what the New Deal accomplished, and why it took a world war to achieve full recovery.</div>
+  </div>
+</aside>
+</div>
+
+<footer style="padding:2.5rem 8vw;border-top:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase">U.S. Economy Research Plan · Phase III of VII</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-style:italic;color:var(--text-dim)">Gilded Age &amp; Industrial Capitalism, 1877–1929</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(
+  entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold:0.07 }
+);
+document.querySelectorAll('.section-block').forEach(el => observer.observe(el));
+const navLinks = document.querySelectorAll('.toc-item,.stoc-item');
+const navObs = new IntersectionObserver(
+  entries => entries.forEach(e => {
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      document.querySelectorAll(`[href="#${e.target.id}"]`).forEach(l=>l.classList.add('active'));
+    }
+  }),
+  { threshold:0.3 }
+);
+document.querySelectorAll('[id]').forEach(s=>navObs.observe(s));
+</script>
+</body>
+</html>

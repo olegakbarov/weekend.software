@@ -1,0 +1,43 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+.svelte-kit/
+target/
+
+# environment & secrets
+.env
+.env.*
+!.env.example
+
+# editor & OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# logs
+*.log
+logs/
+
+# test & coverage
+coverage/
+.nyc_output/
+
+# misc
+*.tgz
+.cache/
+.turbo/
+.parcel-cache/
+.vercel/

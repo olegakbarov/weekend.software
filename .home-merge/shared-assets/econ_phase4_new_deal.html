@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase IV — Depression, New Deal & War Economy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #07060d;
+  --bg2:       #0b0a16;
+  --surface:   #110f22;
+  --surface2:  #181530;
+  --border:    #2a2248;
+  --border-hi: #3c3260;
+  --gold:      #c9a84c;
+  --gold-dim:  #7a6030;
+  --gold-pale: #e8d9a8;
+  --blue:      #2a6aaa;
+  --blue-hi:   #4a8aca;
+  --blue-dim:  #1a3a6a;
+  --steel:     #4a7090;
+  --steel-hi:  #6a90b0;
+  --steel-dim: #2a4060;
+  --red:       #8a2a2a;
+  --red-hi:    #b04040;
+  --red-dim:   #5a1818;
+  --text:      #c8c4bb;
+  --text-dim:  #576070;
+  --text-hi:   #ece7de;
+  --ink:       #d2cdc5;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Libre Baskerville',Georgia,serif;
+  font-size:16px;line-height:1.85;overflow-x:hidden;
+}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+.hero{
+  min-height:100vh;display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--border);overflow:hidden;position:relative;
+}
+.hero-left{
+  padding:7rem 5vw 5rem 8vw;display:flex;flex-direction:column;
+  justify-content:center;position:relative;z-index:1;
+  border-right:1px solid var(--border);
+}
+.hero-left::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 5% 65%,rgba(42,106,170,0.06) 0%,transparent 60%);
+}
+.hero-right{
+  padding:7rem 8vw 5rem 5vw;display:flex;flex-direction:column;
+  justify-content:flex-end;background:var(--bg2);position:relative;overflow:hidden;
+}
+.hero-right::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 75% 25%,rgba(138,42,42,0.06) 0%,transparent 55%),
+    radial-gradient(ellipse at 20% 80%,rgba(42,106,170,0.04) 0%,transparent 50%);
+}
+.chapter-numeral{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(9rem,18vw,20rem);font-weight:700;
+  color:var(--surface2);line-height:0.85;position:absolute;right:-1.5rem;top:2rem;
+  user-select:none;pointer-events:none;z-index:0;opacity:0;animation:fadeIn 1.8s 0.4s forwards;
+}
+.breadcrumb{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.25em;
+  color:var(--blue-dim);text-transform:uppercase;margin-bottom:2.5rem;
+  opacity:0;animation:fadeUp 0.6s 0.1s forwards;
+}
+.breadcrumb a{color:inherit;text-decoration:none;}
+.breadcrumb a:hover{color:var(--blue-hi);}
+.phase-tag{display:inline-flex;align-items:center;gap:0.8rem;margin-bottom:1.5rem;opacity:0;animation:fadeUp 0.6s 0.2s forwards;}
+.phase-tag-num{font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:600;color:var(--blue-hi);border:1px solid var(--blue-dim);padding:0.15rem 0.7rem;letter-spacing:0.1em;}
+.phase-tag-label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;}
+.hero-title{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,5.5vw,5.5rem);font-weight:300;
+  line-height:1.05;color:var(--text-hi);letter-spacing:-0.02em;
+  opacity:0;animation:fadeUp 0.9s 0.3s forwards;
+}
+.hero-title em{font-style:italic;color:var(--blue-hi);}
+.hero-dates{
+  font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--blue-dim);
+  letter-spacing:0.2em;margin-top:1.5rem;margin-bottom:2.5rem;
+  opacity:0;animation:fadeUp 0.6s 0.5s forwards;
+}
+.hero-thesis{
+  font-size:1.05rem;font-style:italic;color:var(--text-dim);line-height:1.8;max-width:480px;
+  border-left:2px solid var(--blue-dim);padding-left:1.5rem;
+  opacity:0;animation:fadeUp 0.6s 0.65s forwards;
+}
+.pull-quote-block{opacity:0;animation:fadeIn 1.2s 0.8s forwards;}
+.pull-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(1.05rem,1.9vw,1.7rem);font-weight:300;font-style:italic;color:var(--text-hi);line-height:1.6;margin-bottom:1rem;}
+.pull-quote-attr{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--blue-dim);text-transform:uppercase;}
+.hero-right-top{flex:1;}
+
+.toc-nav{
+  position:sticky;top:0;z-index:100;background:rgba(7,6,13,0.96);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);display:flex;padding:0 8vw;overflow-x:auto;scrollbar-width:none;
+}
+.toc-nav::-webkit-scrollbar{display:none;}
+.toc-item{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;
+  color:var(--text-dim);text-decoration:none;padding:1rem 0.9rem;
+  border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;text-transform:uppercase;
+}
+.toc-item:hover{color:var(--blue-hi);border-bottom-color:var(--blue-dim);}
+.toc-item.active{color:var(--blue-hi);border-bottom-color:var(--blue-hi);}
+
+.main-grid{display:grid;grid-template-columns:680px 1fr;max-width:1400px;margin:0 auto;}
+@media(max-width:1100px){.main-grid,.hero{grid-template-columns:1fr;}.hero-right,.sidebar{display:none;}}
+.main-content{padding:5rem 5vw 5rem 8vw;border-right:1px solid var(--border);}
+.sidebar{
+  padding:5rem 4vw 5rem 3vw;position:sticky;top:52px;height:calc(100vh - 52px);
+  overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;background:var(--bg2);
+}
+
+.section-block{margin-bottom:5rem;opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.section-block.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.28em;
+  color:var(--blue-hi);text-transform:uppercase;margin-bottom:1.2rem;
+  display:flex;align-items:center;gap:0.8rem;
+}
+.section-eyebrow::after{content:'';width:40px;height:1px;background:var(--blue-dim);}
+.section-title{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,3vw,2.4rem);
+  font-weight:300;color:var(--text-hi);line-height:1.2;letter-spacing:-0.01em;margin-bottom:2rem;
+}
+.body-p{font-size:0.97rem;line-height:1.9;color:var(--ink);margin-bottom:1.4rem;}
+.body-p strong{color:var(--text-hi);font-weight:700;}
+.body-p em{color:var(--gold-pale);font-style:italic;}
+.rule{width:100%;height:1px;background:linear-gradient(90deg,var(--blue-dim),transparent);margin:3rem 0;border:none;}
+
+blockquote{
+  margin:2.5rem 0;padding:1.8rem 2rem 1.8rem 2.5rem;
+  background:var(--surface);border-left:3px solid var(--blue-hi);position:relative;
+}
+blockquote::before{
+  content:'\201C';font-family:'Cormorant Garamond',serif;font-size:5rem;
+  color:var(--blue-dim);position:absolute;top:-0.5rem;left:0.5rem;line-height:1;pointer-events:none;
+}
+blockquote p{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;color:var(--text-hi);line-height:1.7;position:relative;z-index:1;}
+blockquote cite{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--blue-dim);text-transform:uppercase;margin-top:0.8rem;font-style:normal;}
+
+.event-timeline{margin:2rem 0;position:relative;padding-left:2.5rem;}
+.event-timeline::before{content:'';position:absolute;left:0.6rem;top:0.5rem;bottom:0.5rem;width:1px;background:linear-gradient(to bottom,var(--blue-dim),transparent);}
+.event-item{position:relative;margin-bottom:2rem;}
+.event-item::before{content:'';position:absolute;left:-1.9rem;top:0.45rem;width:8px;height:8px;border-radius:50%;background:var(--blue-dim);border:1px solid var(--blue-hi);}
+.event-item.pivot::before{background:var(--gold);border-color:var(--gold);}
+.event-item.crisis::before{background:var(--red-hi);border-color:var(--red-hi);}
+.event-year{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;color:var(--blue-hi);margin-bottom:0.2rem;}
+.event-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.4rem;}
+.event-desc{font-size:0.88rem;color:var(--text-dim);line-height:1.7;}
+
+.detail-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.detail-item{background:var(--bg2);padding:1.4rem 1.8rem;display:grid;grid-template-columns:220px 1fr;gap:1.5rem;align-items:flex-start;transition:background 0.2s;}
+.detail-item:hover{background:var(--surface);}
+.detail-label{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;color:var(--blue-hi);text-transform:uppercase;padding-top:0.15rem;line-height:1.6;}
+.detail-body{font-size:0.88rem;color:var(--text-dim);line-height:1.75;}
+.detail-body strong{color:var(--text);}
+
+.two-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+.two-card{background:var(--bg2);padding:2rem;transition:background 0.2s;}
+.two-card:hover{background:var(--surface);}
+.two-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.two-name{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--text-hi);margin-bottom:0.7rem;}
+.two-body{font-size:0.87rem;color:var(--text-dim);line-height:1.75;}
+.two-body strong{color:var(--text);}
+
+.three-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin:2rem 0;}
+@media(max-width:800px){.three-grid{grid-template-columns:1fr;}}
+.three-card{background:var(--bg2);padding:1.8rem;transition:background 0.2s;}
+.three-card:hover{background:var(--surface);}
+.three-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;}
+.three-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);margin-bottom:0.6rem;}
+.three-body{font-size:0.86rem;color:var(--text-dim);line-height:1.72;}
+.three-body strong{color:var(--text);}
+
+.program-strip{display:flex;flex-direction:column;gap:1px;background:var(--border);margin:2rem 0;}
+.prog-item{background:var(--bg2);padding:1.4rem 1.8rem;transition:background 0.2s;}
+.prog-item:hover{background:var(--surface);}
+.prog-header{display:flex;align-items:baseline;gap:1rem;margin-bottom:0.5rem;}
+.prog-year{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--blue-hi);white-space:nowrap;}
+.prog-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text-hi);}
+.prog-tag{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.15rem 0.5rem;border:1px solid;margin-left:auto;}
+.prog-body{font-size:0.87rem;color:var(--text-dim);line-height:1.72;}
+.prog-body strong{color:var(--text);}
+
+.exclusion-table{width:100%;border-collapse:collapse;margin:2rem 0;}
+.exclusion-table th{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-hi);background:var(--surface2);padding:0.8rem 1.2rem;border:1px solid var(--border);text-align:left;}
+.exclusion-table td{padding:0.9rem 1.2rem;border:1px solid var(--border);vertical-align:top;line-height:1.55;font-size:0.86rem;color:var(--text-dim);}
+.exclusion-table tr:hover td{background:var(--surface);}
+.excl-program{font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:600;color:var(--text-hi);}
+.excl-excluded{color:var(--red-hi);}
+.excl-effect{color:var(--text-dim);}
+
+.frame-box{background:var(--surface);border:1px solid var(--border-hi);padding:2.5rem;margin-top:3rem;position:relative;}
+.frame-box-label{position:absolute;top:-0.6rem;left:1.5rem;background:var(--surface);padding:0 0.8rem;font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:var(--blue-hi);text-transform:uppercase;}
+
+.source-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);}
+.src-card{background:var(--bg2);padding:1.5rem 1.8rem;display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:flex-start;transition:background 0.2s;}
+.src-card:hover{background:var(--surface);}
+.src-type{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.2rem 0.6rem;border:1px solid;white-space:nowrap;margin-top:0.2rem;}
+.src-type.essential{border-color:var(--gold);color:var(--gold);}
+.src-type.primary{border-color:var(--blue-hi);color:var(--blue-hi);}
+.src-type.rec{border-color:var(--border-hi);color:var(--text-dim);}
+.src-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;font-style:italic;color:var(--text-hi);line-height:1.4;}
+.src-author{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.05em;color:var(--text-dim);margin-top:0.3rem;}
+.src-note{font-size:0.85rem;color:var(--text-dim);margin-top:0.4rem;line-height:1.6;}
+
+.sidebar-title{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.25em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border);}
+.sidebar-toc{margin-bottom:3rem;}
+.stoc-item{display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;color:var(--text-dim);text-decoration:none;padding:0.5rem 0;border-bottom:1px solid var(--border);transition:color 0.2s,padding-left 0.2s;line-height:1.5;}
+.stoc-item:hover,.stoc-item.active{color:var(--blue-hi);padding-left:0.4rem;}
+.key-figure{margin-bottom:1.5rem;padding:1.2rem;background:var(--surface);border-top:2px solid var(--blue-dim);}
+.key-figure-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin-bottom:0.3rem;}
+.key-figure-role{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--blue-dim);text-transform:uppercase;margin-bottom:0.5rem;}
+.key-figure-note{font-size:0.82rem;color:var(--text-dim);line-height:1.6;}
+.concept-pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;color:var(--text-dim);border:1px solid var(--border-hi);padding:0.25rem 0.7rem;margin:0.2rem 0.2rem 0 0;transition:all 0.2s;text-transform:uppercase;cursor:default;}
+.concept-pill:hover{color:var(--blue-hi);border-color:var(--blue-dim);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+::selection{background:rgba(74,138,202,0.15);color:var(--text-hi);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-left">
+    <div class="breadcrumb">
+      <a href="us_economy_research_plan.html">← Research Plan</a> &nbsp;/&nbsp;
+      <a href="econ_phase1_colonial.html">I</a> &nbsp;/&nbsp;
+      <a href="econ_phase2_market_revolution.html">II</a> &nbsp;/&nbsp;
+      <a href="econ_phase3_gilded_age.html">III</a> &nbsp;/&nbsp; Phase IV
+    </div>
+    <div class="phase-tag">
+      <span class="phase-tag-num">Phase IV</span>
+      <span class="phase-tag-label">2 Weeks</span>
+    </div>
+    <h1 class="hero-title">Depression,<br><em>New Deal</em><br>&amp; War Economy</h1>
+    <div class="hero-dates">1929 &nbsp;—&nbsp; 1945</div>
+    <p class="hero-thesis">The Great Depression was not a natural disaster — it was the predictable result of specific institutional failures, ideological rigidities, and policy errors that could have been avoided. The New Deal did not cure it; a world war did. But what the New Deal built — Social Security, the FDIC, the NLRA, the SEC — remade the institutional architecture of American capitalism in ways that made the postwar prosperity possible. The tragedy is what the New Deal left out.</p>
+  </div>
+  <div class="hero-right">
+    <span class="chapter-numeral">IV</span>
+    <div class="hero-right-top"></div>
+    <div class="pull-quote-block">
+      <div class="pull-quote">"I see one-third of a nation ill-housed, ill-clad, ill-nourished... The test of our progress is not whether we add more to the abundance of those who have much; it is whether we provide enough for those who have too little."</div>
+      <div class="pull-quote-attr">Franklin D. Roosevelt · Second Inaugural Address · January 20, 1937</div>
+    </div>
+  </div>
+</section>
+
+<nav class="toc-nav">
+  <a class="toc-item active" href="#context">Overview</a>
+  <a class="toc-item" href="#causes">Why It Happened</a>
+  <a class="toc-item" href="#mechanism">The Mechanism</a>
+  <a class="toc-item" href="#hoover">Hoover's Failure</a>
+  <a class="toc-item" href="#keynes">Keynes & the New Theory</a>
+  <a class="toc-item" href="#first-new-deal">First New Deal</a>
+  <a class="toc-item" href="#second-new-deal">Second New Deal</a>
+  <a class="toc-item" href="#1937">The 1937 Recession</a>
+  <a class="toc-item" href="#racial-bargain">The Racial Bargain</a>
+  <a class="toc-item" href="#war-economy">War Economy</a>
+  <a class="toc-item" href="#legacy">Institutional Legacy</a>
+  <a class="toc-item" href="#sources">Reading List</a>
+</nav>
+
+<div class="main-grid">
+<main class="main-content">
+
+  <!-- OVERVIEW -->
+  <div class="section-block" id="context">
+    <div class="section-eyebrow">Overview</div>
+    <h2 class="section-title">The Hinge of the 20th Century</h2>
+
+    <p class="body-p">The sixteen years from the stock market crash of October 1929 to the end of World War II in August 1945 constitute the most consequential period in American economic history since the Civil War — and arguably more consequential than the Civil War in terms of the institutional architecture they produced. The Great Depression discredited the governing ideology of laissez-faire capitalism, destroyed the Hoover administration's credibility, and created the political space for the most ambitious program of institutional reform since Reconstruction. The New Deal built the regulatory and social insurance architecture that defined American capitalism for the next forty years. World War II's economic mobilization proved that the federal government could manage the entire national economy at a scale that made New Deal activism look modest — and produced the fiscal stimulus that finally ended the Depression.</p>
+
+    <p class="body-p">Three analytical questions structure this phase and should be held simultaneously throughout the research. First: why did the Depression happen, and why was it so much worse than previous downturns? The answer implicates specific institutional failures (no deposit insurance, no lender of last resort, gold standard rigidity), specific policy errors (premature austerity, monetary contraction), and specific structural features of the 1920s economy (underconsumption, agricultural depression, speculative excess) — not mysterious historical fate. Second: what did the New Deal actually accomplish economically, and why did it not achieve full recovery? The answer requires distinguishing between the New Deal as political project (highly successful), as institutional reform (genuinely transformative), and as macroeconomic recovery program (inadequate — recovery required the war). Third: what did the New Deal leave out, and why? The answer — its systematic racial exclusions — is not a peripheral footnote but central to understanding the distributional consequences of New Deal institutions that persisted for decades.</p>
+
+    <p class="body-p"><strong>The period's essential lesson for subsequent economic history: institutional design matters enormously.</strong> The difference between the Great Depression and all subsequent recessions (including 2008–09) is largely attributable to the institutional innovations of the New Deal — deposit insurance, the lender of last resort function, automatic fiscal stabilizers, financial regulation. These institutions did not eliminate recessions; they prevented recessions from becoming depressions. Understanding exactly how they work — and how they can fail — is the period's most practically important contribution to economic analysis.</p>
+
+    <div class="event-timeline">
+      <div class="event-item crisis">
+        <div class="event-year">October 1929</div>
+        <div class="event-title">The Crash — Black Thursday and Black Tuesday</div>
+        <div class="event-desc">The stock market loses 11% on October 24 (Black Thursday) and another 12% on October 29 (Black Tuesday). Margin calls trigger cascading sales; the broker loan market, $8.5 billion at peak, collapses within weeks. The crash is not itself the Depression — it is the trigger that reveals the fragility of the underlying credit structure. Economic historians debate how much of the subsequent contraction was caused by the crash vs. the banking panics and policy errors that followed.</div>
+      </div>
+      <div class="event-item crisis">
+        <div class="event-year">1930–1933</div>
+        <div class="event-title">Three Waves of Bank Panics</div>
+        <div class="event-desc">Three successive banking panics (fall 1930, spring 1931, fall 1932) destroy approximately one-third of all U.S. banks and eliminate the deposits of millions of Americans. The Federal Reserve, bound by gold standard constraints and ideological rigidity, allows the money supply to contract by one-third. GDP falls 30% from peak to trough. Unemployment reaches 25%. Industrial production falls 47%. These are not abstract statistics — they represent the material destruction of lives, communities, and economic futures.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1930</div>
+        <div class="event-title">Smoot-Hawley Tariff — the Policy Error</div>
+        <div class="event-desc">Congress raises tariff rates to their highest peacetime levels in American history — an economic policy error of the first order. Trading partners retaliate; world trade contracts sharply; the global deflationary spiral accelerates. Smoot-Hawley did not cause the Depression (it was already underway) but it deepened and prolonged it, and its legacy — the collapse of the interwar liberal trading order — structured the Bretton Woods architects' determination to rebuild international trade on different foundations after the war.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">March 1933</div>
+        <div class="event-title">FDR's Inauguration — "The Only Thing We Have to Fear"</div>
+        <div class="event-desc">Roosevelt takes office with banks closed in 38 states, unemployment at 25%, and public confidence in the economic system at its lowest point since the Revolution. His first Inaugural Address — "the only thing we have to fear is fear itself" — was simultaneously a political masterpiece and a substantive misdiagnosis (there was quite a lot to fear beyond fear). But the psychological impact — the demonstration that the government was finally acting — was itself economically significant. The Bank Holiday and the Emergency Banking Act passed within days, stabilizing the banking system enough to prevent further panic.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1933 — The Hundred Days</div>
+        <div class="event-title">The First New Deal — Emergency Response</div>
+        <div class="event-desc">The most intensive legislative period in American history: Emergency Banking Act, Glass-Steagall Banking Act (FDIC), Agricultural Adjustment Act, National Industrial Recovery Act, Civilian Conservation Corps, Tennessee Valley Authority, Federal Emergency Relief Act, Home Owners' Loan Corporation — all within 100 days. The legislation was not coherent by any ideological standard; it was a pragmatic response to crisis, drawing on contradictory theories and reflecting the competing interests within Roosevelt's coalition.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1935 — The Second Hundred Days</div>
+        <div class="event-title">The Second New Deal — Structural Reform</div>
+        <div class="event-desc">Responding to the Supreme Court's invalidation of the NIRA and to political pressure from the left (Huey Long's Share Our Wealth movement, Townsend's old-age pension campaign), Roosevelt pivots to more structural reform: Social Security Act, Wagner Act (NLRA), Works Progress Administration, Banking Act of 1935, Wealth Tax Act. The Second New Deal is more coherent than the First — it builds the institutional architecture of the welfare state and labor law that would define American capitalism through the 1970s.</div>
+      </div>
+      <div class="event-item crisis">
+        <div class="event-year">1937–1938</div>
+        <div class="event-title">The Roosevelt Recession — Premature Austerity</div>
+        <div class="event-desc">Roosevelt, convinced by Treasury Secretary Henry Morgenthau that the recovery was sufficient to permit budget balancing, cuts federal spending sharply in 1937. The Federal Reserve simultaneously tightens by raising reserve requirements. The result: the most severe single-year economic contraction in U.S. history — GDP falls 11%, unemployment rises from 14% to 19%. The Roosevelt Recession is the most important natural experiment in Keynesian economics: it demonstrates that the recovery of the mid-1930s was entirely dependent on federal spending, and that premature withdrawal of fiscal support causes immediate relapse.</div>
+      </div>
+      <div class="event-item crisis">
+        <div class="event-year">1937</div>
+        <div class="event-title">Court-Packing Crisis — the Constitutional Revolution</div>
+        <div class="event-desc">The Supreme Court has struck down the NIRA (1935) and the AAA (1936) and appears poised to invalidate Social Security and the Wagner Act. Roosevelt's court-packing plan (adding one justice for each sitting justice over 70, up to six additional) fails politically but succeeds substantively: Justice Owen Roberts's "switch in time that saved nine" (West Coast Hotel v. Parrish, 1937) begins the constitutional revolution that upholds the New Deal's remaining legislation and establishes the broad commerce clause interpretation that permits federal economic regulation for the next sixty years.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">1939–1941</div>
+        <div class="event-title">War Mobilization Begins — Fiscal Stimulus at Scale</div>
+        <div class="event-desc">Defense spending begins to rise sharply with the outbreak of war in Europe. By 1941, federal spending is already producing the aggregate demand stimulus that the New Deal's constrained fiscal program could not. When the U.S. enters the war after Pearl Harbor (December 7, 1941), mobilization accelerates to a scale that dwarfs anything previously attempted. Federal spending rises from 10% of GDP in 1940 to over 40% in 1944. Unemployment, 14.6% in 1940, falls to 1.2% by 1944. The war economy proves what the New Deal could not: that large-scale government spending can produce full employment.</div>
+      </div>
+      <div class="event-item">
+        <div class="event-year">1944</div>
+        <div class="event-title">Bretton Woods — Designing the Postwar Order</div>
+        <div class="event-desc">Representatives of 44 nations meet at Bretton Woods, New Hampshire to design the international monetary system for the postwar world. Keynes (representing Britain) proposes an International Clearing Union with a new reserve currency (the "bancor") and symmetric adjustment obligations on surplus and deficit countries. Harry Dexter White (representing the U.S.) proposes a dollar-centered system with the IMF as lender of last resort. The U.S., with overwhelming financial power, wins. The dollar-gold standard and the Bretton Woods institutions (IMF, World Bank) established at this conference structure the postwar golden age of Phase V.</div>
+      </div>
+      <div class="event-item pivot">
+        <div class="event-year">August 1945</div>
+        <div class="event-title">V-J Day — the Postwar Economy's Starting Point</div>
+        <div class="event-desc">Japan surrenders; the war ends. The economy faces demobilization of 12 million service members and the conversion of war production to civilian output. Conventional economic forecasters predicted a return to Depression conditions; instead, pent-up consumer demand (fueled by wartime savings), the GI Bill's investment in returning veterans, the Bretton Woods monetary system, and the institutional infrastructure of the New Deal combined to produce the postwar boom that Phase V will analyze in detail.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- CAUSES -->
+  <div class="section-block" id="causes">
+    <div class="section-eyebrow">Why It Happened</div>
+    <h2 class="section-title">The Great Depression's Causes: Four Structural Failures</h2>
+
+    <p class="body-p">The Great Depression was not a mysterious catastrophe without identifiable causes — it was the convergence of several distinct structural failures, each of which made the others worse. Distinguishing these causes matters analytically because each points to a different institutional remedy, and the New Deal's success in preventing recurrence depended on addressing each of them.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">The Gold Standard's Deflationary Trap</div>
+        <div class="detail-body">Barry Eichengreen's <em>Golden Fetters</em> (1992) is the essential analysis: the gold standard was the mechanism that transmitted the Depression internationally and prevented the policy responses that could have contained it. Countries on the gold standard were committed to maintaining their currency's gold convertibility, which required maintaining interest rates high enough to prevent gold outflows. <strong>When economic contraction required lower interest rates and expanded money supply, the gold standard made exactly the opposite policy mandatory.</strong> Countries that left the gold standard earliest (Britain in 1931, the U.S. in 1933) recovered earliest — the correlation is almost perfect. Roosevelt's decision to take the U.S. off the gold standard domestically in April 1933 was the single most important macroeconomic policy decision of his presidency.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Banking System's Fragility</div>
+        <div class="detail-body">Three thousand small unit banks, no deposit insurance, no federal supervision of state-chartered banks, and a Federal Reserve that had not learned to function as a genuine lender of last resort. The three banking panics of 1930–33 destroyed one-third of all U.S. banks and with them the deposits of ordinary Americans who had done nothing wrong. <strong>Bank failures contracted the money supply (deposits are money) and destroyed the credit creation capacity that the economy needed to function.</strong> Milton Friedman and Anna Schwartz's documentation of the Fed's passive response to the banking panics — allowing the money supply to fall by one-third — is the foundational empirical contribution of <em>A Monetary History of the United States</em> and established the institutional reform agenda: deposit insurance and an active lender of last resort.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Underconsumption & the Distribution Problem</div>
+        <div class="detail-body">The 1920s' growth had been concentrated at the top of the income distribution — productivity gains went to profits and capital rather than to wages. This created a structural underconsumption problem: the economy's productive capacity was expanding faster than the consuming power of ordinary households. <strong>Consumer credit temporarily bridged the gap — installment buying allowed households to consume beyond current incomes — but credit-financed consumption was sustainable only as long as incomes rose and credit remained available.</strong> When incomes fell and credit contracted, both the consumption and the credit collapsed simultaneously, amplifying the downturn. The relationship between distribution and macroeconomic stability — the argument that high inequality creates underconsumption vulnerability — was made by Foster and Catchings in the 1920s and is most rigorously elaborated in Mian and Sufi's <em>House of Debt</em> (2014), which reads the 2008 crisis through the same lens.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Debt Deflation — Irving Fisher's Mechanism</div>
+        <div class="detail-body">Irving Fisher's 1933 article "The Debt-Deflation Theory of Great Depressions" identified the mechanism that converted a financial crisis into a decade-long economic catastrophe. The logic: over-indebtedness creates pressure for debt liquidation; mass debt liquidation through fire sales depresses asset prices; falling prices increase the real burden of remaining debts; this motivates further liquidation and further price declines in a self-reinforcing spiral. <strong>Fisher's paradox: the more debtors pay, the more they owe in real terms</strong>, because price deflation raises the real value of nominal debt faster than it can be repaid. The policy implication — reflation, not deflation — was ignored at the time; it became the foundation of Ben Bernanke's 2008 crisis response. Fisher's framework is one of the most important and most underappreciated contributions to macroeconomics of the 20th century.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- MECHANISM -->
+  <div class="section-block" id="mechanism">
+    <div class="section-eyebrow">How It Spread</div>
+    <h2 class="section-title">The Depression's Mechanism: From Crash to Catastrophe</h2>
+
+    <p class="body-p">The stock market crash of October 1929 was the trigger, not the cause. Dozens of previous stock market crashes had not produced depressions; the 1929 crash produced the Great Depression because of the specific institutional vulnerabilities it exposed and the specific policy errors it provoked. Tracing the transmission mechanism — from market crash to banking panics to monetary contraction to deflation to unemployment to political crisis — is the period's essential analytical exercise.</p>
+
+    <div class="two-grid">
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--blue-hi)">Friedman-Schwartz Explanation</div>
+        <div class="two-name">The Monetary Contraction</div>
+        <div class="two-body">The Federal Reserve allowed the money supply to contract by one-third between 1929 and 1933 — the proximate cause of the Depression's depth and duration. The mechanism: bank failures eliminated deposits (deposits are money); the Fed's failure to offset these failures through open market purchases (buying government securities to inject reserves) allowed the monetary contraction to proceed. <strong>The Fed failed to act not because it lacked the tools but because its leadership believed that allowing bad debts to liquidate was economically healthy</strong> — the "liquidationist" theory articulated by Treasury Secretary Mellon ("liquidate labor, liquidate stocks, liquidate the farmers"). The Fed's institutional design — twelve regional banks with decentralized authority, the New York Fed's governor (Benjamin Strong) having died in 1928 and no comparably decisive figure having emerged — contributed to the paralysis. Verdict: avoidable policy failure with catastrophic consequences.</div>
+      </div>
+      <div class="two-card">
+        <div class="two-tag" style="color:var(--gold)">Keynesian Explanation</div>
+        <div class="two-name">The Demand Collapse</div>
+        <div class="two-body">Keynes's <em>General Theory</em> (1936) identified a different mechanism: the collapse of investment demand triggered by the uncertainty and falling asset prices of 1929–30 could not be self-correcting through market mechanisms. <strong>The orthodox theory held that falling wages would restore equilibrium by making labor cheaper and stimulating hiring; Keynes argued that falling wages reduced aggregate demand further, making the situation worse not better.</strong> His "paradox of thrift" — that what is rational for an individual saver (increasing saving in bad times) is irrational for the economy as a whole (reducing aggregate demand when it is already deficient) — captured the deflationary spiral's logic. The policy implication: only government spending could break the spiral by providing the demand that private investment had withdrawn. The 1937 Roosevelt Recession would prove him right.</div>
+      </div>
+    </div>
+
+    <p class="body-p">The two explanations are not incompatible — they describe different transmission channels of the same underlying shock. Friedman-Schwartz focuses on the money supply; Keynes focuses on aggregate demand; in a debt-deflation spiral, both collapse simultaneously and reinforce each other. <strong>The modern synthesis — articulated in Bernanke's research on the Depression and put into practice during the 2008 crisis — combines both: expansionary monetary policy (preventing monetary contraction) and fiscal stimulus (supplementing collapsed private demand) are both necessary and neither alone is sufficient.</strong></p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- HOOVER -->
+  <div class="section-block" id="hoover">
+    <div class="section-eyebrow">The Orthodox Failure</div>
+    <h2 class="section-title">Hoover's Response: Why Conventional Economics Failed Catastrophically</h2>
+
+    <p class="body-p">Herbert Hoover's reputation as a passive do-nothing president is historically inaccurate but economically instructive. Hoover was not passive — he was the most interventionist president in American history to that point, actively pressuring businesses to maintain wages, creating the Reconstruction Finance Corporation to lend to failing banks and corporations, and pushing the Federal Home Loan Bank Act through Congress. What he did was wrong, not nothing — and understanding why it was wrong illuminates the ideological constraints that bounded his response.</p>
+
+    <p class="body-p">Hoover's governing framework: the federal budget must be balanced because deficit spending would undermine business confidence, drive up interest rates, and crowd out private investment. Government intervention in wage and price setting must be voluntary because mandatory intervention would violate the market's efficient allocation. International cooperation was essential because the Depression was global; unilateral reflation would simply cause gold outflows and currency crisis. <strong>Every one of these propositions was plausible given the prevailing economics of 1929–32; every one of them was wrong in the specific conditions of a debt-deflation spiral.</strong></p>
+
+    <p class="body-p">The 1932 Revenue Act — Hoover's response to the mounting deficit — raised income taxes and corporate taxes sharply in the depths of a depression: the largest peacetime tax increase in American history to that point. The contractionary fiscal impulse was precisely the opposite of what the economy required. The Smoot-Hawley Tariff (1930), signed over the protests of 1,028 economists who signed a petition against it, triggered retaliatory tariffs that contracted world trade by 66% between 1929 and 1934. These were not failures of will or character — they were the logical implications of applying orthodox economic theory to extraordinary conditions that orthodox theory could not adequately model.</p>
+
+    <blockquote>
+      <p>Liquidate labor, liquidate stocks, liquidate the farmers, liquidate real estate. It will purge the rottenness out of the system. High costs of living and high living will come down. People will work harder, live a more moral life. Values will be adjusted, and enterprising people will pick up the wrecks from less competent people.</p>
+      <cite>Andrew Mellon · Treasury Secretary · recounted by Hoover in his memoirs</cite>
+    </blockquote>
+  </div>
+
+  <hr class="rule">
+
+  <!-- KEYNES -->
+  <div class="section-block" id="keynes">
+    <div class="section-eyebrow">The New Theory</div>
+    <h2 class="section-title">Keynes and the General Theory: Why Markets Can Fail to Self-Correct</h2>
+
+    <p class="body-p">John Maynard Keynes's <em>The General Theory of Employment, Interest and Money</em> (1936) is the most important economics text of the 20th century — not because all of its arguments are correct (many have been substantially revised or abandoned) but because it changed the questions economists asked and the range of policy interventions considered legitimate. Understanding its core arguments is essential for understanding both the New Deal and the postwar economic consensus it helped create.</p>
+
+    <p class="body-p">The classical economics that Hoover had applied held that market economies were self-correcting: if demand fell, prices and wages would fall until the lower prices stimulated new demand and restored equilibrium. Unemployment was temporary; markets would clear at some wage level. <strong>Keynes's fundamental challenge: the classical theory assumed that aggregate demand was always sufficient to purchase the economy's full output (Say's Law: supply creates its own demand). The General Theory's first contribution was to show this was wrong.</strong> Saving and investment decisions are made by different actors with different motivations; there is no guarantee that the economy's saving is automatically invested. If intended saving exceeds intended investment, output must fall until the two are equalized — at a below-full-employment equilibrium.</p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">The Multiplier</div>
+        <div class="detail-body">R.F. Kahn's multiplier (elaborated by Keynes): government spending has a multiplied effect on GDP because initial spending creates income for the recipients, who spend a portion of that income, creating income for others, and so on. If the marginal propensity to consume is 0.8, a $1 billion government expenditure generates roughly $5 billion in total economic activity through successive spending rounds. <strong>The multiplier means that fiscal stimulus is more powerful than its direct size suggests</strong> — but also that fiscal contraction (austerity) is more destructive than its direct size suggests. The 1937 Roosevelt Recession's severity demonstrated the multiplier working in reverse.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The Paradox of Thrift</div>
+        <div class="detail-body">What is rational for an individual can be irrational for the economy as a whole. When households increase saving simultaneously during a recession, aggregate demand falls, output falls, and employment falls — making everyone, including the savers, worse off. <strong>The prudent individual response to economic uncertainty (save more) becomes the collectively self-defeating response when everyone does it simultaneously.</strong> This is the mechanism behind deflationary spirals and one reason market economies cannot self-correct from severe recessions without external stimulus. The paradox of thrift remains one of Keynes's most durable contributions.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Animal Spirits</div>
+        <div class="detail-body">Investment decisions are driven not by rational calculation of expected returns but by "animal spirits" — the spontaneous urge to action rather than inaction, which depends on confidence about the future. <strong>When confidence collapses, investment collapses regardless of interest rates</strong> — the "pushing on a string" problem that monetary policy faces at the zero lower bound. This is why the Depression persisted even after the Fed eventually lowered rates: investors would not invest into an economy with 25% unemployment no matter how cheap borrowing was. Only the certain returns of government spending — independent of business confidence — could substitute for collapsed private investment.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Wage Rigidity & the Fallacy of Composition</div>
+        <div class="detail-body">Classical economics held that falling wages would restore employment by making labor cheaper. Keynes showed this was wrong in aggregate: <strong>if all wages fall simultaneously, aggregate demand falls by more than production costs, making the employment situation worse, not better.</strong> What is true for a single firm (lower wages → hire more workers) is false for the whole economy (lower wages economy-wide → less spending → less hiring). This fallacy of composition — extrapolating from the individual to the aggregate incorrectly — is one of the most common errors in economic reasoning, and its correction is Keynes's most practically important analytical contribution.</div>
+      </div>
+    </div>
+
+    <p class="body-p">The political economy of Keynesianism deserves attention alongside its economic theory. Keynes was not a socialist — he explicitly framed his program as a defense of capitalism against both fascism and communism. <strong>His argument: capitalism's failure to maintain full employment was its fatal political vulnerability; governments that could not deliver jobs would be replaced by authoritarian ones that promised to.</strong> The New Deal's political function — demonstrating that democratic capitalism could manage the economy well enough to prevent revolutionary desperation — was as important as its economic function. The simultaneous rise of fascism in Germany and Italy, and the apparent economic success of Soviet central planning, gave this argument its urgency.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- FIRST NEW DEAL -->
+  <div class="section-block" id="first-new-deal">
+    <div class="section-eyebrow">Emergency Response · 1933–1934</div>
+    <h2 class="section-title">The First New Deal: Banking Stabilization and Economic Experimentation</h2>
+
+    <p class="body-p">The First New Deal — roughly the period from Roosevelt's inauguration through 1934 — was less a coherent program than an emergency response to crisis, drawing simultaneously on incompatible economic theories and political pressures. Its defining feature was experimentation: Roosevelt famously said "Try something. If it works, keep it. If it doesn't, try something else." The result was legislative chaos that nonetheless produced several genuinely transformative institutions.</p>
+
+    <div class="program-strip">
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">March 1933</span>
+          <span class="prog-name">Emergency Banking Act</span>
+          <span class="prog-tag" style="border-color:var(--blue-hi);color:var(--blue-hi)">Financial Stability</span>
+        </div>
+        <div class="prog-body">Passed in 7 hours with virtually no deliberation, the Act gave the President authority to regulate gold transactions and reopen banks only after Treasury inspection proved their solvency. FDR's accompanying Fireside Chat — his first — explained the banking system to ordinary Americans in plain language and asked them to return their withdrawn cash to the banks. <strong>When banks reopened, more money flowed in than out</strong> — the restoration of confidence was immediate and remarkable. The Act's lesson: financial panics are partly psychological, and presidential communication can be a macroeconomic instrument. The 1933 bank rescue's success through public communication contrasts instructively with the 2008 TARP program's political failure despite its financial success.</div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">June 1933</span>
+          <span class="prog-name">Glass-Steagall Banking Act / FDIC</span>
+          <span class="prog-tag" style="border-color:var(--gold);color:var(--gold)">Foundational</span>
+        </div>
+        <div class="prog-body">The two most consequential banking reforms of the 20th century in one act: the separation of commercial banking from investment banking (Glass-Steagall), and the creation of federal deposit insurance (FDIC). <strong>Deposit insurance is arguably the most successful financial regulation in American history</strong> — since its implementation, the bank runs that had destabilized the economy for a century have essentially ceased. When depositors know their deposits are insured, there is no reason to run; the panic mechanism is removed. The separation of commercial from investment banking prevented commercial banks from engaging in the speculative activities that had contributed to the crash; its repeal in 1999 (Gramm-Leach-Bliley Act) removed a firewall that had kept the banking system stable for sixty years.</div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">May 1933</span>
+          <span class="prog-name">Agricultural Adjustment Act</span>
+          <span class="prog-tag" style="border-color:var(--steel-hi);color:var(--steel-hi)">Agricultural Sector</span>
+        </div>
+        <div class="prog-body">The AAA attempted to raise agricultural commodity prices by paying farmers to reduce production — destroying crops and plowing under fields while millions of Americans were hungry. The political economy made this rational: farm income had to rise to stop the wave of farm foreclosures that were destroying rural banks; reducing supply was the mechanism available. <strong>The AAA's racial dimensions were explicit:</strong> Southern landlords controlled the benefit payments and routinely excluded Black tenant farmers and sharecroppers, using AAA payments to evict tenants from land now lying fallow and forcing Black agricultural workers off the land. The AAA's disproportionate benefits to white landowners vs. Black tenants was a template for the New Deal's racial structure.</div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">June 1933</span>
+          <span class="prog-name">National Industrial Recovery Act</span>
+          <span class="prog-tag" style="border-color:var(--red-hi);color:var(--red-hi)">Struck Down 1935</span>
+        </div>
+        <div class="prog-body">The NIRA was the First New Deal's most ambitious — and most incoherent — legislation. Title I suspended antitrust law and authorized industries to write "codes of fair competition" (setting prices, wages, and output) supervised by the National Recovery Administration. Title II created the Public Works Administration. The theory: industrial coordination could raise prices, raise wages, and reduce ruinous competition simultaneously. In practice, <strong>large corporations captured the code-writing process and used it to fix prices at their benefit while keeping wages low</strong> — Kolko's capture thesis playing out in real time. The Supreme Court unanimously struck down the NIRA in Schechter Poultry Corp. v. United States (1935), ruling that Congress had delegated excessive legislative power. Its failure pointed toward the Second New Deal's different approach.</div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">April 1933</span>
+          <span class="prog-name">Civilian Conservation Corps</span>
+          <span class="prog-tag" style="border-color:var(--steel-hi);color:var(--steel-hi)">Direct Employment</span>
+        </div>
+        <div class="prog-body">The CCC enrolled 3 million young men over its eight-year life in conservation work — planting 3 billion trees, building 800 state parks, constructing roads and trails in national forests. It provided income for unemployed young men, supported their families through allotments, and produced lasting public goods. <strong>The CCC was racially segregated</strong> (a condition Southern Democrats attached to their support) and excluded women entirely. Its organizational structure — quasi-military, run by the Army — reflected the period's limited conception of public employment's legitimate forms. But its success demonstrated the possibility of large-scale public employment programs producing durable public goods, a model the WPA and subsequent public employment debates drew on.</div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">May 1933</span>
+          <span class="prog-name">Tennessee Valley Authority</span>
+          <span class="prog-tag" style="border-color:var(--gold);color:var(--gold)">Foundational</span>
+        </div>
+        <div class="prog-body">The TVA was the New Deal's most radical departure from laissez-faire: a federally owned corporation operating hydroelectric dams, fertilizer plants, and transmission lines across seven states, providing electricity at rates that private utilities could not match and using the "yardstick" of public rates to regulate private utility prices. Senator George Norris had proposed public development of the Tennessee River system for years; the Depression gave him his political opening. <strong>The TVA brought electricity to a region where 90% of farms had none</strong>, transforming agricultural productivity and rural quality of life in the nation's poorest region. As direct government ownership of productive enterprise, it represented the furthest left the New Deal would go — and its subsequent political survival demonstrates that public enterprise, once created and distributing visible benefits, is politically durable.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SECOND NEW DEAL -->
+  <div class="section-block" id="second-new-deal">
+    <div class="section-eyebrow">Structural Reform · 1935–1938</div>
+    <h2 class="section-title">The Second New Deal: The Architecture of Managed Capitalism</h2>
+
+    <p class="body-p">The Second New Deal — emerging from the political pressures of 1934–35 and the NIRA's failure — was both more coherent and more consequential than the First. Driven partly by the Supreme Court's invalidation of First New Deal programs, partly by the political challenge from the left (Huey Long's Share Our Wealth, the Townsend Plan's old-age pension movement, labor's demands), and partly by Roosevelt's own evolving political economy, the Second New Deal built the institutional architecture that would define American capitalism for the next forty years.</p>
+
+    <div class="program-strip">
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">August 1935</span>
+          <span class="prog-name">Social Security Act</span>
+          <span class="prog-tag" style="border-color:var(--gold);color:var(--gold)">Foundational — Racially Compromised</span>
+        </div>
+        <div class="prog-body">The Social Security Act created three distinct programs: Old Age Insurance (the contributory pension program most people mean by "Social Security"), Unemployment Compensation (a federal-state program with deliberately varying state generosity), and Aid to Dependent Children (welfare for poor single-parent families). <strong>The Act's racial exclusions were deliberate and structural, not accidental.</strong> At Southern Democrats' insistence, agricultural workers and domestic servants — the occupations that employed roughly 65% of Black workers nationally — were excluded from Old Age Insurance and Unemployment Compensation. The exclusions were justified technically (difficulty of collecting payroll taxes from dispersed domestic workers) but their political purpose was transparent: to prevent Black workers in the South from gaining economic independence through federal benefits. The excluded categories encompassed approximately 9.5 million Black workers and established the racially stratified welfare state that Ira Katznelson analyzed in <em>When Affirmative Action Was White</em>.</div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">July 1935</span>
+          <span class="prog-name">National Labor Relations Act (Wagner Act)</span>
+          <span class="prog-tag" style="border-color:var(--gold);color:var(--gold)">Foundational — Racially Compromised</span>
+        </div>
+        <div class="prog-body">The Wagner Act — which Senator Robert Wagner of New York drove through over Roosevelt's initial ambivalence — guaranteed workers the right to organize and bargain collectively, prohibited specific "unfair labor practices" (firing union organizers, refusing to bargain), and created the National Labor Relations Board to administer elections and adjudicate disputes. <strong>It transformed the legal landscape of labor relations and enabled the union expansion of the late 1930s and 1940s that built the postwar middle class.</strong> But the Wagner Act's racial compromise was embedded: Southern Democrats insisted on excluding agricultural and domestic workers (the same exclusions as Social Security) and allowing unions to discriminate by race in their contracts. The AFL's affiliated craft unions routinely excluded Black workers from membership; the Wagner Act's protections benefited the white industrial working class far more than the Black working class.</div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">April 1935</span>
+          <span class="prog-name">Works Progress Administration</span>
+          <span class="prog-tag" style="border-color:var(--blue-hi);color:var(--blue-hi)">Direct Employment</span>
+        </div>
+        <div class="prog-body">Harry Hopkins's WPA employed 8.5 million Americans at its peak — building 650,000 miles of roads, 125,000 public buildings, 75,000 bridges, and 8,000 parks. Its Federal Art Project employed 5,000 artists; its Federal Writers' Project employed 6,600 writers (including Ralph Ellison, Saul Bellow, and John Cheever) producing state guides, oral histories, and cultural documentation. Its Federal Theatre Project reached audiences of millions with live performances. <strong>The WPA demonstrated that direct public employment could produce enormous public goods while maintaining workers' skills and dignity</strong> — a lesson relevant to every subsequent debate about unemployment relief. It was deliberately killed by a conservative Congress-Southern Democrat coalition in 1943 that feared it would give workers too much economic independence to accept low-wage private employment.</div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">August 1935</span>
+          <span class="prog-name">Banking Act of 1935</span>
+          <span class="prog-tag" style="border-color:var(--steel-hi);color:var(--steel-hi)">Monetary Architecture</span>
+        </div>
+        <div class="prog-body">Marriner Eccles's Banking Act centralized monetary policy authority in the Board of Governors (in Washington), reducing the power of the regional Federal Reserve banks (particularly New York) and establishing the modern Federal Open Market Committee structure. <strong>This was a deliberate centralization of monetary policy authority away from Wall Street and toward a more democratically accountable Washington institution.</strong> Eccles, a Utah banker who had independently developed Keynesian ideas before reading Keynes, used his position as Fed chairman to advocate for expansionary fiscal policy throughout the 1930s — a position that put him at odds with Treasury Secretary Morgenthau's budget-balancing orthodoxy.</div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-year">June 1938</span>
+          <span class="prog-name">Fair Labor Standards Act</span>
+          <span class="prog-tag" style="border-color:var(--gold);color:var(--gold)">Labor Standards — Racially Compromised</span>
+        </div>
+        <div class="prog-body">The FLSA established the federal minimum wage (initially 25 cents per hour), maximum work week (44 hours, later 40), and prohibition of most child labor. It was the first federal legislation to set national labor standards rather than leaving them entirely to the states. <strong>The same agricultural and domestic worker exclusions that characterized Social Security and the Wagner Act appear again here</strong> — Southern Democrats' consistent insistence on exempting the occupations that employed Black workers from federal labor protections. The pattern across all three major labor/social insurance programs of the New Deal is too consistent to be accidental: it was the price of Southern Democratic support, and its cumulative effect was to build a racially stratified welfare state in which white workers received federal protection and Black workers remained subject to local labor market conditions dominated by white employers.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- 1937 RECESSION -->
+  <div class="section-block" id="1937">
+    <div class="section-eyebrow">The Proof of Concept</div>
+    <h2 class="section-title">The Roosevelt Recession of 1937–38: Keynesianism's Natural Experiment</h2>
+
+    <p class="body-p">The Roosevelt Recession of 1937–38 is the most important natural experiment in macroeconomic history — demonstrating in real time exactly what Keynes had argued theoretically: that recovery from a demand-deficient depression is entirely dependent on government spending, and that premature withdrawal of fiscal support causes immediate relapse.</p>
+
+    <p class="body-p">By 1937, the economy had partially recovered from its 1933 trough. GDP was back to 1929 levels; unemployment had fallen from 25% to 14%. Treasury Secretary Henry Morgenthau — a balanced-budget conservative who believed in "sound finance" — convinced Roosevelt that the recovery was strong enough to permit deficit reduction. The federal deficit was cut from roughly 5% of GDP to near zero in 1937. Simultaneously, the Federal Reserve raised reserve requirements in three steps (August 1936, March 1937, May 1937), roughly doubling the required reserves of member banks. Both actions were contractionary.</p>
+
+    <p class="body-p"><strong>The result was immediate and catastrophic: the most severe single-year economic contraction in U.S. history.</strong> GDP fell 11% in 1937–38. Industrial production fell 33%. Unemployment, which had been declining, shot back up from 14% to 19%. The Dow Jones fell 49%. Stock prices would not recover to 1937 levels until after World War II.</p>
+
+    <p class="body-p">Roosevelt's response — grudging and delayed — was to abandon the budget-balancing program and return to deficit spending. Recovery was immediate. The episode established several lessons that became the foundation of postwar macroeconomic consensus:</p>
+
+    <div class="three-grid">
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--blue-hi)">Lesson I</div>
+        <div class="three-name">Recovery Is Not Self-Sustaining</div>
+        <div class="three-body">A recovery driven by government spending will relapse immediately when that spending is withdrawn — as long as the underlying private demand deficiency that caused the recession persists. <strong>The private sector cannot substitute for government demand when its own confidence and balance sheets remain depressed.</strong> This lesson was applied in designing the postwar institutions: automatic stabilizers (unemployment insurance, progressive taxes) that automatically expand fiscal deficits during recessions without requiring deliberate policy decisions.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--gold)">Lesson II</div>
+        <div class="three-name">The Multiplier Works in Reverse</div>
+        <div class="three-body">Just as fiscal spending has a multiplied positive effect on GDP, fiscal contraction has a multiplied negative effect. <strong>The severity of the 1937–38 contraction — larger than the fiscal tightening alone would predict — reflected multiplier dynamics</strong> as reduced government spending reduced private income, which reduced private spending, which reduced private income further. The asymmetry matters for policy: the political pressure for austerity during recovery tends to arrive before private demand is strong enough to sustain the economy independently.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--steel-hi)">Lesson III</div>
+        <div class="three-name">Monetary & Fiscal Policy Must Coordinate</div>
+        <div class="three-body">The Fed's reserve requirement increases compounded the fiscal tightening: <strong>the simultaneous withdrawal of both fiscal and monetary stimulus produced a shock larger than either alone would have</strong>. The lesson for institutional design: the Treasury and the Federal Reserve need mechanisms for coordinating their policies, particularly during recovery from severe downturns. The "accord" between Treasury and the Fed (1951) would later establish the formal framework for this coordination in the postwar period.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- RACIAL BARGAIN -->
+  <div class="section-block" id="racial-bargain">
+    <div class="section-eyebrow">The Central Omission</div>
+    <h2 class="section-title">The Racial Bargain: When Affirmative Action Was White</h2>
+
+    <p class="body-p">Ira Katznelson's <em>When Affirmative Action Was White</em> (2005) is the essential analytical framework for understanding the New Deal's most important failure — and its most consequential long-run consequence. The New Deal built the American middle class; it built a white American middle class, through systematic institutional exclusion of Black workers from the programs that provided the economic foundation for middle-class life.</p>
+
+    <p class="body-p">The exclusions were not accidental or incidental — they were the price of Southern Democratic support in Congress. The Democratic Party's New Deal coalition depended on the solid South; the solid South's senators and representatives would not support programs that might give Black workers economic independence from the plantation labor system. The result: a set of racially stratified programs whose cumulative effect on the racial wealth gap dwarfs any other policy in American history.</p>
+
+    <div style="overflow-x:auto">
+      <table class="exclusion-table">
+        <thead>
+          <tr>
+            <th style="width:180px">Program</th>
+            <th style="width:200px">Key Exclusions</th>
+            <th>Mechanism of Racial Exclusion</th>
+            <th style="width:200px">Cumulative Effect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="excl-program">Social Security (OAI) — 1935</div></td>
+            <td><div class="excl-excluded">Agricultural workers; domestic servants</div></td>
+            <td>65% of Black workers employed in excluded categories; 22% of white workers. The exclusion was precisely targeted at Black employment concentration.</td>
+            <td>Black workers denied federal pension contributions for decades; retirement security gap compounded over generations.</td>
+          </tr>
+          <tr>
+            <td><div class="excl-program">Wagner Act — 1935</div></td>
+            <td><div class="excl-excluded">Agricultural/domestic workers; permitted union racial discrimination</div></td>
+            <td>Same occupational exclusions plus explicit permission for unions to maintain racially discriminatory contracts and membership rules. AFL craft unions excluded Black workers from membership entirely.</td>
+            <td>Black workers excluded from union wage premiums and job security protections that built white industrial working-class wealth through the 1940s–60s.</td>
+          </tr>
+          <tr>
+            <td><div class="excl-program">Fair Labor Standards Act — 1938</div></td>
+            <td><div class="excl-excluded">Agricultural workers; domestic servants</div></td>
+            <td>Same exclusions as above; minimum wage and overtime protections did not apply to the jobs where Black workers were concentrated.</td>
+            <td>Black workers paid below-minimum wages legally; no overtime protection; no federal recourse against wage theft by employers.</td>
+          </tr>
+          <tr>
+            <td><div class="excl-program">GI Bill (Servicemen's Readjustment Act) — 1944</div></td>
+            <td><div class="excl-excluded">Formally race-neutral; discriminatory administration</div></td>
+            <td>Administration delegated to states and local institutions: Southern universities refused Black veterans admission; banks refused VA-backed mortgages in Black neighborhoods; GI Bill funds routed through segregated institutions that channeled them to white veterans.</td>
+            <td>White veterans received college educations, suburban mortgages, and business loans that built generational wealth; Black veterans largely excluded from these programs in the South and faced discrimination in the North.</td>
+          </tr>
+          <tr>
+            <td><div class="excl-program">FHA Mortgage Insurance — 1934</div></td>
+            <td><div class="excl-excluded">Non-whites in integrated or minority neighborhoods</div></td>
+            <td>FHA Underwriting Manual explicitly required racial homogeneity for mortgage insurance approval; "redlining" maps excluded minority neighborhoods. Federal policy made clear that racially integrated neighborhoods were credit risks.</td>
+            <td>Federal mortgage insurance subsidized white suburban homeownership while systematically excluding Black families; the largest wealth-building mechanism of the 20th century was racially restricted by federal policy.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="body-p">The cumulative effect of these exclusions across all five programs — compounded over decades of differential wealth accumulation, inheritance, and investment — is the primary explanation for the racial wealth gap that persists in the present. <strong>The Black-white wealth gap is not a residue of slavery alone — it was actively reproduced and widened by New Deal programs that provided white families with the institutional foundations for middle-class wealth while explicitly excluding Black families from the same benefits.</strong> Katznelson's contribution is to make this not an abstract structural claim but a documented institutional history of specific programs, specific exclusions, and their specific mechanisms.</p>
+
+    <p class="body-p">The analytical implication for every subsequent phase: when the postwar golden age's broadly shared prosperity is analyzed (Phase V), the "broadly" requires qualification — it was broadly shared among white Americans, while Black Americans were systematically excluded from its institutional foundation. When the contemporary racial wealth gap is analyzed (Phase VII), its explanation lies not primarily in the present's institutions but in the specific policy choices of this phase that created the gap and the mechanisms that have compounded it ever since.</p>
+  </div>
+
+  <hr class="rule">
+
+  <!-- WAR ECONOMY -->
+  <div class="section-block" id="war-economy">
+    <div class="section-eyebrow">Proof of Concept</div>
+    <h2 class="section-title">The War Economy: Mobilization, Planning, and the Keynesian Proof</h2>
+
+    <p class="body-p">World War II's economic mobilization was the most dramatic demonstration in history that government management of the economy could produce full employment and extraordinary output growth — simultaneously refuting both the Depression's defeatism and the conservative argument that government intervention inevitably distorts the economy into inefficiency. Understanding the war economy is essential for understanding the postwar Keynesian consensus and the specific institutional forms (military Keynesianism, the national security state, the defense-industrial complex) through which that consensus was maintained.</p>
+
+    <p class="body-p">The scale was extraordinary. Federal spending rose from 10% of GDP in 1940 to 44% in 1944. The federal government converted automobile factories to tank and airplane production, rationed consumer goods, set prices and wages, allocated raw materials across the entire economy, and managed the largest military expansion in human history. GDP grew 75% in real terms between 1940 and 1945. Unemployment, 14.6% in 1940, fell to 1.2% by 1944 — below any economist's estimate of the natural rate of unemployment. <strong>The war economy proved what the New Deal had failed to demonstrate: that large-scale government spending could achieve full employment, and that the economy's productive capacity was far larger than depression-era output suggested.</strong></p>
+
+    <div class="detail-stack">
+      <div class="detail-item">
+        <div class="detail-label">The War Industries Board — Economic Planning</div>
+        <div class="detail-body">The War Production Board (1942) — successor to the earlier NDAC and OPM — was the closest the U.S. came to comprehensive economic planning: allocating steel, aluminum, rubber, and other critical materials across military and civilian uses, setting production priorities, and converting civilian industries to war production. <strong>Its success challenged the standard view that market allocation is always superior to planned allocation</strong> — under the extreme conditions of wartime, centralized allocation outperformed markets precisely because it could prioritize military need over consumer willingness to pay. The WPB's limitations (bottlenecks, misallocation, bureaucratic conflict) were real but did not prevent an output miracle. Nelson Lichtenstein's work on the WPB is essential for understanding how business-government-labor relations were managed.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Labor's Wartime Position</div>
+        <div class="detail-body">The war transformed labor's position in ways that outlasted the conflict. Full employment gave unions unprecedented bargaining power; the War Labor Board's wage stabilization policy (no-strike pledges in exchange for "maintenance of membership" clauses that preserved union security) gave unions institutional stability that expanded their membership dramatically. <strong>Union membership rose from 9 million in 1940 to 15 million by 1945</strong> — the foundation for the postwar labor settlement that would produce the Treaty of Detroit (Phase V). Women's wartime labor force participation — the "Rosie the Riveter" phenomenon — demonstrated women's productive capacity in industrial jobs but was largely reversed after demobilization, as employers and government policy pushed women back into domestic roles. The postwar gender settlement's conservatism was not inevitable; it was constructed by specific policy choices.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">The GI Bill — Conditional Benefits</div>
+        <div class="detail-body">The Servicemen's Readjustment Act of 1944 (GI Bill) was the most ambitious social program in American history to that point: college tuition, living expenses, low-interest home and business loans, and unemployment benefits for returning veterans. <strong>It produced one of the most extraordinary returns on public investment ever recorded</strong> — the educated veterans who filled American universities and suburbs in the late 1940s and 1950s produced the productivity growth and tax revenues that repaid the GI Bill's cost many times over. But as the exclusion table above documents, these extraordinary benefits were administered in racially discriminatory ways that concentrated them on white veterans. The GI Bill is simultaneously the most powerful argument for universal social investment and the most instructive case study in how formally race-neutral programs can produce racially stratified outcomes through discriminatory implementation.</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">War Finance & Debt</div>
+        <div class="detail-body">The war was financed through a combination of tax increases, government borrowing, and the Fed's commitment to keep interest rates low by buying government securities (the "peg"). Federal debt rose from 44% of GDP in 1940 to 119% by 1946 — the highest in American history. <strong>This debt level did not produce the financial crisis that fiscal conservatives had predicted;</strong> instead, the postwar boom's growth rate rapidly reduced the debt-to-GDP ratio without explicit austerity (the ratio fell from 119% in 1946 to 55% by 1955, simply through economic growth). The lesson: government debt incurred during a demand deficiency can be sustainable if it produces the growth that eventually services it — a lesson directly applicable to debates about deficit spending in subsequent phases.</div>
+      </div>
+    </div>
+
+    <blockquote>
+      <p>The war economy demonstrated in practice what Keynes had argued in theory: an economy operating below potential can be lifted to full employment through government spending, and the resulting growth will produce the tax revenues to service the debt incurred. The question the postwar period faced was whether this lesson could be institutionalized in peacetime — whether "military Keynesianism" could be converted into civilian investment in health, education, and infrastructure.</p>
+      <cite>Synthesized from Galbraith, Lichtenstein, and Gordon — The Postwar Economy's Origins</cite>
+    </blockquote>
+  </div>
+
+  <hr class="rule">
+
+  <!-- LEGACY -->
+  <div class="section-block" id="legacy">
+    <div class="section-eyebrow">What Was Built</div>
+    <h2 class="section-title">The New Deal's Institutional Legacy: What It Built and What It Left Out</h2>
+
+    <p class="body-p">The New Deal's institutional legacy is simultaneously the most important set of economic reforms in American history and a profoundly compromised achievement whose limitations determined the distribution of the postwar prosperity it made possible. Evaluating it requires holding both dimensions simultaneously — not collapsing into either uncritical celebration or reductive critique.</p>
+
+    <div class="three-grid">
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--gold)">Financial Architecture</div>
+        <div class="three-name">Stability Institutions</div>
+        <div class="three-body"><strong>FDIC deposit insurance</strong> eliminated bank runs as a macroeconomic destabilizer — no major banking panic occurred in the U.S. between 1933 and 2007, a 74-year period of financial stability without historical precedent. <strong>SEC securities regulation</strong> imposed disclosure requirements and fraud prohibitions that restored investor confidence in financial markets. <strong>Glass-Steagall separation</strong> prevented commercial banks from engaging in speculative investment banking for sixty years — until its repeal in 1999 removed the firewall. These institutions collectively transformed the financial system from the source of recurring crises into a relatively stable platform for economic growth.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--blue-hi)">Social Insurance</div>
+        <div class="three-name">The Safety Net</div>
+        <div class="three-body"><strong>Social Security</strong> created the first universal (for covered workers) old-age pension program — eliminating elderly poverty as the normal condition of working-class old age for the covered population. <strong>Unemployment insurance</strong> provided automatic fiscal stabilization: UI payments automatically expand during recessions, supporting demand when the economy most needs it, without requiring deliberate policy decisions. <strong>AFDC/welfare</strong> provided a floor for the poorest families, however inadequate. Together these created the "automatic stabilizers" that prevent recessions from spiraling into depressions — the most practically important macroeconomic innovation of the New Deal era.</div>
+      </div>
+      <div class="three-card">
+        <div class="three-tag" style="color:var(--steel-hi)">Labor Relations</div>
+        <div class="three-name">The Wagner Framework</div>
+        <div class="three-body"><strong>The NLRA/Wagner Act</strong> created the legal framework for collective bargaining that produced the postwar labor settlement — the union-negotiated wage increases linked to productivity growth that distributed the golden age's prosperity. Without the Wagner Act, the union density that peaked at 35% in the 1950s could not have been achieved; without that union density, the productivity-wage link that compressed inequality would not have operated. The Wagner Act's long-run legacy is thus inseparable from the postwar prosperity's broadly shared character — and its subsequent erosion (Taft-Hartley, right-to-work laws, aggressive anti-union enforcement) is central to the inequality increase of Phase VI–VII.</div>
+      </div>
+    </div>
+
+    <div class="frame-box">
+      <div class="frame-box-label">The New Deal's Unresolved Contradictions</div>
+      <p class="body-p">The New Deal left three contradictions unresolved that structured subsequent American political economy. First: its racial structure — the systematic exclusion of Black workers from the welfare state's benefits — created a racially stratified economy that the postwar prosperity would compound rather than correct. The racial wealth gap's current magnitude is primarily a New Deal legacy, not a slavery legacy.</p>
+      <p class="body-p">Second: its fiscal inadequacy — the New Deal never spent enough to achieve full employment; full employment required a world war's scale of fiscal stimulus. The postwar attempt to maintain full employment through "military Keynesianism" (permanent defense spending as macroeconomic stabilizer) was a politically acceptable substitute for the civilian public investment that would have served the same function. Eisenhower's "military-industrial complex" warning reflected this bargain's costs.</p>
+      <p class="body-p" style="margin-bottom:0">Third: its political economy — the New Deal coalition's dependence on Southern Democrats required the racial compromises that limited its universalism. This dependence structured every subsequent reform attempt: the civil rights movement had to break the Solid South before LBJ could build the Great Society; the Great Society's expansion of benefits to Black Americans triggered the white backlash that destroyed the New Deal coalition. The New Deal's racial bargain was not a tactical concession to political necessity — it was a structural feature of American liberalism that determined the shape of everything that followed.</p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- SOURCES -->
+  <div class="section-block" id="sources">
+    <div class="section-eyebrow">Reading List</div>
+    <h2 class="section-title">Phase IV Sources</h2>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Primary Sources</div>
+    <div class="source-stack" style="margin-bottom:2rem">
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">The General Theory of Employment, Interest and Money — Chapters 2, 3, 12, and 24</div>
+          <div class="src-author">John Maynard Keynes · 1936</div>
+          <div class="src-note">Don't read the whole General Theory — it is repetitive, technically dense, and much of it has been superseded. Read: Chapter 2 (the postulates of classical economics and why Keynes rejects them), Chapter 3 (the principle of effective demand — the book's core theoretical argument in its most accessible form), Chapter 12 (long-term expectation and "animal spirits" — the most readable and most cited chapter), and Chapter 24 (concluding notes on the social philosophy toward which the General Theory points — Keynes's explicit statement of his political economy). These four chapters give you the essential Keynesian framework without the technical apparatus that requires a graduate economics background.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">FDR's Fireside Chats (March 12, 1933 and April 28, 1935)</div>
+          <div class="src-author">Franklin D. Roosevelt · Radio Addresses</div>
+          <div class="src-note">The first Fireside Chat (March 12, 1933) — explaining the Bank Holiday and the banking system to ordinary Americans — is perhaps the most consequential single piece of political communication in American economic history. Its effect was measurable: banks reopened with more deposits than had been withdrawn. The April 1935 chat on the Second New Deal explains Roosevelt's shift in strategy. Both are short (20 minutes); read the transcripts alongside listening to the recordings, which preserve the rhetorical context that the text alone cannot convey. Roosevelt's ability to explain complex economic concepts in plain language to a mass audience was itself an economic instrument.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type primary">Primary</div>
+        <div>
+          <div class="src-title">The Debt-Deflation Theory of Great Depressions</div>
+          <div class="src-author">Irving Fisher · Econometrica, 1933</div>
+          <div class="src-note">Fisher's 1933 article — written as he personally experienced the Depression's destruction of his own fortune (he had confidently predicted in October 1929 that stocks had reached "a permanently high plateau") — is one of the most important and most underread papers in economics. Its debt-deflation mechanism is clearer and more intuitive than the Keynesian or monetarist explanations, and it directly anticipates Bernanke's framework for understanding the 2008 crisis. Short enough to read in an evening; essential for understanding why the 1930s contraction was so much worse and longer than any previous recession.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin:2rem 0 1rem">Secondary Sources</div>
+    <div class="source-stack">
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">When Affirmative Action Was White: An Untold History of Racial Inequality in 20th-Century America</div>
+          <div class="src-author">Ira Katznelson · 2005</div>
+          <div class="src-note">The essential work for understanding the New Deal's racial structure. Katznelson documents, with granular institutional detail, exactly how each major New Deal program was designed to exclude Black workers — the specific congressional maneuvers, the specific exclusion language, and the specific mechanisms of discriminatory administration. His analysis of the GI Bill is particularly powerful: formally race-neutral legislation, administered through segregated state institutions, produced outcomes as discriminatory as explicitly racial exclusions would have. Essential reading before analyzing any subsequent American social policy debate.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">A Monetary History of the United States, 1867–1960 — Chapters 7–9</div>
+          <div class="src-author">Milton Friedman & Anna Jacobson Schwartz · 1963</div>
+          <div class="src-note">Chapters 7–9 cover the Great Contraction (1929–33) in Friedman and Schwartz's most important and most influential section. Their documentation that the Federal Reserve allowed the money supply to contract by one-third — when it had the tools to prevent this and failed to use them — is the empirical foundation of modern monetary policy's "never again" commitment to preventing monetary contraction during financial crises. Ben Bernanke's statement at Friedman's 90th birthday dinner — "You're right, we did it. We're very sorry. But thanks to you, we won't do it again" — is the clearest statement of this institutional lesson. Read alongside Eichengreen's Golden Fetters for the international monetary dimension.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Golden Fetters: The Gold Standard and the Great Depression, 1919–1939</div>
+          <div class="src-author">Barry Eichengreen · 1992</div>
+          <div class="src-note">The essential account of how the gold standard transmitted the Depression internationally and prevented the monetary policy responses that could have contained it. Eichengreen's central contribution: the near-perfect correlation between when countries left the gold standard and when they began recovering from the Depression. Britain (1931), the U.S. (1933), France (1936) — each recovered in the sequence of their gold standard departure. This makes the gold standard not merely a contributing factor but the primary mechanism of the Depression's international diffusion and duration. Essential for understanding why Bretton Woods was designed the way it was.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">Freedom from Fear: The American People in Depression and War, 1929–1945</div>
+          <div class="src-author">David Kennedy · 1999</div>
+          <div class="src-note">The most comprehensive narrative history of the period — Pulitzer Prize-winning, exhaustive in its political and economic coverage, beautifully written. Kennedy is more sympathetic to FDR than some revisionists but fully engages the debates about the New Deal's effectiveness and limitations. His economic chapters are reliable and nuanced; his account of the war economy's organizational achievement is excellent. Most useful as a narrative framework into which the more analytically focused works (Katznelson, Friedman-Schwartz, Eichengreen) can be placed.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type essential">Essential</div>
+        <div>
+          <div class="src-title">The Color of Money: Black Banks and the Racial Wealth Gap</div>
+          <div class="src-author">Mehrsa Baradaran · 2017</div>
+          <div class="src-note">A necessary complement to Katznelson — where Katznelson focuses on federal programs' racial exclusions, Baradaran focuses on the banking and credit system's racial structure. Her account of how Black communities were excluded from the federal credit infrastructure (FHA mortgages, FDIC-insured banking) while being pushed toward undercapitalized Black banks that could not provide the same services documents a parallel exclusion mechanism. Her analysis of "separate and unequal" financial institutions is essential for understanding how the racial wealth gap was reproduced through financial as well as social policy.</div>
+        </div>
+      </div>
+      <div class="src-card">
+        <div class="src-type rec">Recommended</div>
+        <div>
+          <div class="src-title">The Forgotten Man: A New History of the Great Depression</div>
+          <div class="src-author">Amity Shlaes · 2007</div>
+          <div class="src-note">Read as the serious conservative critique of the New Deal, not as the definitive account. Shlaes argues that New Deal uncertainty about property rights prolonged the Depression by deterring private investment — the "regime uncertainty" thesis associated with Robert Higgs. Her argument is overstated (the Depression was clearly ending by 1940–41 as defense spending rose, not waiting for regime certainty) and her narrative selection is tendentious. But her critique of the NRA's anti-competitive effects, her attention to the costs of New Deal regulation on small business, and her recovery of figures the standard liberal narrative ignores (Wendell Willkie, Alf Landon) provide useful correctives to triumphalist New Deal narratives.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-toc">
+    <div class="sidebar-title">In This Chapter</div>
+    <a class="stoc-item active" href="#context">Overview & Timeline</a>
+    <a class="stoc-item" href="#causes">Four Causes of the Depression</a>
+    <a class="stoc-item" href="#mechanism">The Depression's Mechanism</a>
+    <a class="stoc-item" href="#hoover">Hoover's Orthodox Failure</a>
+    <a class="stoc-item" href="#keynes">Keynes & the General Theory</a>
+    <a class="stoc-item" href="#first-new-deal">First New Deal</a>
+    <a class="stoc-item" href="#second-new-deal">Second New Deal</a>
+    <a class="stoc-item" href="#1937">The 1937 Recession</a>
+    <a class="stoc-item" href="#racial-bargain">The Racial Bargain</a>
+    <a class="stoc-item" href="#war-economy">War Economy</a>
+    <a class="stoc-item" href="#legacy">Institutional Legacy</a>
+    <a class="stoc-item" href="#sources">Reading List</a>
+  </div>
+
+  <div>
+    <div class="sidebar-title">Key Figures</div>
+    <div class="key-figure">
+      <div class="key-figure-name">Franklin D. Roosevelt</div>
+      <div class="key-figure-role">President 1933–1945</div>
+      <div class="key-figure-note">The 20th century's most consequential economic statesman — not because he had a coherent theory (he didn't) but because he had the political genius to hold the New Deal coalition together while experimenting at a scale no previous president had attempted. His willingness to try things, discard failures, and build on successes produced the institutional architecture of managed capitalism. His racial compromises — the price of Southern Democratic support — were the New Deal's defining failure.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">John Maynard Keynes</div>
+      <div class="key-figure-role">Economist · The General Theory, 1936</div>
+      <div class="key-figure-note">The period's dominant intellectual figure — his framework for understanding aggregate demand deficiency and the government's role in addressing it became the intellectual foundation of the postwar economic consensus. His 1933 open letter to Roosevelt ("You have made yourself the trustee for those in every country who seek to mend the evils of our condition by reasoned experiment") and their 1934 meeting (which left both parties underwhelmed) illustrate the gap between intellectual frameworks and political practice.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Harry Hopkins</div>
+      <div class="key-figure-role">WPA Director · FDR's Closest Adviser</div>
+      <div class="key-figure-note">The New Deal's most effective administrator — Hopkins ran the FERA, the CWA, and the WPA with a combination of administrative genius and genuine commitment to the unemployed workers his programs served. His insistence on the dignity of work (paying wages, not giving handouts) shaped the WPA's design. His close relationship with Roosevelt made him the most powerful figure in the administration aside from FDR himself during the war years.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Marriner Eccles</div>
+      <div class="key-figure-role">Federal Reserve Chairman 1934–1948</div>
+      <div class="key-figure-note">The period's most important monetary policy figure — a Utah banker who independently developed Keynesian ideas before reading Keynes and used his position as Fed chairman to advocate for expansionary fiscal policy throughout the Depression. His Banking Act of 1935 centralized monetary policy in Washington and established the modern FOMC structure. His conflict with Treasury Secretary Morgenthau over budget balancing in 1937 — which Morgenthau won, producing the Roosevelt Recession — is the period's most instructive policy debate.</div>
+    </div>
+    <div class="key-figure">
+      <div class="key-figure-name">Robert Wagner</div>
+      <div class="key-figure-role">U.S. Senator · NLRA Author</div>
+      <div class="key-figure-note">Wagner drove the National Labor Relations Act through a skeptical Roosevelt administration on the strength of his conviction that labor's ability to organize and bargain collectively was the essential mechanism for distributing productivity gains broadly. He was right: the union expansion enabled by the Wagner Act built the postwar middle class. His bill's racial compromises — extracted by Southern Democrats — were the price of enactment and the source of the act's most significant long-run distributional failure.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Key Concepts</div>
+    <span class="concept-pill">Gold Standard</span>
+    <span class="concept-pill">Bank Runs</span>
+    <span class="concept-pill">Debt Deflation</span>
+    <span class="concept-pill">Monetary Contraction</span>
+    <span class="concept-pill">Liquidationism</span>
+    <span class="concept-pill">Aggregate Demand</span>
+    <span class="concept-pill">Paradox of Thrift</span>
+    <span class="concept-pill">Animal Spirits</span>
+    <span class="concept-pill">The Multiplier</span>
+    <span class="concept-pill">Say's Law</span>
+    <span class="concept-pill">Fiscal Stimulus</span>
+    <span class="concept-pill">Automatic Stabilizers</span>
+    <span class="concept-pill">Deposit Insurance</span>
+    <span class="concept-pill">Glass-Steagall</span>
+    <span class="concept-pill">Social Security</span>
+    <span class="concept-pill">Wagner Act</span>
+    <span class="concept-pill">NIRA / NRA</span>
+    <span class="concept-pill">TVA</span>
+    <span class="concept-pill">WPA</span>
+    <span class="concept-pill">1937 Recession</span>
+    <span class="concept-pill">Racial Bargain</span>
+    <span class="concept-pill">GI Bill</span>
+    <span class="concept-pill">FHA Redlining</span>
+    <span class="concept-pill">War Industries Board</span>
+    <span class="concept-pill">Military Keynesianism</span>
+    <span class="concept-pill">Bretton Woods</span>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Duration</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:600;color:var(--blue-hi);line-height:1">2</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-top:0.3rem">Weeks</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);margin-top:0.8rem;line-height:1.6">Read Keynes Chs. 2, 3, 12, 24 first to establish the theoretical framework. Then Friedman-Schwartz Ch. 7–9 (monetary mechanism) and Eichengreen (gold standard). Katznelson is essential for the racial analysis — read it in parallel with the New Deal legislation chapters. Kennedy for narrative scaffolding.</div>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="sidebar-title">Navigation</div>
+    <a href="econ_phase3_gilded_age.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;padding:0.6rem 0;border-bottom:1px solid var(--border);transition:color 0.2s;text-transform:uppercase" onmouseover="this.style.color='var(--blue-hi)'" onmouseout="this.style.color='var(--text-dim)'">← Phase III · Gilded Age</a>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text-hi);margin:1rem 0 0.3rem">Phase V · Postwar Prosperity &amp; Bretton Woods</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);line-height:1.6">1945–1973 · What produced the most broadly shared economic growth in American history — and why those conditions proved unrepeatable.</div>
+  </div>
+</aside>
+</div>
+
+<footer style="padding:2.5rem 8vw;border-top:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase">U.S. Economy Research Plan · Phase IV of VII</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-style:italic;color:var(--text-dim)">Depression, New Deal &amp; War Economy, 1929–1945</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(
+  entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold:0.07 }
+);
+document.querySelectorAll('.section-block').forEach(el => observer.observe(el));
+const navLinks = document.querySelectorAll('.toc-item,.stoc-item');
+const navObs = new IntersectionObserver(
+  entries => entries.forEach(e => {
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      document.querySelectorAll(`[href="#${e.target.id}"]`).forEach(l=>l.classList.add('active'));
+    }
+  }),
+  { threshold:0.3 }
+);
+document.querySelectorAll('[id]').forEach(s=>navObs.observe(s));
+</script>
+</body>
+</html>
