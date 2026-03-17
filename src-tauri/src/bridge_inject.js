@@ -98,6 +98,45 @@
     void invoke("browser_push_event", payload).catch(() => undefined);
   };
 
+  const resolveAbsoluteUrl = (value) => {
+    if (typeof value !== "string") return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    try {
+      return new URL(trimmed, window.location.href);
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const shouldOpenUrlExternally = (url, options) => {
+    if (!url) return false;
+    const protocol = url.protocol.toLowerCase();
+    if (protocol === "mailto:" || protocol === "tel:") {
+      return true;
+    }
+    if (protocol !== "http:" && protocol !== "https:") {
+      return false;
+    }
+    if (url.origin === window.location.origin) {
+      return false;
+    }
+
+    if (options && options.forceExternal === true) {
+      return true;
+    }
+
+    const normalizedTarget =
+      typeof options?.target === "string" ? options.target.toLowerCase() : "";
+    if (normalizedTarget === "_blank") {
+      return true;
+    }
+
+    const normalizedRel =
+      typeof options?.rel === "string" ? options.rel.toLowerCase() : "";
+    return normalizedRel.split(/\s+/).includes("external");
+  };
+
   let readyInFlight = null;
   const notifyReady = () => {
     if (readyInFlight) return readyInFlight;
@@ -122,6 +161,143 @@
       teardown();
     } catch (_) {}
     delete state.teardowns[name];
+  };
+
+  const installRouteChangeBridge = () => {
+    let lastUrl = window.location.href;
+
+    const reportRouteChange = () => {
+      const nextUrl = window.location.href;
+      if (nextUrl === lastUrl) return;
+      const previousUrl = lastUrl;
+      lastUrl = nextUrl;
+
+      pushEvent("route_change", {
+        from: previousUrl,
+        to: nextUrl,
+        url: nextUrl,
+      });
+
+      if (state.config && state.config.navigation) {
+        pushEvent("navigation", { from: previousUrl, to: nextUrl });
+      }
+    };
+
+    const onPopstate = () => reportRouteChange();
+    const onHashchange = () => reportRouteChange();
+
+    window.addEventListener("popstate", onPopstate);
+    window.addEventListener("hashchange", onHashchange);
+
+    const origPush = history.pushState;
+    const origReplace = history.replaceState;
+    const wrappedPush = function () {
+      const result = origPush.apply(this, arguments);
+      reportRouteChange();
+      return result;
+    };
+    const wrappedReplace = function () {
+      const result = origReplace.apply(this, arguments);
+      reportRouteChange();
+      return result;
+    };
+
+    wrappedPush[WRAP_MARKER] = true;
+    wrappedReplace[WRAP_MARKER] = true;
+
+    if (!origPush[WRAP_MARKER]) {
+      history.pushState = wrappedPush;
+    }
+    if (!origReplace[WRAP_MARKER]) {
+      history.replaceState = wrappedReplace;
+    }
+
+    return () => {
+      window.removeEventListener("popstate", onPopstate);
+      window.removeEventListener("hashchange", onHashchange);
+      if (history.pushState === wrappedPush) {
+        history.pushState = origPush;
+      }
+      if (history.replaceState === wrappedReplace) {
+        history.replaceState = origReplace;
+      }
+    };
+  };
+
+  const installExternalLinkBridge = () => {
+    const findLinkTarget = (event) => {
+      if (typeof event.composedPath === "function") {
+        for (const node of event.composedPath()) {
+          if (!node || !node.tagName || typeof node.href !== "string") {
+            continue;
+          }
+          const tagName = String(node.tagName).toUpperCase();
+          if (tagName === "A" || tagName === "AREA") {
+            return node;
+          }
+        }
+      }
+
+      const target = event.target;
+      if (target && typeof target.closest === "function") {
+        return target.closest("a[href], area[href]");
+      }
+
+      return null;
+    };
+
+    const onDocumentClick = (event) => {
+      if (event.defaultPrevented) return;
+      if (typeof event.button === "number" && event.button !== 0) return;
+
+      const anchor = findLinkTarget(event);
+      if (!anchor || typeof anchor.href !== "string") return;
+      if (typeof anchor.hasAttribute === "function" && anchor.hasAttribute("download")) {
+        return;
+      }
+
+      const resolvedUrl = resolveAbsoluteUrl(anchor.href);
+      if (
+        !shouldOpenUrlExternally(resolvedUrl, {
+          target: anchor.target || undefined,
+          rel: anchor.rel || undefined,
+        })
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      pushEvent("external_link", {
+        url: resolvedUrl.toString(),
+        target: anchor.target || undefined,
+      });
+    };
+
+    const originalWindowOpen = window.open;
+    const wrappedWindowOpen = function (url) {
+      const resolvedUrl = resolveAbsoluteUrl(
+        typeof url === "string" ? url : String(url || "")
+      );
+      if (shouldOpenUrlExternally(resolvedUrl, { forceExternal: true })) {
+        pushEvent("external_link", { url: resolvedUrl.toString() });
+        return null;
+      }
+      return originalWindowOpen.apply(this, arguments);
+    };
+
+    wrappedWindowOpen[WRAP_MARKER] = true;
+
+    document.addEventListener("click", onDocumentClick, true);
+    if (typeof originalWindowOpen === "function" && !originalWindowOpen[WRAP_MARKER]) {
+      window.open = wrappedWindowOpen;
+    }
+
+    return () => {
+      document.removeEventListener("click", onDocumentClick, true);
+      if (window.open === wrappedWindowOpen) {
+        window.open = originalWindowOpen;
+      }
+    };
   };
 
   const observers = {
@@ -184,49 +360,6 @@
       return () => {
         window.removeEventListener("error", onError, true);
         window.removeEventListener("unhandledrejection", onUnhandled, true);
-      };
-    },
-
-    navigation: () => {
-      let lastUrl = location.href;
-      const check = () => {
-        if (location.href === lastUrl) return;
-        pushEvent("navigation", { from: lastUrl, to: location.href });
-        lastUrl = location.href;
-      };
-
-      const onPopstate = () => check();
-      window.addEventListener("popstate", onPopstate);
-
-      const origPush = history.pushState;
-      const origReplace = history.replaceState;
-      const wrappedPush = function () {
-        const result = origPush.apply(this, arguments);
-        check();
-        return result;
-      };
-      const wrappedReplace = function () {
-        const result = origReplace.apply(this, arguments);
-        check();
-        return result;
-      };
-      wrappedPush[WRAP_MARKER] = true;
-      wrappedReplace[WRAP_MARKER] = true;
-      if (!origPush[WRAP_MARKER]) {
-        history.pushState = wrappedPush;
-      }
-      if (!origReplace[WRAP_MARKER]) {
-        history.replaceState = wrappedReplace;
-      }
-
-      return () => {
-        window.removeEventListener("popstate", onPopstate);
-        if (history.pushState === wrappedPush) {
-          history.pushState = origPush;
-        }
-        if (history.replaceState === wrappedReplace) {
-          history.replaceState = origReplace;
-        }
       };
     },
 
@@ -479,7 +612,7 @@
     return {
       ok: true,
       version: BRIDGE_VERSION,
-      activeObservers: Object.keys(state.teardowns),
+      activeObservers: Object.keys(observers).filter((name) => Boolean(state.teardowns[name])),
     };
   };
 
@@ -502,6 +635,13 @@
 
   window[BRIDGE_STATE_KEY] = state;
   window[BRIDGE_KEY] = api;
+
+  if (!state.teardowns.route_change_bridge) {
+    state.teardowns.route_change_bridge = installRouteChangeBridge();
+  }
+  if (!state.teardowns.external_link_bridge) {
+    state.teardowns.external_link_bridge = installExternalLinkBridge();
+  }
 
   configure(state.config);
   void notifyReady();

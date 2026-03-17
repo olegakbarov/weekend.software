@@ -158,7 +158,7 @@ export function SidebarProjectItem({
           {/* Inline play/stop or unarchive button */}
           {isArchiveView ? (
             <span
-              className="shrink-0 rounded p-0.5 text-muted-foreground/0 transition-colors group-hover:text-muted-foreground/40 hover:!text-foreground"
+              className="relative shrink-0 rounded p-0.5 text-muted-foreground/0 transition-colors before:absolute before:-inset-3 before:content-[''] group-hover:text-muted-foreground/40 hover:!text-foreground"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onUnarchiveProject) void onUnarchiveProject(project);
@@ -170,7 +170,7 @@ export function SidebarProjectItem({
             </span>
           ) : (
             <span
-              className={`shrink-0 rounded p-0.5 transition-colors ${
+              className={`relative shrink-0 rounded p-0.5 transition-colors before:absolute before:-inset-3 before:content-[''] ${
                 playState === "starting"
                   ? "text-muted-foreground/60"
                   : playState === "failed"
@@ -274,7 +274,7 @@ export function SidebarProjectItem({
                     </span>
                   </button>
                   <button
-                    className="shrink-0 rounded p-0.5 text-muted-foreground/0 transition-colors hover:text-destructive group-hover/term:text-muted-foreground/25"
+                    className="relative shrink-0 rounded p-0.5 text-muted-foreground/0 transition-colors before:absolute before:-inset-3 before:content-[''] hover:text-destructive group-hover/term:text-muted-foreground/25"
                     onClick={(e) => {
                       e.stopPropagation();
                       onRemoveTerminal(session.terminalId);

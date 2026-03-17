@@ -64,6 +64,21 @@ export function isCrossProjectLocalDevUrl(
   return candidateOrigin !== configuredOrigin;
 }
 
+export function shouldHydrateBrowserValueFromConfiguredRuntime(
+  storedValue: string | null | undefined,
+  configuredRuntimeUrl: string
+): boolean {
+  const normalizedStoredValue = storedValue?.trim() ?? "";
+  if (!normalizedStoredValue) {
+    return true;
+  }
+
+  return isCrossProjectLocalDevUrl(
+    normalizedStoredValue,
+    configuredRuntimeUrl
+  );
+}
+
 export function normalizeNavigableUrl(rawAddress: string): string | null {
   const trimmed = rawAddress.trim();
   if (!trimmed) return null;

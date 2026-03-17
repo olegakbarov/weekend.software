@@ -129,7 +129,7 @@ export function HomePage({
           <button
             disabled={isCreatingProject}
             type="submit"
-            className="flex w-full items-center justify-center border-t border-border/40 px-5 py-7 font-vcr text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+            className="flex w-full items-center justify-center rounded-b-[14px] border-t border-border/40 px-5 py-7 font-vcr text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
           >
             {isCreatingProject ? "CREATING..." : "CREATE"}
           </button>

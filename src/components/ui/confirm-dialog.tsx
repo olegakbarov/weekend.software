@@ -58,7 +58,7 @@ export function ConfirmDialog({
             </Button>
           ) : (
             <button
-              className="neumorph-button rounded-lg px-5 py-1.5 font-vcr text-xs transition-all"
+              className="neumorph-button rounded-lg px-5 py-1.5 font-vcr text-xs transition-colors"
               onClick={handleConfirm}
             >
               {confirmText}

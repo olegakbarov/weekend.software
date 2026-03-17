@@ -8,6 +8,7 @@ import {
   type RuntimeTelemetryEvent,
   type SharedAssetSnapshot,
 } from "@/lib/controller";
+import type { WeekendLogsSnapshot } from "@/components/logs/logs-page";
 
 function formatTimestamp(unixMs: number): string {
   if (!Number.isFinite(unixMs) || unixMs <= 0) return "n/a";
@@ -94,6 +95,10 @@ export type SettingsPageProps = {
   onUploadSharedAssets: (files: File[]) => Promise<void>;
   onRenameSharedAsset: (fileName: string, newFileName: string) => Promise<void>;
   onDeleteSharedAsset: (fileName: string) => Promise<void>;
+  weekendLogs: WeekendLogsSnapshot | null;
+  logsError: string | null;
+  isLogsRefreshing: boolean;
+  onRefreshLogs: () => void;
 };
 
 const THEME_MODES = ["light", "dark", "system"] as const;
@@ -114,6 +119,10 @@ export function SettingsPage({
   onUploadSharedAssets,
   onRenameSharedAsset,
   onDeleteSharedAsset,
+  weekendLogs,
+  logsError,
+  isLogsRefreshing,
+  onRefreshLogs,
 }: SettingsPageProps) {
   const { mode, setMode } = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -387,6 +396,52 @@ export function SettingsPage({
                   ))}
                 </ul>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Logs ── */}
+        <div className="space-y-3">
+          <h2 className="font-code text-xs uppercase tracking-wider text-muted-foreground">
+            Logs
+          </h2>
+
+          <div className="space-y-2 rounded border border-border/70 bg-background/60 p-3">
+            <div className="flex items-center justify-between">
+              <p className="font-code text-[11px] text-muted-foreground">
+                Weekend Software frontend &amp; backend logs.
+              </p>
+              <Button
+                className="h-7 px-2 font-code text-[10px]"
+                onClick={onRefreshLogs}
+                size="sm"
+                variant="ghost"
+              >
+                {isLogsRefreshing ? "Refreshing..." : "Refresh"}
+              </Button>
+            </div>
+
+            {logsError ? (
+              <p className="font-code text-xs text-destructive">{logsError}</p>
+            ) : null}
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="flex min-h-0 flex-col rounded border border-border/70 bg-[var(--feature-input-body-bg)]">
+                <div className="border-b border-border/60 px-2 py-1">
+                  <p className="font-code text-[11px] text-muted-foreground">Frontend</p>
+                </div>
+                <pre className="max-h-64 min-h-[6rem] overflow-auto px-2 py-1.5 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
+                  {weekendLogs ? (weekendLogs.frontend.trim() || "No logs yet.") : "Loading logs..."}
+                </pre>
+              </div>
+              <div className="flex min-h-0 flex-col rounded border border-border/70 bg-[var(--feature-input-body-bg)]">
+                <div className="border-b border-border/60 px-2 py-1">
+                  <p className="font-code text-[11px] text-muted-foreground">Backend</p>
+                </div>
+                <pre className="max-h-64 min-h-[6rem] overflow-auto px-2 py-1.5 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
+                  {weekendLogs ? (weekendLogs.backend.trim() || "No logs yet.") : "Loading logs..."}
+                </pre>
+              </div>
             </div>
           </div>
         </div>

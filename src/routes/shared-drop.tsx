@@ -368,7 +368,7 @@ function SharedDropRoute() {
 
         <section
           className={cn(
-            "relative mt-3 overflow-hidden rounded-[24px] px-4 py-4 transition-all duration-200",
+            "relative mt-3 overflow-hidden rounded-[24px] px-4 py-4 transition-[opacity,transform] duration-200",
             isDragActive
               ? "bg-[linear-gradient(180deg,rgba(12,34,28,0.86),rgba(7,17,15,0.9))] shadow-[0_18px_60px_rgba(0,0,0,0.28)]"
               : "bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))]"

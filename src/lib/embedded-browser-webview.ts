@@ -9,12 +9,21 @@ import {
 } from "@/lib/browser-pane-webviews";
 
 export const BROWSER_WEBVIEW_PAGE_LOAD_EVENT = "browser-webview-page-load";
+export const BROWSER_WEBVIEW_ROUTE_CHANGE_EVENT =
+  "browser-webview-route-change";
 
 export type BrowserWebviewPageLoadPayload = {
   webviewLabel: string;
   windowLabel: string;
   url: string;
   phase: "started" | "finished";
+};
+
+export type BrowserWebviewRouteChangePayload = {
+  webviewLabel: string;
+  windowLabel: string;
+  url: string;
+  from?: string;
 };
 
 type Bounds = {

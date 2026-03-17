@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import type {
@@ -15,6 +16,7 @@ import {
   buildBrowserSurfaceUrl,
   isCrossProjectLocalDevUrl,
   normalizeNavigableUrl,
+  shouldHydrateBrowserValueFromConfiguredRuntime,
 } from "./browser-url-utils";
 import {
   resolveBrowserRuntimeTarget,
@@ -89,6 +91,7 @@ export function BrowserPane({
   const [addressBarErrorByProject, setAddressBarErrorByProject] = useState<
     Record<string, string | null>
   >({});
+  const previousProjectKeyRef = useRef<string | null>(null);
 
   const browserTarget = useMemo(
     () =>
@@ -282,61 +285,101 @@ export function BrowserPane({
     [projectKey, urlInputDraft]
   );
 
+  // --- Preserve the active page when switching between projects ---
+
+  useEffect(() => {
+    const previousProjectKey = previousProjectKeyRef.current;
+    if (previousProjectKey && previousProjectKey !== projectKey) {
+      const previousProjectPageUrl =
+        currentPageUrlByProject[previousProjectKey]?.trim() ?? "";
+      if (previousProjectPageUrl) {
+        setNavigationUrlByProject((previous) => {
+          if (previous[previousProjectKey] === previousProjectPageUrl) {
+            return previous;
+          }
+
+          return {
+            ...previous,
+            [previousProjectKey]: previousProjectPageUrl,
+          };
+        });
+      }
+    }
+
+    previousProjectKeyRef.current = projectKey;
+  }, [currentPageUrlByProject, projectKey]);
+
   // --- Sync configured runtime URL into per-project state ---
 
   useEffect(() => {
     if (!configuredRuntimeUrl) return;
-    setNavigationUrlByProject((previous) => ({
-      ...previous,
-      [projectKey]: configuredRuntimeUrl,
-    }));
-    setCurrentPageUrlByProject((previous) => ({
-      ...previous,
-      [projectKey]: configuredRuntimeUrl,
-    }));
-    setUrlInputDraftByProject((previous) => ({
-      ...previous,
-      [projectKey]: configuredRuntimeUrl,
-    }));
-  }, [configuredRuntimeUrl, projectKey]);
+    const shouldHydrateNavigationUrl =
+      shouldHydrateBrowserValueFromConfiguredRuntime(
+        storedNavigationUrl,
+        configuredRuntimeUrl
+      );
+    const shouldHydrateCurrentPageUrl =
+      shouldHydrateBrowserValueFromConfiguredRuntime(
+        storedCurrentPageUrl,
+        configuredRuntimeUrl
+      );
+    const shouldHydrateDraftUrl =
+      shouldHydrateBrowserValueFromConfiguredRuntime(
+        storedUrlInputDraft,
+        configuredRuntimeUrl
+      );
 
-  // --- Cross-project origin mismatch recovery ---
+    if (
+      !shouldHydrateNavigationUrl &&
+      !shouldHydrateCurrentPageUrl &&
+      !shouldHydrateDraftUrl
+    ) {
+      return;
+    }
 
-  useEffect(() => {
-    if (browserTarget.status !== "ready") return;
-    if (!configuredRuntimeUrl) return;
-    if (!hasCrossProjectLocalDevMismatch) return;
+    if (hasCrossProjectLocalDevMismatch) {
+      console.info("[Browser] restoring configured runtime origin", {
+        projectKey,
+        configuredRuntimeUrl,
+        navigationUrl: storedNavigationUrl,
+        currentPageUrl: storedCurrentPageUrl,
+        urlInputDraft: storedUrlInputDraft,
+      });
+    }
 
-    console.info("[Browser] restoring configured runtime origin", {
-      projectKey,
-      configuredRuntimeUrl,
-      navigationUrl: storedNavigationUrl,
-      currentPageUrl: storedCurrentPageUrl,
-      urlInputDraft: storedUrlInputDraft,
-    });
+    if (shouldHydrateNavigationUrl) {
+      setNavigationUrlByProject((previous) => ({
+        ...previous,
+        [projectKey]: configuredRuntimeUrl,
+      }));
+    }
+    if (shouldHydrateCurrentPageUrl) {
+      setCurrentPageUrlByProject((previous) => ({
+        ...previous,
+        [projectKey]: configuredRuntimeUrl,
+      }));
+    }
+    if (shouldHydrateDraftUrl) {
+      setUrlInputDraftByProject((previous) => ({
+        ...previous,
+        [projectKey]: configuredRuntimeUrl,
+      }));
+    }
 
-    setNavigationUrlByProject((previous) => ({
-      ...previous,
-      [projectKey]: configuredRuntimeUrl,
-    }));
-    setCurrentPageUrlByProject((previous) => ({
-      ...previous,
-      [projectKey]: configuredRuntimeUrl,
-    }));
-    setUrlInputDraftByProject((previous) => ({
-      ...previous,
-      [projectKey]: configuredRuntimeUrl,
-    }));
-    setAddressBarErrorByProject((previous) => ({
-      ...previous,
-      [projectKey]: null,
-    }));
-    setFrameVersionByProject((previous) => ({
-      ...previous,
-      [projectKey]: (previous[projectKey] ?? 0) + 1,
-    }));
+    if (hasCrossProjectLocalDevMismatch) {
+      setAddressBarErrorByProject((previous) => ({
+        ...previous,
+        [projectKey]: null,
+      }));
+    }
+
+    if (shouldHydrateNavigationUrl && !!storedNavigationUrl) {
+      setFrameVersionByProject((previous) => ({
+        ...previous,
+        [projectKey]: (previous[projectKey] ?? 0) + 1,
+      }));
+    }
   }, [
-    browserTarget.status,
     configuredRuntimeUrl,
     hasCrossProjectLocalDevMismatch,
     projectKey,

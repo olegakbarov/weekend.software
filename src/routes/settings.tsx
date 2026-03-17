@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { SettingsPage } from "@/components/settings/settings-page";
+import { useLogs } from "@/hooks/use-logs";
 import { useVimMode } from "@/hooks/use-vim-mode";
 import { useWorkspaceState } from "@/hooks/use-workspace-state";
 
@@ -14,10 +15,12 @@ function SettingsRoute() {
   const [isVimModeEnabled, setIsVimModeEnabled] = useVimMode();
   const [isRefreshingRuntimeSnapshot, setIsRefreshingRuntimeSnapshot] =
     useState(false);
+  const { weekendLogsSnapshot, isRefreshing: isLogsRefreshing, error: logsError, refresh: refreshLogs } = useLogs();
 
   useEffect(() => {
     void controller.refreshSharedAssets().catch(() => undefined);
-  }, [controller]);
+    refreshLogs();
+  }, [controller, refreshLogs]);
 
   const refreshRuntimeSnapshot = useCallback(() => {
     if (isRefreshingRuntimeSnapshot) return;
@@ -72,6 +75,10 @@ function SettingsRoute() {
       sharedAssets={state.sharedAssets}
       sharedAssetsError={state.sharedAssetsError}
       snapshot={state.runtimeDebugSnapshot}
+      weekendLogs={weekendLogsSnapshot}
+      logsError={logsError}
+      isLogsRefreshing={isLogsRefreshing}
+      onRefreshLogs={refreshLogs}
     />
   );
 }

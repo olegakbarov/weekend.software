@@ -337,6 +337,7 @@ body {
   margin: 0;
   background-color: var(--color-background);
   color: var(--color-foreground);
+  font-variant-numeric: tabular-nums;
   overscroll-behavior: none;
   /* Desktop app: disable text selection globally */
   user-select: none;

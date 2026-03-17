@@ -77,7 +77,7 @@ const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
               .trim()}
           />
           <span
-            className={`absolute left-0.5 ${sizes.thumb} rounded-full bg-muted-foreground transition-all duration-200`
+            className={`absolute left-0.5 ${sizes.thumb} rounded-full bg-muted-foreground transition-[transform,background-color] duration-200`
               .replace(/\s+/g, " ")
               .trim()}
             style={{

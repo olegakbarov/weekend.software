@@ -3,9 +3,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import {
   buildEmbeddedBrowserWebviewLabel,
+  BROWSER_WEBVIEW_ROUTE_CHANGE_EVENT,
   closeInactiveEmbeddedBrowserWebviews,
   createEmbeddedBrowserWebview,
   hideInactiveEmbeddedBrowserWebviews,
+  type BrowserWebviewRouteChangePayload,
   type EmbeddedBrowserWebviewHandle,
 } from "@/lib/embedded-browser-webview";
 import type { PlayState } from "@/lib/controller";
@@ -347,6 +349,34 @@ export function useBrowserWebview({
       void unlisten.then((fn) => fn());
     };
   }, [onElementGrabbed]);
+
+  useEffect(() => {
+    const unlisten = listen<BrowserWebviewRouteChangePayload>(
+      BROWSER_WEBVIEW_ROUTE_CHANGE_EVENT,
+      (event) => {
+        const activeLabel = embeddedWebviewRef.current?.label;
+        if (!activeLabel || event.payload.webviewLabel !== activeLabel) {
+          return;
+        }
+
+        const nextUrl = event.payload.url.trim();
+        if (!nextUrl) return;
+
+        onCurrentPageUrlChange(projectKey, nextUrl);
+        onUrlInputDraftChange(projectKey, nextUrl);
+        onAddressBarErrorChange(projectKey, null);
+      }
+    );
+
+    return () => {
+      void unlisten.then((fn) => fn());
+    };
+  }, [
+    onAddressBarErrorChange,
+    onCurrentPageUrlChange,
+    onUrlInputDraftChange,
+    projectKey,
+  ]);
 
   // Cancel grab when leaving browser mode
   useEffect(() => {

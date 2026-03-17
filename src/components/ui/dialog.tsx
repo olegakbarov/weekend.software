@@ -8,6 +8,27 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+type AnimationPhase = "closed" | "entering" | "open" | "exiting";
+
+function useAnimationPhase(open: boolean): AnimationPhase {
+  const [phase, setPhase] = React.useState<AnimationPhase>(open ? "open" : "closed");
+
+  React.useEffect(() => {
+    if (open) {
+      setPhase("entering");
+      const raf = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setPhase("open"));
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+    setPhase("exiting");
+    const timeout = setTimeout(() => setPhase("closed"), 150);
+    return () => clearTimeout(timeout);
+  }, [open]);
+
+  return phase;
+}
+
 export type DialogProps = {
   children: React.ReactNode;
   open?: boolean;
@@ -125,16 +146,24 @@ function DialogClose({
   );
 }
 
-function DialogOverlay({ className, ...props }: React.ComponentProps<"div">) {
-  const { open, setOpen } = useDialogContext();
-  if (!open) return null;
+function DialogOverlay({
+  className,
+  phase,
+  ...props
+}: React.ComponentProps<"div"> & { phase: AnimationPhase }) {
+  const { setOpen } = useDialogContext();
 
   const { onClick, ...rest } = props;
   return (
     <div
-      className={cn("fixed inset-0 z-40 bg-black/60 backdrop-blur-sm", className)}
+      className={cn(
+        "fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity",
+        phase === "entering" || phase === "exiting" ? "opacity-0" : "opacity-100",
+        className
+      )}
       data-slot="dialog-overlay"
       onClick={mergeHandlers(onClick, () => setOpen(false))}
+      style={{ transitionDuration: phase === "exiting" ? "150ms" : "200ms", transitionTimingFunction: "cubic-bezier(0.2, 0, 0, 1)" }}
       {...rest}
     />
   );
@@ -149,6 +178,7 @@ function DialogContent({
   showCloseButton?: boolean;
 }) {
   const { open, setOpen } = useDialogContext();
+  const phase = useAnimationPhase(open);
 
   React.useEffect(() => {
     if (!open) return;
@@ -164,19 +194,29 @@ function DialogContent({
     };
   }, [open, setOpen]);
 
-  if (!open) return null;
+  if (phase === "closed") return null;
 
   return (
     <DialogPortal>
       <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <DialogOverlay className="absolute inset-0" />
+        <DialogOverlay className="absolute inset-0" phase={phase} />
         <div
           className={cn(
-            "relative z-50 grid w-full max-w-lg gap-4 rounded border border-border bg-card p-6 shadow-lg",
+            "relative z-50 grid w-full max-w-lg gap-4 rounded bg-card p-6 transition-[opacity,transform]",
+            phase === "entering"
+              ? "translate-y-2 opacity-0"
+              : phase === "exiting"
+                ? "translate-y-1 opacity-0"
+                : "translate-y-0 opacity-100",
             className
           )}
           data-slot="dialog-content"
           onClick={(event) => event.stopPropagation()}
+          style={{
+            transitionDuration: phase === "exiting" ? "150ms" : "200ms",
+            transitionTimingFunction: "cubic-bezier(0.2, 0, 0, 1)",
+            boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 8px 40px rgba(0,0,0,0.4)",
+          }}
           {...props}
         >
           {children}
@@ -224,7 +264,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
 function DialogTitle({ className, ...props }: React.ComponentProps<"h2">) {
   return (
     <h2
-      className={cn("font-semibold text-lg leading-none", className)}
+      className={cn("text-balance font-semibold text-lg leading-none", className)}
       data-slot="dialog-title"
       {...props}
     />
@@ -234,7 +274,7 @@ function DialogTitle({ className, ...props }: React.ComponentProps<"h2">) {
 function DialogDescription({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-pretty text-muted-foreground text-sm", className)}
       data-slot="dialog-description"
       {...props}
     />
