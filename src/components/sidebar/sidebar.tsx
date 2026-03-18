@@ -1,4 +1,10 @@
-import { Archive, FileText, PanelLeftClose, Plus, Settings } from "lucide-react";
+import {
+  Archive,
+  FileText,
+  PanelLeftClose,
+  Plus,
+  Settings,
+} from "lucide-react";
 import { useCallback } from "react";
 import {
   DndContext,
@@ -90,11 +96,11 @@ export function Sidebar({
       if (oldIndex === -1 || newIndex === -1) return;
       onReorderProjects(arrayMove(projects, oldIndex, newIndex));
     },
-    [projects, onReorderProjects]
+    [projects, onReorderProjects],
   );
 
   return (
-    <aside className="flex h-full w-[260px] shrink-0 flex-col border-border border-r bg-background">
+    <aside className="flex h-full w-[260px] shrink-0 flex-col overflow-x-hidden border-border border-r bg-background">
       <div className="shrink-0 px-2">
         <div className="flex h-12 items-center">
           {!isFullscreen ? (
@@ -109,7 +115,7 @@ export function Sidebar({
               "min-w-0 flex-1 px-2",
               showArchived
                 ? "flex items-center justify-center font-vcr text-[12px] text-muted-foreground/50"
-                : null
+                : null,
             )}
             data-tauri-drag-region={!isFullscreen || undefined}
           >
@@ -118,7 +124,7 @@ export function Sidebar({
           <button
             className={cn(
               "inline-flex h-8 shrink-0 items-center gap-2 rounded-md border px-3 font-vcr text-[12px] uppercase tracking-wide leading-none transition-colors",
-              "border-border bg-transparent text-muted-foreground hover:text-foreground"
+              "border-border bg-transparent text-muted-foreground hover:text-foreground",
             )}
             onClick={onOpenHome}
             title="New project"
@@ -131,14 +137,9 @@ export function Sidebar({
       </div>
 
       {/* ── Project list ── */}
-      <div className="flex min-h-0 flex-1 flex-col px-1.5">
+      <div className="flex min-h-0 flex-1 flex-col">
         {showArchived ? (
-            <div
-              className={cn(
-                "min-h-0 flex-1 space-y-px overflow-auto",
-                "py-0.5"
-              )}
-            >
+          <div className={cn("min-h-0 flex-1 space-y-px overflow-y-auto overflow-x-hidden", "py-0.5")}>
             {displayedProjects.length === 0 ? (
               <div className="flex items-center justify-center py-8">
                 <p className="font-code text-xs text-muted-foreground/40">
@@ -172,12 +173,12 @@ export function Sidebar({
         ) : (
           <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
             <div
-              className={cn(
-                "min-h-0 flex-1 space-y-px overflow-auto",
-                "py-1"
-              )}
+              className={cn("min-h-0 flex-1 space-y-px overflow-y-auto overflow-x-hidden", "py-1")}
             >
-              <SortableContext items={projects} strategy={verticalListSortingStrategy}>
+              <SortableContext
+                items={projects}
+                strategy={verticalListSortingStrategy}
+              >
                 {displayedProjects.map((project) => (
                   <SidebarProjectItem
                     activeTerminalId={activeTerminalId}
@@ -195,9 +196,7 @@ export function Sidebar({
                     playState={playStateByProject[project] ?? "idle"}
                     playError={playErrorByProject[project] ?? null}
                     project={project}
-                    terminalSessions={
-                      terminalSessionsByProject[project] ?? []
-                    }
+                    terminalSessions={terminalSessionsByProject[project] ?? []}
                   />
                 ))}
               </SortableContext>
@@ -219,7 +218,9 @@ export function Sidebar({
             active={showArchived}
             icon={<Archive className="size-3.5" />}
             onClick={onToggleShowArchived}
-            title={showArchived ? "Show active projects" : "Show archived projects"}
+            title={
+              showArchived ? "Show active projects" : "Show archived projects"
+            }
           />
           <FooterIconButton
             active={currentRoute === "settings"}

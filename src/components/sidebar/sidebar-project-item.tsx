@@ -70,7 +70,7 @@ export function SidebarProjectItem({
   };
 
   const [editingTerminalId, setEditingTerminalId] = useState<string | null>(
-    null
+    null,
   );
   const [isEditingProject, setIsEditingProject] = useState(false);
   const [editValue, setEditValue] = useState("");
@@ -106,7 +106,12 @@ export function SidebarProjectItem({
   };
 
   return (
-    <div ref={setNodeRef} style={sortableStyle} {...attributes}>
+    <div
+      ref={setNodeRef}
+      className="min-w-0 px-1.5"
+      style={sortableStyle}
+      {...attributes}
+    >
       {/* ── Project row ── */}
       {isEditingProject ? (
         <div className="flex w-full items-center gap-2.5 rounded-md bg-secondary px-2 py-1.5">
@@ -176,8 +181,8 @@ export function SidebarProjectItem({
                   : playState === "failed"
                     ? "text-destructive"
                     : playState === "running"
-                    ? "text-muted-foreground/0 group-hover:text-muted-foreground/40 hover:!text-foreground"
-                    : "text-muted-foreground/0 group-hover:text-muted-foreground/40 hover:!text-foreground"
+                      ? "text-muted-foreground/0 group-hover:text-muted-foreground/40 hover:!text-foreground"
+                      : "text-muted-foreground/0 group-hover:text-muted-foreground/40 hover:!text-foreground"
               }`}
               onClick={(e) => {
                 e.stopPropagation();
@@ -210,7 +215,6 @@ export function SidebarProjectItem({
               )}
             </span>
           )}
-
         </button>
       )}
 
@@ -255,7 +259,7 @@ export function SidebarProjectItem({
                       e.stopPropagation();
                       startRename(
                         session.terminalId,
-                        terminalDisplayLabel(session)
+                        terminalDisplayLabel(session),
                       );
                     }}
                     type="button"
