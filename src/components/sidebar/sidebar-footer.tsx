@@ -11,8 +11,8 @@ export function SidebarFooter() {
     <div className="flex shrink-0 items-center justify-between border-border/40 border-t px-2 py-1">
       <button
         className={cn(
-          "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md border px-2.5 font-vcr text-[11px] uppercase tracking-wide leading-none transition-colors",
-          "border-border bg-transparent text-muted-foreground hover:text-foreground",
+          "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 font-vcr text-[11px] uppercase tracking-wide leading-none transition-colors",
+          "text-muted-foreground hover:bg-muted hover:text-foreground",
         )}
         onClick={actions.onOpenHome}
         title="New project"

@@ -431,8 +431,8 @@ export function SettingsPage({
         </TabsContent>
 
         {/* ── Logs ── */}
-        <TabsContent className="overflow-auto" value="logs">
-          <div className="space-y-2 rounded border border-border/70 bg-background/60 p-3">
+        <TabsContent className="flex min-h-0 flex-1 flex-col overflow-hidden" value="logs">
+          <div className="flex min-h-0 flex-1 flex-col rounded border border-border/70 bg-background/60 p-3">
             <div className="flex items-center justify-between">
               <p className="font-code text-[11px] text-muted-foreground">
                 Weekend Software frontend &amp; backend logs.
@@ -451,12 +451,12 @@ export function SettingsPage({
               <p className="font-code text-xs text-destructive">{logsError}</p>
             ) : null}
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="mt-2 grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
               <div className="flex min-h-0 flex-col rounded border border-border/70 bg-[var(--feature-input-body-bg)]">
                 <div className="border-b border-border/60 px-2 py-1">
                   <p className="font-code text-[11px] text-muted-foreground">Frontend</p>
                 </div>
-                <pre className="max-h-64 min-h-[6rem] overflow-auto px-2 py-1.5 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
+                <pre className="min-h-0 flex-1 overflow-auto px-2 py-1.5 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
                   {weekendLogs ? (weekendLogs.frontend.trim() || "No logs yet.") : "Loading logs..."}
                 </pre>
               </div>
@@ -464,7 +464,7 @@ export function SettingsPage({
                 <div className="border-b border-border/60 px-2 py-1">
                   <p className="font-code text-[11px] text-muted-foreground">Backend</p>
                 </div>
-                <pre className="max-h-64 min-h-[6rem] overflow-auto px-2 py-1.5 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
+                <pre className="min-h-0 flex-1 overflow-auto px-2 py-1.5 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
                   {weekendLogs ? (weekendLogs.backend.trim() || "No logs yet.") : "Loading logs..."}
                 </pre>
               </div>

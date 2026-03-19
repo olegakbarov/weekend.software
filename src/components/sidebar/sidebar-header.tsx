@@ -9,7 +9,7 @@ export function SidebarHeader() {
 
   return (
     <div className="shrink-0 px-2">
-      <div className="flex h-9 items-center">
+      <div className="flex h-12 items-center">
         {!data.isFullscreen ? (
           <div
             className="h-full shrink-0"

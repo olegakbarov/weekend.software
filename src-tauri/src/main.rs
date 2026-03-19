@@ -32,7 +32,7 @@ use tauri::{
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[cfg(target_os = "macos")]
-use objc2_app_kit::{NSWindow, NSWindowButton};
+use objc2_app_kit::{NSView, NSWindow, NSWindowButton};
 
 use logging::{
     append_log, log_backend, now_unix_ms, project_log_path, read_log_tail_from_path,
@@ -694,6 +694,68 @@ fn show_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
 }
 
 #[cfg(target_os = "macos")]
+// Keep these in sync with `src-tauri/tauri.conf.json` `trafficLightPosition`.
+const MAIN_WINDOW_TRAFFIC_LIGHT_POSITION_X: f64 = 11.0;
+
+#[cfg(target_os = "macos")]
+const MAIN_WINDOW_TRAFFIC_LIGHT_POSITION_Y: f64 = 24.0;
+
+#[cfg(target_os = "macos")]
+fn set_main_window_standard_buttons_hidden(ns_window: &NSWindow, hidden: bool) {
+    for button_kind in [
+        NSWindowButton::MiniaturizeButton,
+        NSWindowButton::CloseButton,
+        NSWindowButton::ZoomButton,
+    ] {
+        if let Some(button) = ns_window.standardWindowButton(button_kind) {
+            button.setHidden(hidden);
+        }
+    }
+
+    ns_window.displayIfNeeded();
+}
+
+#[cfg(target_os = "macos")]
+fn restore_main_window_traffic_light_inset(ns_window: &NSWindow) {
+    let Some(close) = ns_window.standardWindowButton(NSWindowButton::CloseButton) else {
+        return;
+    };
+    let Some(miniaturize) = ns_window.standardWindowButton(NSWindowButton::MiniaturizeButton)
+    else {
+        return;
+    };
+    let Some(zoom) = ns_window.standardWindowButton(NSWindowButton::ZoomButton) else {
+        return;
+    };
+    let Some(close_button_container_view) = (unsafe { close.superview() }) else {
+        return;
+    };
+    let Some(title_bar_container_view) = (unsafe { close_button_container_view.superview() })
+    else {
+        return;
+    };
+
+    let close_rect = NSView::frame(&close);
+    let title_bar_frame_height = close_rect.size.height + MAIN_WINDOW_TRAFFIC_LIGHT_POSITION_Y;
+    let mut title_bar_rect = NSView::frame(&title_bar_container_view);
+    title_bar_rect.size.height = title_bar_frame_height;
+    title_bar_rect.origin.y = ns_window.frame().size.height - title_bar_frame_height;
+    title_bar_container_view.setFrame(title_bar_rect);
+
+    let space_between = NSView::frame(&miniaturize).origin.x - close_rect.origin.x;
+    for (index, button) in [&close, &miniaturize, &zoom].into_iter().enumerate() {
+        let mut rect = NSView::frame(button);
+        rect.origin.x = MAIN_WINDOW_TRAFFIC_LIGHT_POSITION_X + (index as f64 * space_between);
+        button.setFrameOrigin(rect.origin);
+        button.setHidden(false);
+    }
+
+    title_bar_container_view.setNeedsDisplay(true);
+    title_bar_container_view.displayIfNeeded();
+    ns_window.displayIfNeeded();
+}
+
+#[cfg(target_os = "macos")]
 fn set_main_window_traffic_lights_visible<R: Runtime>(
     app: &AppHandle<R>,
     visible: bool,
@@ -711,14 +773,10 @@ fn set_main_window_traffic_lights_visible<R: Runtime>(
                 .map_err(|error| format!("failed to access macOS window: {error}"))?;
             let ns_window: &NSWindow = unsafe { &*ns_window.cast() };
 
-            for button_kind in [
-                NSWindowButton::MiniaturizeButton,
-                NSWindowButton::CloseButton,
-                NSWindowButton::ZoomButton,
-            ] {
-                if let Some(button) = ns_window.standardWindowButton(button_kind) {
-                    button.setHidden(!visible);
-                }
+            if visible {
+                restore_main_window_traffic_light_inset(ns_window);
+            } else {
+                set_main_window_standard_buttons_hidden(ns_window, true);
             }
 
             Ok(())
@@ -2366,6 +2424,9 @@ async fn probe_runtime_url(url: String) -> Result<RuntimeUrlProbeStatus, String>
 struct PsProcessEntry {
     pid: i32,
     ppid: i32,
+    pgid: i32,
+    state: String,
+    tty: String,
     command: String,
 }
 
@@ -2478,6 +2539,15 @@ fn parse_ps_process_entries(raw: &str) -> Vec<PsProcessEntry> {
         let Some(ppid_raw) = parts.next() else {
             continue;
         };
+        let Some(pgid_raw) = parts.next() else {
+            continue;
+        };
+        let Some(state_raw) = parts.next() else {
+            continue;
+        };
+        let Some(tty_raw) = parts.next() else {
+            continue;
+        };
         let pid = match pid_raw.parse::<i32>() {
             Ok(value) if value > 0 => value,
             _ => continue,
@@ -2486,11 +2556,30 @@ fn parse_ps_process_entries(raw: &str) -> Vec<PsProcessEntry> {
             Ok(value) if value >= 0 => value,
             _ => continue,
         };
+        let pgid = match pgid_raw.parse::<i32>() {
+            Ok(value) if value > 0 => value,
+            _ => continue,
+        };
+        let state = state_raw.trim().to_string();
+        if state.is_empty() {
+            continue;
+        }
+        let tty = tty_raw.trim().to_string();
+        if tty.is_empty() {
+            continue;
+        }
         let command = parts.collect::<Vec<_>>().join(" ");
         if command.is_empty() {
             continue;
         }
-        entries.push(PsProcessEntry { pid, ppid, command });
+        entries.push(PsProcessEntry {
+            pid,
+            ppid,
+            pgid,
+            state,
+            tty,
+            command,
+        });
     }
     entries
 }
@@ -2519,6 +2608,179 @@ fn collect_descendants_by_depth(
     }
 
     descendants
+}
+
+fn has_terminal_tty(tty: &str) -> bool {
+    let normalized = tty.trim();
+    !normalized.is_empty() && normalized != "?" && normalized != "??"
+}
+
+fn is_foreground_process_state(state: &str) -> bool {
+    state.contains('+')
+}
+
+#[derive(Debug, Clone)]
+struct TerminalProcessCandidate {
+    pid: i32,
+    depth: usize,
+    name: String,
+    same_tty: bool,
+    foreground: bool,
+    non_shell: bool,
+    representative: bool,
+    wrapper: bool,
+}
+
+fn compare_terminal_process_candidates(
+    left: &TerminalProcessCandidate,
+    right: &TerminalProcessCandidate,
+) -> std::cmp::Ordering {
+    left.same_tty
+        .cmp(&right.same_tty)
+        .then(left.foreground.cmp(&right.foreground))
+        .then(left.non_shell.cmp(&right.non_shell))
+        .then(left.representative.cmp(&right.representative))
+        .then(left.wrapper.cmp(&right.wrapper))
+        // Prefer the top-level foreground command over deep helper children.
+        .then_with(|| right.depth.cmp(&left.depth))
+        .then_with(|| right.pid.cmp(&left.pid))
+}
+
+fn resolve_terminal_process_name(
+    shell_pid: i32,
+    process_by_pid: &HashMap<i32, PsProcessEntry>,
+    child_pids_by_parent: &HashMap<i32, Vec<i32>>,
+) -> String {
+    let shell_entry = process_by_pid.get(&shell_pid);
+    let shell_label = shell_entry
+        .map(|entry| normalize_process_name(&entry.command))
+        .filter(|name| !name.is_empty())
+        .unwrap_or_else(|| "shell".to_string());
+    let shell_tty = shell_entry
+        .map(|entry| entry.tty.trim())
+        .filter(|tty| has_terminal_tty(tty));
+
+    let descendants = collect_descendants_by_depth(shell_pid, child_pids_by_parent);
+    let best = descendants
+        .into_iter()
+        .filter_map(|(pid, depth)| {
+            let entry = process_by_pid.get(&pid)?;
+            let name = normalize_process_name(&entry.command);
+            if name.is_empty() {
+                return None;
+            }
+            let same_tty = shell_tty
+                .map(|tty| tty == entry.tty.trim())
+                .unwrap_or(false);
+            let wrapper = is_wrapper_process_name(&name);
+            let non_shell = !is_shell_process_name(&name);
+            Some(TerminalProcessCandidate {
+                pid,
+                depth,
+                name,
+                same_tty,
+                foreground: is_foreground_process_state(&entry.state),
+                non_shell,
+                representative: wrapper || entry.pid == entry.pgid,
+                wrapper,
+            })
+        })
+        .max_by(compare_terminal_process_candidates);
+
+    best.map(|candidate| candidate.name).unwrap_or(shell_label)
+}
+
+#[cfg(test)]
+mod terminal_process_tests {
+    use super::{parse_ps_process_entries, resolve_terminal_process_name, PsProcessEntry};
+    use std::collections::HashMap;
+
+    fn entry(
+        pid: i32,
+        ppid: i32,
+        pgid: i32,
+        state: &str,
+        tty: &str,
+        command: &str,
+    ) -> PsProcessEntry {
+        PsProcessEntry {
+            pid,
+            ppid,
+            pgid,
+            state: state.to_string(),
+            tty: tty.to_string(),
+            command: command.to_string(),
+        }
+    }
+
+    fn process_maps(
+        entries: Vec<PsProcessEntry>,
+    ) -> (HashMap<i32, PsProcessEntry>, HashMap<i32, Vec<i32>>) {
+        let mut process_by_pid = HashMap::<i32, PsProcessEntry>::new();
+        let mut child_pids_by_parent = HashMap::<i32, Vec<i32>>::new();
+
+        for entry in entries {
+            child_pids_by_parent
+                .entry(entry.ppid)
+                .or_default()
+                .push(entry.pid);
+            process_by_pid.insert(entry.pid, entry);
+        }
+
+        (process_by_pid, child_pids_by_parent)
+    }
+
+    #[test]
+    fn parse_ps_process_entries_reads_extended_process_fields() {
+        let entries = parse_ps_process_entries(
+            "100 1 100 Ss ttys002 zsh\n200 100 200 S+ ttys002 next-server (v15.5.10)\n",
+        );
+
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[1].pgid, 200);
+        assert_eq!(entries[1].state, "S+");
+        assert_eq!(entries[1].tty, "ttys002");
+        assert_eq!(entries[1].command, "next-server (v15.5.10)");
+    }
+
+    #[test]
+    fn resolve_terminal_process_name_prefers_foreground_job_leader() {
+        let (process_by_pid, child_pids_by_parent) = process_maps(vec![
+            entry(100, 1, 100, "Ss", "ttys002", "zsh"),
+            entry(200, 100, 200, "S+", "ttys002", "/usr/bin/python3"),
+            entry(201, 200, 200, "S+", "ttys002", "sleep"),
+        ]);
+
+        let label = resolve_terminal_process_name(100, &process_by_pid, &child_pids_by_parent);
+
+        assert_eq!(label, "python3");
+    }
+
+    #[test]
+    fn resolve_terminal_process_name_prefers_attached_process_over_detached_helper() {
+        let (process_by_pid, child_pids_by_parent) = process_maps(vec![
+            entry(100, 1, 100, "Ss", "ttys002", "zsh"),
+            entry(200, 100, 200, "S+", "ttys002", "pnpm"),
+            entry(201, 200, 201, "S", "??", "node"),
+        ]);
+
+        let label = resolve_terminal_process_name(100, &process_by_pid, &child_pids_by_parent);
+
+        assert_eq!(label, "pnpm");
+    }
+
+    #[test]
+    fn resolve_terminal_process_name_keeps_wrapper_label_for_wrapper_children() {
+        let (process_by_pid, child_pids_by_parent) = process_maps(vec![
+            entry(100, 1, 100, "Ss", "ttys002", "zsh"),
+            entry(200, 100, 200, "S+", "ttys002", "claude"),
+            entry(201, 200, 200, "S+", "ttys002", "node"),
+        ]);
+
+        let label = resolve_terminal_process_name(100, &process_by_pid, &child_pids_by_parent);
+
+        assert_eq!(label, "claude");
+    }
 }
 
 fn login_interactive_flag(shell: &str) -> String {
@@ -5535,7 +5797,7 @@ fn resolve_foreground_labels(
     }
 
     let output = std::process::Command::new("ps")
-        .args(["-axo", "pid=,ppid=,comm="])
+        .args(["-axo", "pid=,ppid=,pgid=,stat=,tty=,comm="])
         .output()
         .map_err(|error| format!("failed to inspect process list: {error}"))?;
     if !output.status.success() {
@@ -5558,45 +5820,8 @@ fn resolve_foreground_labels(
 
     let mut labels_by_terminal_id = HashMap::<String, String>::new();
     for (terminal_id, shell_pid) in shell_pid_by_terminal_id {
-        let shell_label = process_by_pid
-            .get(shell_pid)
-            .map(|entry| normalize_process_name(&entry.command))
-            .filter(|name| !name.is_empty())
-            .unwrap_or_else(|| "shell".to_string());
-
-        let descendants = collect_descendants_by_depth(*shell_pid, &child_pids_by_parent);
-        // Score: (non_shell, is_wrapper, depth, pid, name)
-        // Wrapper processes (claude, etc.) beat deeper descendants because
-        // they spawn internal child processes (node, npm) as implementation details.
-        let mut best: Option<(bool, bool, usize, i32, String)> = None;
-        for (pid, depth) in descendants {
-            let Some(entry) = process_by_pid.get(&pid) else {
-                continue;
-            };
-            let name = normalize_process_name(&entry.command);
-            if name.is_empty() {
-                continue;
-            }
-            let non_shell = !is_shell_process_name(&name);
-            let wrapper = is_wrapper_process_name(&name);
-            let candidate = (non_shell, wrapper, depth, pid, name);
-            match &best {
-                None => best = Some(candidate),
-                Some(current) => {
-                    // Priority: non_shell > wrapper > depth > pid
-                    let is_better = (candidate.0, candidate.1) > (current.0, current.1)
-                        || (candidate.0 == current.0
-                            && candidate.1 == current.1
-                            && (candidate.2 > current.2
-                                || (candidate.2 == current.2 && candidate.3 > current.3)));
-                    if is_better {
-                        best = Some(candidate);
-                    }
-                }
-            }
-        }
-
-        let label = best.map(|value| value.4).unwrap_or(shell_label);
+        let label =
+            resolve_terminal_process_name(*shell_pid, &process_by_pid, &child_pids_by_parent);
         labels_by_terminal_id.insert(terminal_id.clone(), label);
     }
 

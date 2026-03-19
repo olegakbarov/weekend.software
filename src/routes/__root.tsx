@@ -109,7 +109,27 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
   );
 
   useEffect(() => {
-    void setTrafficLightsVisible(shouldShowTrafficLights).catch(() => undefined);
+    let cancelled = false;
+
+    const syncTrafficLights = async () => {
+      try {
+        await setTrafficLightsVisible(shouldShowTrafficLights, {
+          isCancelled: () => cancelled,
+        });
+      } catch (error) {
+        if (cancelled) return;
+        console.error("[Window] Failed to set traffic lights visibility", {
+          visible: shouldShowTrafficLights,
+          error,
+        });
+      }
+    };
+
+    void syncTrafficLights();
+
+    return () => {
+      cancelled = true;
+    };
   }, [shouldShowTrafficLights]);
 
   const sidebarData: SidebarData = {

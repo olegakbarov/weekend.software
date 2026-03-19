@@ -4,6 +4,8 @@ import {
   ChevronRight,
   Crosshair,
   FileCode2,
+  Globe,
+  Monitor,
   Plus,
   RefreshCw,
   Settings,
@@ -212,51 +214,6 @@ export function BrowserToolbar({
           role={!isBrowserActive ? "button" : undefined}
           tabIndex={!isBrowserActive ? 0 : undefined}
         >
-          {/* Local / Web toggle */}
-          <div className="flex shrink-0 items-center gap-px pl-1.5 pr-1 border-r border-border/50">
-            <button
-              className={`px-1 py-0.5 font-code text-[11px] transition-colors ${
-                browserSource === "local"
-                  ? "text-foreground"
-                  : "text-muted-foreground/40 hover:text-muted-foreground/70"
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onBrowserSourceChange("local");
-                if (!isBrowserActive) onWorkspaceModeChange("browser");
-              }}
-              title="Local dev server"
-              type="button"
-            >
-              local
-            </button>
-            <span className="text-border text-[10px]">/</span>
-            <button
-              className={`px-1 py-0.5 font-code text-[11px] transition-colors ${
-                browserSource === "web"
-                  ? "text-foreground"
-                  : "text-muted-foreground/40 hover:text-muted-foreground/70"
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (hasDeployUrl) {
-                  onBrowserSourceChange("web");
-                  if (!isBrowserActive) onWorkspaceModeChange("browser");
-                } else {
-                  onOpenConfigFile();
-                }
-              }}
-              title={
-                hasDeployUrl
-                  ? "Deployed version"
-                  : "Set runtime.deployUrl in weekend.config.json"
-              }
-              type="button"
-            >
-              web
-            </button>
-          </div>
-
           {/* Address bar */}
           <form
             className="flex min-w-0 flex-1 items-center"
@@ -310,21 +267,63 @@ export function BrowserToolbar({
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {isBrowserActive ? (
-          <button
-            aria-label="Grab element"
-            aria-pressed={isGrabbing}
-            className={
-              isGrabbing
-                ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-blue-500/60 bg-blue-500/10 text-blue-500 transition-colors hover:text-blue-400"
-                : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground disabled:text-muted-foreground/25"
-            }
-            disabled={!hasBrowserUrl}
-            onClick={onToggleElementGrab}
-            title={isGrabbing ? "Stop grabbing element" : "Grab element"}
-            type="button"
-          >
-            <Crosshair className="size-3.5" />
-          </button>
+          <>
+            <button
+              aria-label="Grab element"
+              aria-pressed={isGrabbing}
+              className={
+                isGrabbing
+                  ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-blue-500/60 bg-blue-500/10 text-blue-500 transition-colors hover:text-blue-400"
+                  : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground disabled:text-muted-foreground/25"
+              }
+              disabled={!hasBrowserUrl}
+              onClick={onToggleElementGrab}
+              title={isGrabbing ? "Stop grabbing element" : "Grab element"}
+              type="button"
+            >
+              <Crosshair className="size-3.5" />
+            </button>
+
+            {/* Local / Web tabs */}
+            <div className="flex shrink-0 items-center rounded-md border border-border/80 bg-background">
+              <button
+                className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-l-md transition-colors ${
+                  browserSource === "local"
+                    ? "bg-secondary/60 text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                onClick={() => {
+                  onBrowserSourceChange("local");
+                }}
+                title="Local dev server"
+                type="button"
+              >
+                <Monitor className="size-3.5" />
+              </button>
+              <button
+                className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-r-md transition-colors ${
+                  browserSource === "web"
+                    ? "bg-secondary/60 text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                onClick={() => {
+                  if (hasDeployUrl) {
+                    onBrowserSourceChange("web");
+                  } else {
+                    onOpenConfigFile();
+                  }
+                }}
+                title={
+                  hasDeployUrl
+                    ? "Deployed version"
+                    : "Set runtime.deployUrl in weekend.config.json"
+                }
+                type="button"
+              >
+                <Globe className="size-3.5" />
+              </button>
+            </div>
+          </>
         ) : null}
 
         <button
