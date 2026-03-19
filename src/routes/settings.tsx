@@ -18,9 +18,8 @@ function SettingsRoute() {
   const { weekendLogsSnapshot, isRefreshing: isLogsRefreshing, error: logsError, refresh: refreshLogs } = useLogs();
 
   useEffect(() => {
-    void controller.refreshSharedAssets().catch(() => undefined);
     refreshLogs();
-  }, [controller, refreshLogs]);
+  }, [refreshLogs]);
 
   const refreshRuntimeSnapshot = useCallback(() => {
     if (isRefreshingRuntimeSnapshot) return;
@@ -32,31 +31,6 @@ function SettingsRoute() {
         setIsRefreshingRuntimeSnapshot(false);
       });
   }, [isRefreshingRuntimeSnapshot, controller]);
-
-  const refreshSharedAssets = useCallback(() => {
-    void controller.refreshSharedAssets().catch(() => undefined);
-  }, [controller]);
-
-  const handleUploadSharedAssets = useCallback(
-    async (files: File[]) => {
-      await controller.uploadSharedAssets(files);
-    },
-    [controller]
-  );
-
-  const handleRenameSharedAsset = useCallback(
-    async (fileName: string, newFileName: string) => {
-      await controller.renameSharedAsset(fileName, newFileName);
-    },
-    [controller]
-  );
-
-  const handleDeleteSharedAsset = useCallback(
-    async (fileName: string) => {
-      await controller.deleteSharedAsset(fileName);
-    },
-    [controller]
-  );
 
   const handleShowArchivedAppsChange = useCallback(
     (enabled: boolean) => {
@@ -71,20 +45,12 @@ function SettingsRoute() {
     <SettingsPage
       error={state.runtimeDebugError}
       isRefreshing={isRefreshingRuntimeSnapshot}
-      isSharedAssetsLoading={state.sharedAssetsLoading}
-      isSharedAssetsUploading={state.sharedAssetsUploading}
       isVimModeEnabled={isVimModeEnabled}
-      onRefreshSharedAssets={refreshSharedAssets}
       onVimModeEnabledChange={setIsVimModeEnabled}
       showArchivedApps={state.showArchived}
       onShowArchivedAppsChange={handleShowArchivedAppsChange}
       onRefreshRuntimeSnapshot={refreshRuntimeSnapshot}
-      onUploadSharedAssets={handleUploadSharedAssets}
-      onRenameSharedAsset={handleRenameSharedAsset}
-      onDeleteSharedAsset={handleDeleteSharedAsset}
       runtimeTelemetryEvents={state.runtimeTelemetryEvents}
-      sharedAssets={state.sharedAssets}
-      sharedAssetsError={state.sharedAssetsError}
       snapshot={state.runtimeDebugSnapshot}
       weekendLogs={weekendLogsSnapshot}
       logsError={logsError}

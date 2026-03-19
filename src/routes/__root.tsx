@@ -33,6 +33,8 @@ type CurrentRouteInfo = {
   route:
     | "home"
     | "settings"
+    | "skills"
+    | "shared"
     | "logs"
     | "workspace"
     | "index"
@@ -62,6 +64,8 @@ function useCurrentRouteInfo(): CurrentRouteInfo {
       if (routeId === "/workspace/$project") route = "workspace";
       else if (routeId === "/home") route = "home";
       else if (routeId === "/settings") route = "settings";
+      else if (routeId === "/skills") route = "skills";
+      else if (routeId === "/shared") route = "shared";
       else if (routeId === "/logs") route = "logs";
       else if (routeId === "/shared-drop") route = "shared-drop";
 
@@ -151,6 +155,8 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
       onCreateTerminal: appActions.createTerminal,
       onOpenLogs: () => void navigate({ to: "/logs" }),
       onOpenSettings: () => void navigate({ to: "/settings" }),
+      onOpenSkills: () => void navigate({ to: "/skills" }),
+      onOpenShared: () => void navigate({ to: "/shared" }),
       onRenameTerminal: appActions.renameTerminal,
       onPlay: appActions.play,
       onStop: appActions.stop,

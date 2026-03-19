@@ -9,16 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SharedDropRouteImport } from './routes/shared-drop'
+import { Route as SharedRouteImport } from './routes/shared'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WorkspaceProjectRouteImport } from './routes/workspace.$project'
 
+const SkillsRoute = SkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SharedDropRoute = SharedDropRouteImport.update({
   id: '/shared-drop',
   path: '/shared-drop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SharedRoute = SharedRouteImport.update({
+  id: '/shared',
+  path: '/shared',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -52,7 +64,9 @@ export interface FileRoutesByFullPath {
   '/home': typeof HomeRoute
   '/logs': typeof LogsRoute
   '/settings': typeof SettingsRoute
+  '/shared': typeof SharedRoute
   '/shared-drop': typeof SharedDropRoute
+  '/skills': typeof SkillsRoute
   '/workspace/$project': typeof WorkspaceProjectRoute
 }
 export interface FileRoutesByTo {
@@ -60,7 +74,9 @@ export interface FileRoutesByTo {
   '/home': typeof HomeRoute
   '/logs': typeof LogsRoute
   '/settings': typeof SettingsRoute
+  '/shared': typeof SharedRoute
   '/shared-drop': typeof SharedDropRoute
+  '/skills': typeof SkillsRoute
   '/workspace/$project': typeof WorkspaceProjectRoute
 }
 export interface FileRoutesById {
@@ -69,7 +85,9 @@ export interface FileRoutesById {
   '/home': typeof HomeRoute
   '/logs': typeof LogsRoute
   '/settings': typeof SettingsRoute
+  '/shared': typeof SharedRoute
   '/shared-drop': typeof SharedDropRoute
+  '/skills': typeof SkillsRoute
   '/workspace/$project': typeof WorkspaceProjectRoute
 }
 export interface FileRouteTypes {
@@ -79,7 +97,9 @@ export interface FileRouteTypes {
     | '/home'
     | '/logs'
     | '/settings'
+    | '/shared'
     | '/shared-drop'
+    | '/skills'
     | '/workspace/$project'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -87,7 +107,9 @@ export interface FileRouteTypes {
     | '/home'
     | '/logs'
     | '/settings'
+    | '/shared'
     | '/shared-drop'
+    | '/skills'
     | '/workspace/$project'
   id:
     | '__root__'
@@ -95,7 +117,9 @@ export interface FileRouteTypes {
     | '/home'
     | '/logs'
     | '/settings'
+    | '/shared'
     | '/shared-drop'
+    | '/skills'
     | '/workspace/$project'
   fileRoutesById: FileRoutesById
 }
@@ -104,17 +128,33 @@ export interface RootRouteChildren {
   HomeRoute: typeof HomeRoute
   LogsRoute: typeof LogsRoute
   SettingsRoute: typeof SettingsRoute
+  SharedRoute: typeof SharedRoute
   SharedDropRoute: typeof SharedDropRoute
+  SkillsRoute: typeof SkillsRoute
   WorkspaceProjectRoute: typeof WorkspaceProjectRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/skills': {
+      id: '/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof SkillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shared-drop': {
       id: '/shared-drop'
       path: '/shared-drop'
       fullPath: '/shared-drop'
       preLoaderRoute: typeof SharedDropRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shared': {
+      id: '/shared'
+      path: '/shared'
+      fullPath: '/shared'
+      preLoaderRoute: typeof SharedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -160,7 +200,9 @@ const rootRouteChildren: RootRouteChildren = {
   HomeRoute: HomeRoute,
   LogsRoute: LogsRoute,
   SettingsRoute: SettingsRoute,
+  SharedRoute: SharedRoute,
   SharedDropRoute: SharedDropRoute,
+  SkillsRoute: SkillsRoute,
   WorkspaceProjectRoute: WorkspaceProjectRoute,
 }
 export const routeTree = rootRouteImport

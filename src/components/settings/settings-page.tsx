@@ -1,14 +1,10 @@
-import { useRef, useState } from "react";
 import { useTheme } from "@/components/theme/use-theme";
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   type RuntimeDebugSnapshot,
   type RuntimeTelemetryEvent,
-  type SharedAssetSnapshot,
 } from "@/lib/controller";
 import type { WeekendLogsSnapshot } from "@/components/logs/logs-page";
 
@@ -73,14 +69,6 @@ function formatRuntimeTelemetryDump(events: RuntimeTelemetryEvent[]): string {
   return lines.join("\n").trimEnd();
 }
 
-function formatFileSize(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes < 0) return "n/a";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-}
-
 export type SettingsPageProps = {
   snapshot: RuntimeDebugSnapshot | null;
   error: string | null;
@@ -91,14 +79,6 @@ export type SettingsPageProps = {
   onVimModeEnabledChange: (enabled: boolean) => void;
   showArchivedApps: boolean;
   onShowArchivedAppsChange: (enabled: boolean) => void;
-  sharedAssets: SharedAssetSnapshot[];
-  sharedAssetsError: string | null;
-  isSharedAssetsLoading: boolean;
-  isSharedAssetsUploading: boolean;
-  onRefreshSharedAssets: () => void;
-  onUploadSharedAssets: (files: File[]) => Promise<void>;
-  onRenameSharedAsset: (fileName: string, newFileName: string) => Promise<void>;
-  onDeleteSharedAsset: (fileName: string) => Promise<void>;
   weekendLogs: WeekendLogsSnapshot | null;
   logsError: string | null;
   isLogsRefreshing: boolean;
@@ -117,73 +97,12 @@ export function SettingsPage({
   onVimModeEnabledChange,
   showArchivedApps,
   onShowArchivedAppsChange,
-  sharedAssets,
-  sharedAssetsError,
-  isSharedAssetsLoading,
-  isSharedAssetsUploading,
-  onRefreshSharedAssets,
-  onUploadSharedAssets,
-  onRenameSharedAsset,
-  onDeleteSharedAsset,
   weekendLogs,
   logsError,
   isLogsRefreshing,
   onRefreshLogs,
 }: SettingsPageProps) {
   const { mode, setMode } = useTheme();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [renamingFileName, setRenamingFileName] = useState<string | null>(null);
-  const [renameDraft, setRenameDraft] = useState("");
-  const [pendingDeleteFileName, setPendingDeleteFileName] = useState<string | null>(
-    null
-  );
-
-  const handleUpload = () => {
-    if (selectedFiles.length === 0 || isSharedAssetsUploading) return;
-    void onUploadSharedAssets(selectedFiles)
-      .then(() => {
-        setSelectedFiles([]);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      })
-      .catch(() => undefined);
-  };
-
-  const startRenameSharedAsset = (fileName: string) => {
-    if (isSharedAssetsUploading) return;
-    setRenamingFileName(fileName);
-    setRenameDraft(fileName);
-  };
-
-  const cancelRenameSharedAsset = () => {
-    setRenamingFileName(null);
-    setRenameDraft("");
-  };
-
-  const submitRenameSharedAsset = (fileName: string) => {
-    if (isSharedAssetsUploading) return;
-    const trimmed = renameDraft.trim();
-    if (!trimmed || trimmed === fileName) {
-      cancelRenameSharedAsset();
-      return;
-    }
-    if (trimmed.includes("/") || trimmed.includes("\\")) {
-      return;
-    }
-
-    void onRenameSharedAsset(fileName, trimmed)
-      .then(() => {
-        cancelRenameSharedAsset();
-      })
-      .catch(() => undefined);
-  };
-
-  const requestDeleteSharedAsset = (fileName: string) => {
-    if (isSharedAssetsUploading) return;
-    setPendingDeleteFileName(fileName);
-  };
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden p-6">
@@ -192,7 +111,6 @@ export function SettingsPage({
       <Tabs className="mt-4 min-h-0 flex-1" defaultValue="basic">
         <TabsList>
           <TabsTrigger className="font-code text-xs" value="basic">Basic</TabsTrigger>
-          <TabsTrigger className="font-code text-xs" value="files">Files</TabsTrigger>
           <TabsTrigger className="font-code text-xs" value="logs">Logs</TabsTrigger>
           <TabsTrigger className="font-code text-xs" value="advanced">Advanced</TabsTrigger>
         </TabsList>
@@ -257,175 +175,6 @@ export function SettingsPage({
                 }
                 size="md"
               />
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* ── Files ── */}
-        <TabsContent className="overflow-auto" value="files">
-          <div className="space-y-3">
-            <div className="space-y-3 rounded border border-border/70 bg-background/60 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="font-code text-xs text-foreground">Shared Files</p>
-                  <p className="font-code text-[11px] text-muted-foreground">
-                    Files copied into every project at `./shared-assets/`.
-                  </p>
-                </div>
-                <Button
-                  className="h-7 px-2 font-code text-[10px]"
-                  disabled={isSharedAssetsLoading || isSharedAssetsUploading}
-                  onClick={onRefreshSharedAssets}
-                  size="sm"
-                  variant="ghost"
-                >
-                  {isSharedAssetsLoading ? "Refreshing..." : "Refresh"}
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <input
-                  className="block w-full cursor-pointer rounded border border-border/70 bg-background px-3 py-2 font-code text-xs text-foreground file:mr-2 file:rounded file:border-0 file:bg-secondary file:px-2 file:py-1 file:font-code file:text-[11px]"
-                  multiple
-                  onChange={(event) => {
-                    const files = event.currentTarget.files;
-                    setSelectedFiles(files ? Array.from(files) : []);
-                  }}
-                  ref={fileInputRef}
-                  type="file"
-                />
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-code text-[11px] text-muted-foreground">
-                    {selectedFiles.length === 0
-                      ? "No files selected."
-                      : `${selectedFiles.length} file(s) selected.`}
-                  </p>
-                  <Button
-                    className="h-7 px-2 font-code text-[10px]"
-                    disabled={selectedFiles.length === 0 || isSharedAssetsUploading}
-                    onClick={handleUpload}
-                    size="sm"
-                    variant="ghost"
-                  >
-                    {isSharedAssetsUploading ? "Uploading..." : "Upload To All Projects"}
-                  </Button>
-                </div>
-              </div>
-
-              {sharedAssetsError ? (
-                <p className="font-code text-xs text-destructive">{sharedAssetsError}</p>
-              ) : null}
-
-              <div className="rounded border border-border/70 bg-[var(--feature-input-body-bg)]">
-                <div className="border-b border-border/60 px-3 py-2 font-code text-[11px] text-muted-foreground">
-                  {sharedAssets.length} shared file(s)
-                </div>
-                {sharedAssets.length === 0 ? (
-                  <p className="px-3 py-3 font-code text-xs text-muted-foreground">
-                    No shared assets yet.
-                  </p>
-                ) : (
-                  <ul className="max-h-64 divide-y divide-border/40 overflow-auto">
-                    {sharedAssets.map((asset) => (
-                      <li
-                        className="flex items-center justify-between gap-3 px-3 py-2 font-code text-xs"
-                        key={asset.fileName}
-                      >
-                        <div className="min-w-0">
-                          {renamingFileName === asset.fileName ? (
-                            <div className="space-y-2">
-                              <Input
-                                autoFocus
-                                className="h-7 px-2 font-code text-[11px]"
-                                onChange={(event) => {
-                                  setRenameDraft(event.currentTarget.value);
-                                }}
-                                onKeyDown={(event) => {
-                                  if (event.key === "Enter") {
-                                    event.preventDefault();
-                                    submitRenameSharedAsset(asset.fileName);
-                                  } else if (event.key === "Escape") {
-                                    event.preventDefault();
-                                    cancelRenameSharedAsset();
-                                  }
-                                }}
-                                value={renameDraft}
-                              />
-                              <p className="text-[11px] text-muted-foreground">
-                                {formatFileSize(asset.sizeBytes)} ·{" "}
-                                {asset.modifiedAtUnixMs
-                                  ? formatTimestamp(asset.modifiedAtUnixMs)
-                                  : "n/a"}
-                              </p>
-                            </div>
-                          ) : (
-                            <>
-                              <p className="truncate text-foreground">{asset.fileName}</p>
-                              <p className="mt-1 text-[11px] text-muted-foreground">
-                                {formatFileSize(asset.sizeBytes)} ·{" "}
-                                {asset.modifiedAtUnixMs
-                                  ? formatTimestamp(asset.modifiedAtUnixMs)
-                                  : "n/a"}
-                              </p>
-                            </>
-                          )}
-                        </div>
-                        <div className="flex shrink-0 items-center gap-1">
-                          {renamingFileName === asset.fileName ? (
-                            <>
-                              <Button
-                                className="h-6 px-2 font-code text-[10px]"
-                                disabled={isSharedAssetsUploading}
-                                onClick={() => {
-                                  submitRenameSharedAsset(asset.fileName);
-                                }}
-                                size="sm"
-                                variant="ghost"
-                              >
-                                Save
-                              </Button>
-                              <Button
-                                className="h-6 px-2 font-code text-[10px]"
-                                disabled={isSharedAssetsUploading}
-                                onClick={cancelRenameSharedAsset}
-                                size="sm"
-                                variant="ghost"
-                              >
-                                Cancel
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <Button
-                                className="h-6 px-2 font-code text-[10px]"
-                                disabled={isSharedAssetsUploading}
-                                onClick={() => {
-                                  startRenameSharedAsset(asset.fileName);
-                                }}
-                                size="sm"
-                                variant="ghost"
-                              >
-                                Rename
-                              </Button>
-                              <Button
-                                className="h-6 px-2 font-code text-[10px] text-destructive hover:text-destructive"
-                                disabled={isSharedAssetsUploading}
-                                onClick={() => {
-                                  requestDeleteSharedAsset(asset.fileName);
-                                }}
-                                size="sm"
-                                variant="ghost"
-                              >
-                                Remove
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
             </div>
           </div>
         </TabsContent>
@@ -524,28 +273,6 @@ export function SettingsPage({
           </div>
         </TabsContent>
       </Tabs>
-      <ConfirmDialog
-        cancelText="Cancel"
-        confirmText="Remove"
-        message={
-          pendingDeleteFileName
-            ? `Remove "${pendingDeleteFileName}" from Shared Files and every project copy?`
-            : ""
-        }
-        onConfirm={() => {
-          const target = pendingDeleteFileName;
-          if (!target) return;
-          void onDeleteSharedAsset(target).catch(() => undefined);
-        }}
-        onOpenChange={(open) => {
-          if (!open) {
-            setPendingDeleteFileName(null);
-          }
-        }}
-        open={pendingDeleteFileName !== null}
-        title="Remove shared file?"
-        variant="danger"
-      />
     </section>
   );
 }

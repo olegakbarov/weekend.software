@@ -198,6 +198,48 @@ export function BrowserToolbar({
           </button>
         </div>
 
+        {/* Local / Web tabs */}
+        <div className="flex shrink-0 items-center rounded-md border border-border/80 bg-background">
+          <button
+            className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-l-md transition-colors ${
+              isBrowserActive && browserSource === "local"
+                ? "bg-secondary/60 text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => {
+              onBrowserSourceChange("local");
+              if (!isBrowserActive) onWorkspaceModeChange("browser");
+            }}
+            title="Local dev server"
+            type="button"
+          >
+            <Monitor className="size-3.5" />
+          </button>
+          <button
+            className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-r-md transition-colors ${
+              isBrowserActive && browserSource === "web"
+                ? "bg-secondary/60 text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => {
+              if (hasDeployUrl) {
+                onBrowserSourceChange("web");
+                if (!isBrowserActive) onWorkspaceModeChange("browser");
+              } else {
+                onOpenConfigFile();
+              }
+            }}
+            title={
+              hasDeployUrl
+                ? "Deployed version"
+                : "Set runtime.deployUrl in weekend.config.json"
+            }
+            type="button"
+          >
+            <Globe className="size-3.5" />
+          </button>
+        </div>
+
         {/* Browser bar — always visible */}
         <div
           className={`flex min-w-0 flex-1 items-center rounded-md border bg-background transition-opacity ${
@@ -267,63 +309,21 @@ export function BrowserToolbar({
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {isBrowserActive ? (
-          <>
-            <button
-              aria-label="Grab element"
-              aria-pressed={isGrabbing}
-              className={
-                isGrabbing
-                  ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-blue-500/60 bg-blue-500/10 text-blue-500 transition-colors hover:text-blue-400"
-                  : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground disabled:text-muted-foreground/25"
-              }
-              disabled={!hasBrowserUrl}
-              onClick={onToggleElementGrab}
-              title={isGrabbing ? "Stop grabbing element" : "Grab element"}
-              type="button"
-            >
-              <Crosshair className="size-3.5" />
-            </button>
-
-            {/* Local / Web tabs */}
-            <div className="flex shrink-0 items-center rounded-md border border-border/80 bg-background">
-              <button
-                className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-l-md transition-colors ${
-                  browserSource === "local"
-                    ? "bg-secondary/60 text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                onClick={() => {
-                  onBrowserSourceChange("local");
-                }}
-                title="Local dev server"
-                type="button"
-              >
-                <Monitor className="size-3.5" />
-              </button>
-              <button
-                className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-r-md transition-colors ${
-                  browserSource === "web"
-                    ? "bg-secondary/60 text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                onClick={() => {
-                  if (hasDeployUrl) {
-                    onBrowserSourceChange("web");
-                  } else {
-                    onOpenConfigFile();
-                  }
-                }}
-                title={
-                  hasDeployUrl
-                    ? "Deployed version"
-                    : "Set runtime.deployUrl in weekend.config.json"
-                }
-                type="button"
-              >
-                <Globe className="size-3.5" />
-              </button>
-            </div>
-          </>
+          <button
+            aria-label="Grab element"
+            aria-pressed={isGrabbing}
+            className={
+              isGrabbing
+                ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-blue-500/60 bg-blue-500/10 text-blue-500 transition-colors hover:text-blue-400"
+                : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground disabled:text-muted-foreground/25"
+            }
+            disabled={!hasBrowserUrl}
+            onClick={onToggleElementGrab}
+            title={isGrabbing ? "Stop grabbing element" : "Grab element"}
+            type="button"
+          >
+            <Crosshair className="size-3.5" />
+          </button>
         ) : null}
 
         <button
