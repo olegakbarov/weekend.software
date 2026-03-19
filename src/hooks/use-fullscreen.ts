@@ -1,15 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { hasTauriRuntime } from "@/lib/tauri-mock";
 
 export function useFullscreen() {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  const toggleSidebarCollapsed = useCallback(() => {
-    setIsSidebarCollapsed((prev) => !prev);
-  }, []);
 
   useEffect(() => {
     if (!hasTauriRuntime()) return;
@@ -50,13 +44,5 @@ export function useFullscreen() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!isFullscreen) {
-      setIsSidebarVisible(false);
-      return;
-    }
-    setIsSidebarVisible(false);
-  }, [isFullscreen]);
-
-  return { isFullscreen, isSidebarVisible, setIsSidebarVisible, isSidebarCollapsed, toggleSidebarCollapsed };
+  return isFullscreen;
 }

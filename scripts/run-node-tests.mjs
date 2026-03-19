@@ -33,7 +33,12 @@ if (testFiles.length === 0) {
 
 const child = spawn(
   process.execPath,
-  ["--experimental-strip-types", "--test", ...testFiles],
+  [
+    "--disable-warning=ExperimentalWarning",
+    "--experimental-strip-types",
+    "--test",
+    ...testFiles,
+  ],
   {
     cwd: rootDir,
     stdio: "inherit",

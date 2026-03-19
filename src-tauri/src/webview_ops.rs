@@ -40,9 +40,7 @@ pub fn list_browser_webviews<R: Runtime>(app: &AppHandle<R>) -> Vec<String> {
 fn stale_browser_webview_labels(labels: Vec<String>, active_label: Option<&str>) -> Vec<String> {
     labels
         .into_iter()
-        .filter(|label| {
-            label.starts_with("browser-pane:") && active_label != Some(label.as_str())
-        })
+        .filter(|label| label.starts_with("browser-pane:") && active_label != Some(label.as_str()))
         .collect()
 }
 
@@ -320,7 +318,7 @@ pub fn navigate_webview<R: Runtime>(
     let url_literal =
         serde_json::to_string(url).map_err(|e| format!("failed to serialize URL: {e}"))?;
     webview
-        .eval(&format!("window.location.href = {url_literal}"))
+        .eval(format!("window.location.href = {url_literal}"))
         .map_err(|e| format!("navigate failed: {e}"))
 }
 

@@ -1,15 +1,32 @@
 import { useEffect, useRef } from "react";
-import { EditorView, keymap, type KeyBinding } from "@codemirror/view";
-import { EditorState, Prec } from "@codemirror/state";
-import { basicSetup } from "codemirror";
+import {
+  crosshairCursor,
+  drawSelection,
+  dropCursor,
+  EditorView,
+  highlightActiveLine,
+  highlightActiveLineGutter,
+  highlightSpecialChars,
+  keymap,
+  lineNumbers,
+  rectangularSelection,
+  type KeyBinding,
+} from "@codemirror/view";
+import { EditorState, Prec, type Extension } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { javascript } from "@codemirror/lang-javascript";
 import { json } from "@codemirror/lang-json";
 import { html } from "@codemirror/lang-html";
 import { css } from "@codemirror/lang-css";
 import { markdown } from "@codemirror/lang-markdown";
-import { indentWithTab, redo, undo } from "@codemirror/commands";
-import type { Extension } from "@codemirror/state";
+import {
+  defaultKeymap,
+  history,
+  historyKeymap,
+  indentWithTab,
+  redo,
+  undo,
+} from "@codemirror/commands";
 import { vim, getCM, Vim } from "@replit/codemirror-vim";
 import { useTheme } from "@/components/theme/use-theme";
 
@@ -88,19 +105,33 @@ export function CodeEditor({
     const undoBinding: KeyBinding = { key: "Mod-z", run: undo };
     const redoBinding: KeyBinding = { key: "Shift-Mod-z", run: redo };
     const redoFallbackBinding: KeyBinding = { key: "Mod-y", run: redo };
+    const baseExtensions: Extension[] = [
+      lineNumbers(),
+      highlightActiveLineGutter(),
+      highlightSpecialChars(),
+      history(),
+      drawSelection(),
+      dropCursor(),
+      EditorState.allowMultipleSelections.of(true),
+      rectangularSelection(),
+      crosshairCursor(),
+      highlightActiveLine(),
+    ];
 
     const state = EditorState.create({
       doc: content,
       extensions: [
         ...(isVimModeEnabled ? [vim()] : []),
-        basicSetup,
+        ...baseExtensions,
         Prec.highest(
           keymap.of([
-            indentWithTab,
             saveBinding,
             undoBinding,
             redoBinding,
             redoFallbackBinding,
+            indentWithTab,
+            ...defaultKeymap,
+            ...historyKeymap,
           ])
         ),
         ...(resolvedMode === "dark" ? [oneDark] : []),

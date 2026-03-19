@@ -1,0 +1,5 @@
+export const SIDEBAR_WIDTH_PX = 260;
+export const SIDEBAR_EDGE_TRIGGER_PX = 3;
+export const TRAFFIC_LIGHTS_SAFE_ZONE_PX = 72;
+export const TERMINAL_INDENT_PX = 18;
+export const DRAG_ACTIVATION_DISTANCE_PX = 5;

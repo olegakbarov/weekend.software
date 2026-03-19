@@ -163,8 +163,7 @@ class TerminalRegistry {
       invoke("terminal_open", {
         terminalId,
         project: managed.project,
-        cols,
-        rows,
+        size: { cols, rows },
         playSpawned: managed.playSpawned || undefined,
         processRole: managed.processRole || undefined,
       });

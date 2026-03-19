@@ -4,17 +4,25 @@ import {
   useNavigate,
   useRouterState,
 } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Sidebar } from "@/components/sidebar/sidebar";
+import {
+  SidebarProvider,
+  type SidebarData,
+  type SidebarActions,
+} from "@/components/sidebar/sidebar-context";
+import {
+  SIDEBAR_WIDTH_PX,
+  SIDEBAR_EDGE_TRIGGER_PX,
+} from "@/components/sidebar/sidebar-constants";
 import { useAppActions } from "@/hooks/use-app-actions";
 import { useFullscreen } from "@/hooks/use-fullscreen";
+import { useSidebarVisibility } from "@/hooks/use-sidebar-visibility";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import type { WorkspaceController } from "@/hooks/use-workspace-controller";
 import { useWorkspaceState } from "@/hooks/use-workspace-state";
 import { cn } from "@/lib/utils";
-
-const FULLSCREEN_SIDEBAR_EDGE_TRIGGER_WIDTH_PX = 3;
-const FULLSCREEN_SIDEBAR_WIDTH_PX = 260;
 
 export type RouterContext = {
   controller: WorkspaceController;
@@ -86,40 +94,51 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
   const { controller } = Route.useRouteContext();
   const state = useWorkspaceState(controller);
   const navigate = useNavigate();
-  const { isFullscreen, isSidebarVisible, setIsSidebarVisible, isSidebarCollapsed, toggleSidebarCollapsed } =
-    useFullscreen();
+  const isFullscreen = useFullscreen();
+  const { isSidebarVisible, setIsSidebarVisible, isSidebarCollapsed, toggleSidebarCollapsed } =
+    useSidebarVisibility(isFullscreen);
   const appActions = useAppActions(controller, state);
 
   useKeyboardShortcuts(controller, routeInfo.project, routeInfo.route === "workspace" ? routeInfo.view : null, toggleSidebarCollapsed);
 
+  const sidebarData: SidebarData = {
+    currentProject: routeInfo.project,
+    currentRoute: routeInfo.route,
+    activeTerminalId: routeInfo.view === "terminal" ? routeInfo.terminalId : null,
+    isFullscreen,
+    projects: appActions.projects,
+    terminalSessionsByProject: appActions.terminalSessionsByProject,
+    playStateByProject: appActions.playStateByProject,
+    playErrorByProject: appActions.playErrorByProject,
+    showArchived: appActions.showArchived,
+    archivedProjects: appActions.archivedProjects,
+  };
+
+  const sidebarActions: SidebarActions = useMemo(
+    () => ({
+      onOpenHome: () => void navigate({ to: "/home" }),
+      onCreateTerminal: appActions.createTerminal,
+      onOpenLogs: () => void navigate({ to: "/logs" }),
+      onOpenSettings: () => void navigate({ to: "/settings" }),
+      onRenameTerminal: appActions.renameTerminal,
+      onPlay: appActions.play,
+      onStop: appActions.stop,
+      onRemoveTerminal: appActions.removeTerminal,
+      onReorderProjects: appActions.reorderProjects,
+      onRenameProject: appActions.renameProject,
+      onSelectBrowser: appActions.selectBrowser,
+      onSelectTerminal: appActions.selectTerminal,
+      onToggleShowArchived: appActions.toggleShowArchived,
+      onUnarchiveProject: appActions.unarchiveProject,
+      onToggleSidebar: toggleSidebarCollapsed,
+    }),
+    [appActions, navigate, toggleSidebarCollapsed],
+  );
+
   const sidebar = (
-    <Sidebar
-      currentProject={routeInfo.project}
-      currentRoute={routeInfo.route}
-      activeTerminalId={routeInfo.view === "terminal" ? routeInfo.terminalId : null}
-      isFullscreen={isFullscreen}
-      onOpenHome={() => void navigate({ to: "/home" })}
-      onCreateTerminal={appActions.createTerminal}
-      onOpenLogs={() => void navigate({ to: "/logs" })}
-      onOpenSettings={() => void navigate({ to: "/settings" })}
-      onRenameTerminal={appActions.renameTerminal}
-      onPlay={appActions.play}
-      onStop={appActions.stop}
-      onRemoveTerminal={appActions.removeTerminal}
-      onReorderProjects={appActions.reorderProjects}
-      onRenameProject={appActions.renameProject}
-      onSelectBrowser={appActions.selectBrowser}
-      onSelectTerminal={appActions.selectTerminal}
-      playStateByProject={appActions.playStateByProject}
-      playErrorByProject={appActions.playErrorByProject}
-      projects={appActions.projects}
-      terminalSessionsByProject={appActions.terminalSessionsByProject}
-      showArchived={appActions.showArchived}
-      archivedProjects={appActions.archivedProjects}
-      onToggleShowArchived={appActions.toggleShowArchived}
-      onUnarchiveProject={appActions.unarchiveProject}
-      onToggleSidebar={toggleSidebarCollapsed}
-    />
+    <SidebarProvider data={sidebarData} actions={sidebarActions}>
+      <Sidebar />
+    </SidebarProvider>
   );
 
   return (
@@ -132,7 +151,7 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
             onMouseEnter={() => {
               setIsSidebarVisible(true);
             }}
-            style={{ width: `${FULLSCREEN_SIDEBAR_EDGE_TRIGGER_WIDTH_PX}px` }}
+            style={{ width: `${SIDEBAR_EDGE_TRIGGER_PX}px` }}
           />
           <div
             className={cn(
@@ -140,7 +159,7 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
             )}
             style={{
               width: isSidebarVisible
-                ? `${FULLSCREEN_SIDEBAR_WIDTH_PX}px`
+                ? `${SIDEBAR_WIDTH_PX}px`
                 : "0px",
             }}
             onMouseLeave={() => {
@@ -149,7 +168,7 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
           >
             <div
               className="h-full"
-              style={{ width: `${FULLSCREEN_SIDEBAR_WIDTH_PX}px` }}
+              style={{ width: `${SIDEBAR_WIDTH_PX}px` }}
             >
               {sidebar}
             </div>
@@ -159,12 +178,12 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
         <div
           className="relative h-full shrink-0 overflow-hidden transition-[width] duration-150 ease-out"
           style={{
-            width: isSidebarCollapsed ? "0px" : `${FULLSCREEN_SIDEBAR_WIDTH_PX}px`,
+            width: isSidebarCollapsed ? "0px" : `${SIDEBAR_WIDTH_PX}px`,
           }}
         >
           <div
             className="h-full"
-            style={{ width: `${FULLSCREEN_SIDEBAR_WIDTH_PX}px` }}
+            style={{ width: `${SIDEBAR_WIDTH_PX}px` }}
           >
             {sidebar}
           </div>

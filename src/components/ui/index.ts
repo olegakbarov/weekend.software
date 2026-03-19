@@ -2,7 +2,6 @@
 
 export { Badge, badgeVariants } from "./badge";
 export { Button, buttonVariants } from "./button";
-export { Checkbox } from "./checkbox";
 export { ConfirmDialog } from "./confirm-dialog";
 export { CopyButton } from "./copy-button";
 // Phase 1: Design System Foundation
@@ -28,7 +27,6 @@ export {
   InfoCardTitle,
 } from "./info-card";
 export { Input } from "./input";
-export { RadioGroup, RadioGroupItem } from "./radio-group";
 export {
   ResizableHandle,
   ResizablePanel,

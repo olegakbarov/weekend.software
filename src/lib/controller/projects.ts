@@ -14,17 +14,16 @@ import {
   reconcileProjectOrder,
 } from "./persistence";
 import {
+  removeProjectState,
+  renameProjectState,
+  resolveFocusedProject,
+} from "./project-state";
+import {
   clearPlayStartTimeout,
   reconcileAllProjectRuntimeStates,
   reconcileProjectRuntimeState,
 } from "./runtime";
 import type { RuntimeInternals } from "./runtime";
-
-function findDefaultProject(projects: string[]): string | null {
-  if (projects.length === 0) return null;
-  const [first] = projects;
-  return first ?? null;
-}
 
 function extractProjectName(projectPath: string): string | null {
   const segments = projectPath.split(/[\\/]/).filter(Boolean);
@@ -224,18 +223,11 @@ export async function loadProjects(
     persistProjectOrder(projects);
 
     const currentFocusedProject = ctx.getState().focusedProject;
-    let nextFocusedProject: string | null;
-
-    if (preferredProject && projects.includes(preferredProject)) {
-      nextFocusedProject = preferredProject;
-    } else if (
-      currentFocusedProject &&
-      projects.includes(currentFocusedProject)
-    ) {
-      nextFocusedProject = currentFocusedProject;
-    } else {
-      nextFocusedProject = findDefaultProject(projects);
-    }
+    const nextFocusedProject = resolveFocusedProject({
+      projects,
+      currentFocusedProject,
+      preferredProject,
+    });
 
     ctx.setState((previous) => ({
       ...previous,
@@ -379,52 +371,7 @@ export async function renameProject(
     newName: trimmedNew,
   });
 
-  ctx.setState((previous) => {
-    const rekey = <T>(
-      record: Record<string, T>
-    ): Record<string, T> => {
-      if (!(trimmedOld in record)) return record;
-      const next = { ...record };
-      const value = next[trimmedOld];
-      delete next[trimmedOld];
-      if (value !== undefined) {
-        next[resolvedName] = value;
-      }
-      return next;
-    };
-
-    return {
-      ...previous,
-      projects: previous.projects.map((p) =>
-        p === trimmedOld ? resolvedName : p
-      ),
-      focusedProject:
-        previous.focusedProject === trimmedOld
-          ? resolvedName
-          : previous.focusedProject,
-      projectTreeByProject: rekey(previous.projectTreeByProject),
-      projectTreeLoadingByProject: rekey(previous.projectTreeLoadingByProject),
-      projectTreeErrorByProject: rekey(previous.projectTreeErrorByProject),
-      projectConfigSnapshotByProject: rekey(
-        previous.projectConfigSnapshotByProject
-      ),
-      projectConfigLoadingByProject: rekey(
-        previous.projectConfigLoadingByProject
-      ),
-      projectConfigErrorByProject: rekey(
-        previous.projectConfigErrorByProject
-      ),
-      filesystemEventVersionByProject: rekey(
-        previous.filesystemEventVersionByProject
-      ),
-      terminalSessionsByProject: rekey(previous.terminalSessionsByProject),
-      playStateByProject: rekey(previous.playStateByProject),
-      playErrorByProject: rekey(previous.playErrorByProject),
-      runtimeProcessHealthyByProject: rekey(
-        previous.runtimeProcessHealthyByProject
-      ),
-    };
-  });
+  ctx.setState((previous) => renameProjectState(previous, trimmedOld, resolvedName));
 
   persistTerminalSessions(ctx.getState().terminalSessionsByProject);
 
@@ -450,45 +397,7 @@ export async function deleteProject(
   await invoke("delete_project", { project: projectName });
 
   ctx.setState((previous) => {
-    const nextProjectTreeByProject = { ...previous.projectTreeByProject };
-    delete nextProjectTreeByProject[projectName];
-    const nextProjectTreeLoadingByProject = { ...previous.projectTreeLoadingByProject };
-    delete nextProjectTreeLoadingByProject[projectName];
-    const nextProjectTreeErrorByProject = { ...previous.projectTreeErrorByProject };
-    delete nextProjectTreeErrorByProject[projectName];
-    const nextProjectConfigSnapshotByProject = { ...previous.projectConfigSnapshotByProject };
-    delete nextProjectConfigSnapshotByProject[projectName];
-    const nextProjectConfigLoadingByProject = { ...previous.projectConfigLoadingByProject };
-    delete nextProjectConfigLoadingByProject[projectName];
-    const nextProjectConfigErrorByProject = { ...previous.projectConfigErrorByProject };
-    delete nextProjectConfigErrorByProject[projectName];
-    const nextFilesystemEventVersionByProject = { ...previous.filesystemEventVersionByProject };
-    delete nextFilesystemEventVersionByProject[projectName];
-    const nextTerminalSessionsByProject = { ...previous.terminalSessionsByProject };
-    delete nextTerminalSessionsByProject[projectName];
-    const nextPlayStateByProject = { ...previous.playStateByProject };
-    delete nextPlayStateByProject[projectName];
-    const nextPlayErrorByProject = { ...previous.playErrorByProject };
-    delete nextPlayErrorByProject[projectName];
-    const nextRuntimeProcessHealthyByProject = { ...previous.runtimeProcessHealthyByProject };
-    delete nextRuntimeProcessHealthyByProject[projectName];
-
-    const next = {
-      ...previous,
-      focusedProject:
-        previous.focusedProject === projectName ? null : previous.focusedProject,
-      projectTreeByProject: nextProjectTreeByProject,
-      projectTreeLoadingByProject: nextProjectTreeLoadingByProject,
-      projectTreeErrorByProject: nextProjectTreeErrorByProject,
-      projectConfigSnapshotByProject: nextProjectConfigSnapshotByProject,
-      projectConfigLoadingByProject: nextProjectConfigLoadingByProject,
-      projectConfigErrorByProject: nextProjectConfigErrorByProject,
-      filesystemEventVersionByProject: nextFilesystemEventVersionByProject,
-      terminalSessionsByProject: nextTerminalSessionsByProject,
-      playStateByProject: nextPlayStateByProject,
-      playErrorByProject: nextPlayErrorByProject,
-      runtimeProcessHealthyByProject: nextRuntimeProcessHealthyByProject,
-    };
+    const next = removeProjectState(previous, projectName);
     persistTerminalSessions(next.terminalSessionsByProject);
     return next;
   });
@@ -513,45 +422,7 @@ export async function archiveProject(
   await invoke("archive_project", { project: projectName });
 
   ctx.setState((previous) => {
-    const nextProjectTreeByProject = { ...previous.projectTreeByProject };
-    delete nextProjectTreeByProject[projectName];
-    const nextProjectTreeLoadingByProject = { ...previous.projectTreeLoadingByProject };
-    delete nextProjectTreeLoadingByProject[projectName];
-    const nextProjectTreeErrorByProject = { ...previous.projectTreeErrorByProject };
-    delete nextProjectTreeErrorByProject[projectName];
-    const nextProjectConfigSnapshotByProject = { ...previous.projectConfigSnapshotByProject };
-    delete nextProjectConfigSnapshotByProject[projectName];
-    const nextProjectConfigLoadingByProject = { ...previous.projectConfigLoadingByProject };
-    delete nextProjectConfigLoadingByProject[projectName];
-    const nextProjectConfigErrorByProject = { ...previous.projectConfigErrorByProject };
-    delete nextProjectConfigErrorByProject[projectName];
-    const nextFilesystemEventVersionByProject = { ...previous.filesystemEventVersionByProject };
-    delete nextFilesystemEventVersionByProject[projectName];
-    const nextTerminalSessionsByProject = { ...previous.terminalSessionsByProject };
-    delete nextTerminalSessionsByProject[projectName];
-    const nextPlayStateByProject = { ...previous.playStateByProject };
-    delete nextPlayStateByProject[projectName];
-    const nextPlayErrorByProject = { ...previous.playErrorByProject };
-    delete nextPlayErrorByProject[projectName];
-    const nextRuntimeProcessHealthyByProject = { ...previous.runtimeProcessHealthyByProject };
-    delete nextRuntimeProcessHealthyByProject[projectName];
-
-    const next = {
-      ...previous,
-      focusedProject:
-        previous.focusedProject === projectName ? null : previous.focusedProject,
-      projectTreeByProject: nextProjectTreeByProject,
-      projectTreeLoadingByProject: nextProjectTreeLoadingByProject,
-      projectTreeErrorByProject: nextProjectTreeErrorByProject,
-      projectConfigSnapshotByProject: nextProjectConfigSnapshotByProject,
-      projectConfigLoadingByProject: nextProjectConfigLoadingByProject,
-      projectConfigErrorByProject: nextProjectConfigErrorByProject,
-      filesystemEventVersionByProject: nextFilesystemEventVersionByProject,
-      terminalSessionsByProject: nextTerminalSessionsByProject,
-      playStateByProject: nextPlayStateByProject,
-      playErrorByProject: nextPlayErrorByProject,
-      runtimeProcessHealthyByProject: nextRuntimeProcessHealthyByProject,
-    };
+    const next = removeProjectState(previous, projectName);
     persistTerminalSessions(next.terminalSessionsByProject);
     return next;
   });

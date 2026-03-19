@@ -3,6 +3,7 @@
 mod bridge_server;
 mod bridge_types;
 mod event_buffer;
+mod logging;
 mod webview_ops;
 
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
@@ -15,11 +16,12 @@ use notify::{
 use portable_pty::{native_pty_system, CommandBuilder, PtySize};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::net::TcpListener;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -28,6 +30,11 @@ use tauri::{
     AppHandle, Emitter, Manager, PhysicalPosition, Runtime, State, Url, WebviewUrl, WebviewWindow,
 };
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+use logging::{
+    append_log, log_backend, now_unix_ms, project_log_path, read_log_tail_from_path,
+    surface_log_path, LOG_TAIL_DEFAULT_MAX_BYTES,
+};
 
 struct TerminalSession {
     master: Mutex<Box<dyn portable_pty::MasterPty + Send>>,
@@ -172,6 +179,13 @@ struct ProjectFileImportInput {
     data_base64: Option<String>,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TerminalOpenSizeInput {
+    cols: u16,
+    rows: u16,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct ProjectRuntimeConfig {
@@ -258,7 +272,7 @@ enum ProjectConfigLookup {
     Invalid(String),
 }
 
-fn weekend_root() -> Result<PathBuf, String> {
+pub(crate) fn weekend_root() -> Result<PathBuf, String> {
     let home =
         std::env::var("HOME").map_err(|_| "HOME environment variable is not set".to_string())?;
     Ok(PathBuf::from(home).join(".weekend"))
@@ -290,10 +304,6 @@ const SHARED_DROP_WINDOW_WIDTH: f64 = 372.0;
 const SHARED_DROP_WINDOW_HEIGHT: f64 = 312.0;
 const SHARED_DROP_WINDOW_MARGIN: f64 = 10.0;
 const SHARED_DROP_WINDOW_OFFSET_Y: f64 = 8.0;
-const LOG_ROTATE_MAX_BYTES: u64 = 2 * 1024 * 1024;
-const LOG_ROTATE_ARCHIVE_COUNT: usize = 6;
-const LOG_MESSAGE_MAX_CHARS: usize = 8000;
-const LOG_TAIL_DEFAULT_MAX_BYTES: usize = 128 * 1024;
 const MAX_PREVIEW_FILE_BYTES: u64 = 20 * 1024 * 1024;
 
 fn sanitize_project_name_for_runtime_url(project_name: &str) -> String {
@@ -386,8 +396,6 @@ when you need to inspect, test, or interact with the running application.
 - Chain multiple reads before acting: get the DOM, understand it, then click.
 - Prefer `browser_get_text` for quick content checks over full DOM dumps.
 "#;
-
-static LOG_FILE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
 fn shared_assets_root() -> Result<PathBuf, String> {
     Ok(weekend_root()?.join(SHARED_ASSETS_ROOT_DIR_NAME))
@@ -803,7 +811,7 @@ fn install_shared_drop_tray<R: Runtime>(app: &AppHandle<R>) -> Result<(), String
                 ..
             } = event
             {
-                if let Err(error) = toggle_shared_drop_window(&tray.app_handle(), Some(rect)) {
+                if let Err(error) = toggle_shared_drop_window(tray.app_handle(), Some(rect)) {
                     log_backend("WARN", format!("tray toggle shared drop failed: {error}"));
                 }
             }
@@ -1115,172 +1123,47 @@ fn sync_shared_assets_into_all_projects(
     Ok(synced_projects)
 }
 
-fn now_unix_ms() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|duration| duration.as_millis().try_into().unwrap_or(u64::MAX))
-        .unwrap_or(0)
+fn project_config_path(project_dir: &Path) -> PathBuf {
+    project_dir.join(PROJECT_CONFIG_FILE_NAME)
 }
 
-fn log_file_lock() -> &'static Mutex<()> {
-    LOG_FILE_LOCK.get_or_init(|| Mutex::new(()))
-}
+fn ensure_user_writable(path: &Path) -> Result<(), String> {
+    let metadata = std::fs::metadata(path)
+        .map_err(|error| format!("failed to read {} metadata: {error}", path.display()))?;
+    let permissions = metadata.permissions();
 
-fn logs_dir() -> Result<PathBuf, String> {
-    let root = weekend_root()?;
-    let dir = root.join("logs");
-    std::fs::create_dir_all(&dir)
-        .map_err(|error| format!("failed to create log directory {}: {error}", dir.display()))?;
-    Ok(dir)
-}
-
-fn surface_log_path(surface: &str) -> Result<PathBuf, String> {
-    let file_name = match surface.trim() {
-        "frontend" => "frontend.log",
-        _ => "backend.log",
-    };
-    Ok(logs_dir()?.join(file_name))
-}
-
-fn rotated_path_for(path: &Path, index: usize) -> PathBuf {
-    let file_name = path
-        .file_name()
-        .and_then(|value| value.to_str())
-        .unwrap_or("log");
-    path.with_file_name(format!("{file_name}.{index}"))
-}
-
-fn rotate_log_if_needed(path: &Path) -> Result<(), String> {
-    let Ok(metadata) = std::fs::metadata(path) else {
-        return Ok(());
-    };
-    if metadata.len() < LOG_ROTATE_MAX_BYTES {
-        return Ok(());
-    }
-
-    let oldest = rotated_path_for(path, LOG_ROTATE_ARCHIVE_COUNT);
-    if oldest.exists() {
-        std::fs::remove_file(&oldest).map_err(|error| {
-            format!("failed removing rotated log {}: {error}", oldest.display())
-        })?;
-    }
-
-    for index in (2..=LOG_ROTATE_ARCHIVE_COUNT).rev() {
-        let source = rotated_path_for(path, index - 1);
-        if !source.exists() {
-            continue;
+    #[cfg(unix)]
+    {
+        let current_mode = permissions.mode();
+        if current_mode & 0o200 != 0 {
+            return Ok(());
         }
-        let target = rotated_path_for(path, index);
-        std::fs::rename(&source, &target).map_err(|error| {
+
+        let mut updated = permissions;
+        updated.set_mode(current_mode | 0o200);
+        std::fs::set_permissions(path, updated).map_err(|error| {
             format!(
-                "failed rotating log {} -> {}: {error}",
-                source.display(),
-                target.display()
+                "failed to add owner write permission for {}: {error}",
+                path.display()
             )
         })?;
     }
 
-    let first_archive = rotated_path_for(path, 1);
-    std::fs::rename(path, &first_archive).map_err(|error| {
-        format!(
-            "failed rotating active log {} -> {}: {error}",
-            path.display(),
-            first_archive.display()
-        )
-    })?;
-    Ok(())
-}
-
-fn truncate_log_message(message: &str) -> String {
-    let normalized = message.trim().replace('\r', "");
-    if normalized.chars().count() <= LOG_MESSAGE_MAX_CHARS {
-        return normalized;
-    }
-    let truncated: String = normalized.chars().take(LOG_MESSAGE_MAX_CHARS - 3).collect();
-    format!("{truncated}...")
-}
-
-fn append_log_to_path(path: &Path, level: &str, message: &str) -> Result<(), String> {
-    rotate_log_if_needed(path)?;
-
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(path)
-        .map_err(|error| format!("failed to open log file {}: {error}", path.display()))?;
-
-    let timestamp = now_unix_ms();
-    let normalized_level = {
-        let trimmed = level.trim();
-        if trimmed.is_empty() {
-            "INFO".to_string()
-        } else {
-            trimmed.to_ascii_uppercase()
+    #[cfg(not(unix))]
+    {
+        if permissions.readonly() {
+            let mut updated = permissions;
+            updated.set_readonly(false);
+            std::fs::set_permissions(path, updated).map_err(|error| {
+                format!(
+                    "failed to make {} writable before update: {error}",
+                    path.display()
+                )
+            })?;
         }
-    };
-    let normalized_message = truncate_log_message(message);
-    if normalized_message.is_empty() {
-        writeln!(file, "[{timestamp}] [{normalized_level}]")
-            .map_err(|error| format!("failed to write log entry: {error}"))?;
-        return Ok(());
-    }
-
-    for line in normalized_message.lines() {
-        writeln!(file, "[{timestamp}] [{normalized_level}] {line}")
-            .map_err(|error| format!("failed to write log entry: {error}"))?;
     }
 
     Ok(())
-}
-
-fn append_log(surface: &str, level: &str, message: &str) -> Result<(), String> {
-    let _guard = log_file_lock()
-        .lock()
-        .map_err(|_| "failed to lock log writer".to_string())?;
-    let path = surface_log_path(surface)?;
-    append_log_to_path(&path, level, message)
-}
-
-fn log_backend(level: &str, message: impl AsRef<str>) {
-    let _ = append_log("backend", level, message.as_ref());
-}
-
-fn project_logs_dir() -> Result<PathBuf, String> {
-    let dir = logs_dir()?.join("projects");
-    std::fs::create_dir_all(&dir).map_err(|error| {
-        format!(
-            "failed to create project log directory {}: {error}",
-            dir.display()
-        )
-    })?;
-    Ok(dir)
-}
-
-fn project_log_path(project: &str) -> Result<PathBuf, String> {
-    if !is_safe_project_name(project) {
-        return Err("invalid project name".to_string());
-    }
-    Ok(project_logs_dir()?.join(format!("{project}.log")))
-}
-
-fn read_log_tail_from_path(path: &Path, max_bytes: usize) -> Result<String, String> {
-    if !path.exists() {
-        return Ok(String::new());
-    }
-    let bytes = std::fs::read(path)
-        .map_err(|error| format!("failed to read {}: {error}", path.display()))?;
-    if bytes.is_empty() {
-        return Ok(String::new());
-    }
-    if bytes.len() <= max_bytes {
-        return Ok(String::from_utf8_lossy(&bytes).to_string());
-    }
-    let start = bytes.len().saturating_sub(max_bytes);
-    Ok(String::from_utf8_lossy(&bytes[start..]).to_string())
-}
-
-fn project_config_path(project_dir: &Path) -> PathBuf {
-    project_dir.join(PROJECT_CONFIG_FILE_NAME)
 }
 
 fn legacy_project_config_path(project_dir: &Path) -> PathBuf {
@@ -1807,19 +1690,7 @@ fn write_project_config(
         .map_err(|error| format!("failed to serialize {PROJECT_CONFIG_FILE_NAME}: {error}"))?;
     let config_path = project_config_path(project_dir);
     if config_path.exists() {
-        let metadata = std::fs::metadata(&config_path).map_err(|error| {
-            format!("failed to read {} metadata: {error}", config_path.display())
-        })?;
-        let mut permissions = metadata.permissions();
-        if permissions.readonly() {
-            permissions.set_readonly(false);
-            std::fs::set_permissions(&config_path, permissions).map_err(|error| {
-                format!(
-                    "failed to make {} writable before update: {error}",
-                    config_path.display()
-                )
-            })?;
-        }
+        ensure_user_writable(&config_path)?;
     }
     std::fs::write(&config_path, format!("{serialized}\n"))
         .map_err(|error| format!("failed to write {}: {error}", config_path.display()))?;
@@ -2064,7 +1935,7 @@ fn sanitize_project_name(input: &str) -> String {
     out.trim_matches('-').to_string()
 }
 
-fn is_safe_project_name(name: &str) -> bool {
+pub(crate) fn is_safe_project_name(name: &str) -> bool {
     !(name.is_empty() || name.contains('/') || name.contains('\\') || name.contains(".."))
 }
 
@@ -2233,7 +2104,7 @@ fn shell_name() -> String {
 #[tauri::command]
 fn find_available_port(preferred: u16, min: Option<u16>, max: Option<u16>) -> Result<u16, String> {
     let min_port = min.unwrap_or(43000).max(1);
-    let max_port = max.unwrap_or(49999).min(65535);
+    let max_port = max.unwrap_or(49999);
     if min_port > max_port {
         return Err("invalid port range".to_string());
     }
@@ -2455,7 +2326,7 @@ fn humanize_process_name(raw: &str) -> String {
     }
     // Title-case the name and append "Shell" if it looks like one
     let titled = normalized
-        .replace(|c: char| c == '_' || c == '-', " ")
+        .replace(['_', '-'], " ")
         .split_whitespace()
         .map(|word| {
             let mut chars = word.chars();
@@ -4655,7 +4526,7 @@ fn set_project_archived(project_dir: &Path, archived: bool) -> Result<(), String
             .map_err(|error| format!("failed to write {}: {error}", config_path.display()))?;
     } else {
         let runtime_url = default_runtime_url_for_project_name(
-            &project_dir
+            project_dir
                 .file_name()
                 .and_then(|value| value.to_str())
                 .unwrap_or("app"),
@@ -4698,7 +4569,7 @@ fn clean_build_artifacts(project_dir: &Path) -> u64 {
                     bytes_freed += size;
                 }
                 let _ = std::fs::remove_dir_all(&path);
-            } else if path.extension().map_or(false, |ext| ext == "pyc") {
+            } else if path.extension().is_some_and(|ext| ext == "pyc") {
                 if let Ok(meta) = std::fs::metadata(&path) {
                     bytes_freed += meta.len();
                 }
@@ -4754,7 +4625,7 @@ fn walkdir_pycache_inner(
             } else {
                 walkdir_pycache_inner(root, &path, results)?;
             }
-        } else if path.extension().map_or(false, |ext| ext == "pyc") {
+        } else if path.extension().is_some_and(|ext| ext == "pyc") {
             results.push(path);
         }
     }
@@ -5167,8 +5038,7 @@ fn import_external_files_to_project(
 fn terminal_open<R: Runtime>(
     terminal_id: String,
     project: Option<String>,
-    cols: u16,
-    rows: u16,
+    size: TerminalOpenSizeInput,
     play_spawned: Option<bool>,
     process_role: Option<String>,
     terminal_state: State<'_, TerminalState>,
@@ -5226,9 +5096,9 @@ fn terminal_open<R: Runtime>(
 
     let open_result = (|| -> Result<(), String> {
         let working_dir = resolve_terminal_working_dir(project.as_deref())?;
-        let size = PtySize {
-            rows: rows.max(2),
-            cols: cols.max(2),
+        let pty_size = PtySize {
+            rows: size.rows.max(2),
+            cols: size.cols.max(2),
             pixel_width: 0,
             pixel_height: 0,
         };
@@ -5237,14 +5107,14 @@ fn terminal_open<R: Runtime>(
                 "INFO",
                 format!(
                     "terminal_open terminal_id={} cols={} rows={}",
-                    terminal_id, size.cols, size.rows
+                    terminal_id, pty_size.cols, pty_size.rows
                 ),
             );
         }
 
         let pty_system = native_pty_system();
         let pair = pty_system
-            .openpty(size)
+            .openpty(pty_size)
             .map_err(|error| format!("failed to open PTY: {error}"))?;
 
         let shell = shell_path();
@@ -6136,12 +6006,9 @@ fn main() {
                 return;
             }
 
-            match event {
-                tauri::WindowEvent::CloseRequested { api, .. } => {
-                    api.prevent_close();
-                    let _ = window.hide();
-                }
-                _ => {}
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = window.hide();
             }
         })
         .on_page_load(|webview, payload| {
@@ -6203,7 +6070,7 @@ fn main() {
                     let ebs: tauri::State<'_, EventBufferState> = webview.state();
                     let config = ebs.get_observer_config(&label);
                     if let Ok(config_json) = serde_json::to_string(&config) {
-                        let _ = webview.eval(&format!(
+                        let _ = webview.eval(format!(
                             "if (window.__WEEKEND_BRIDGE__) {{ window.__WEEKEND_BRIDGE__.configure({config_json}); }}"
                         ));
                     }
@@ -6242,7 +6109,7 @@ fn main() {
             spawn_terminal_process_watcher(app.handle().clone(), terminal_state.inner().clone());
 
             #[cfg(target_os = "macos")]
-            if let Err(error) = install_shared_drop_tray(&app.handle()) {
+            if let Err(error) = install_shared_drop_tray(app.handle()) {
                 log_backend("WARN", format!("shared-drop tray setup skipped: {error}"));
             }
 
