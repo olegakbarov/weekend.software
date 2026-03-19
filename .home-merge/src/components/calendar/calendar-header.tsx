@@ -208,7 +208,7 @@ export function CalendarHeader({
                 i === 0 ? "rounded-l-lg" : ""
               } ${i === arr.length - 1 ? "rounded-r-lg" : ""} ${
                 view === v.key
-                  ? "border-cal-border-accent bg-cal-accent text-cal-accent-text"
+                  ? "border-cal-border-primary bg-cal-primary text-cal-primary-text"
                   : "border-cal-border-strong bg-cal-surface text-cal-text-muted hover:bg-cal-surface-hover"
               }`}
               title={v.label}
@@ -236,7 +236,7 @@ export function CalendarHeader({
         </button>
 
         {/* Add event button */}
-        <button className="flex items-center gap-2 rounded-lg bg-cal-accent px-4 py-2 text-sm font-medium text-cal-accent-text transition-colors hover:bg-cal-accent-hover">
+        <button className="flex items-center gap-2 rounded-lg bg-cal-primary px-4 py-2 text-sm font-medium text-cal-primary-text transition-colors hover:bg-cal-primary-hover">
           <svg
             className="size-4"
             fill="none"

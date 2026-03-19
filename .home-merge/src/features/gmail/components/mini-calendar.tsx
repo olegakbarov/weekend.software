@@ -61,8 +61,8 @@ export function MiniCalendar() {
             className={cn(
               "flex h-8 w-8 items-center justify-center rounded-md text-xs",
               cell.day == null && "text-transparent",
-              cell.day != null && "hover:bg-accent",
-              cell.isToday && "bg-accent text-accent-foreground"
+              cell.day != null && "hover:bg-primary/10",
+              cell.isToday && "bg-primary text-primary-foreground"
             )}
             key={`${cell.day ?? "blank"}-${index}`}
           >

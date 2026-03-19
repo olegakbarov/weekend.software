@@ -22,10 +22,6 @@ export function SidebarProjectList() {
   const data = useSidebarData();
   const actions = useSidebarActions();
 
-  const displayedProjects = data.showArchived
-    ? data.archivedProjects
-    : data.projects;
-
   const pointerSensor = useSensor(PointerSensor, {
     activationConstraint: { distance: DRAG_ACTIVATION_DISTANCE_PX },
   });
@@ -46,31 +42,23 @@ export function SidebarProjectList() {
     [data.projects, actions.onReorderProjects],
   );
 
-  if (displayedProjects.length === 0 && data.showArchived) {
-    return (
-      <div className="flex min-h-0 flex-1 items-center justify-center">
-        <p className="font-code text-xs text-muted-foreground/40">
-          No archived projects
-        </p>
-      </div>
-    );
-  }
-
-  const items = displayedProjects.map((project) => (
+  const activeItems = data.projects.map((project) => (
     <SidebarProjectItem
       key={project}
       project={project}
-      isArchiveView={data.showArchived}
+      isArchiveView={false}
     />
   ));
 
-  if (data.showArchived) {
-    return (
-      <div className={cn("min-h-0 flex-1 space-y-px overflow-y-auto overflow-x-hidden", "py-0.5")}>
-        {items}
-      </div>
-    );
-  }
+  const archivedItems = data.showArchived
+    ? data.archivedProjects.map((project) => (
+        <SidebarProjectItem
+          key={project}
+          project={project}
+          isArchiveView={true}
+        />
+      ))
+    : [];
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
@@ -79,8 +67,18 @@ export function SidebarProjectList() {
           items={data.projects}
           strategy={verticalListSortingStrategy}
         >
-          {items}
+          {activeItems}
         </SortableContext>
+        {archivedItems.length > 0 && (
+          <>
+            <div className="px-3 pb-0.5 pt-3">
+              <p className="font-code text-[10px] uppercase tracking-wider text-muted-foreground/40">
+                Archived
+              </p>
+            </div>
+            {archivedItems}
+          </>
+        )}
       </div>
     </DndContext>
   );

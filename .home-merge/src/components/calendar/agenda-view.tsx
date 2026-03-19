@@ -75,7 +75,7 @@ export function AgendaView({ currentDate, events }: AgendaViewProps) {
               <div
                 className={cn(
                   "text-center",
-                  isToday && "text-cal-accent",
+                  isToday && "text-cal-primary",
                   !isToday && "text-cal-text-muted"
                 )}
               >
@@ -85,7 +85,7 @@ export function AgendaView({ currentDate, events }: AgendaViewProps) {
                 <div
                   className={cn(
                     "mx-auto mt-0.5 flex size-8 items-center justify-center rounded-full text-lg font-semibold",
-                    isToday && "bg-cal-accent text-cal-accent-text"
+                    isToday && "bg-cal-primary text-cal-primary-text"
                   )}
                 >
                   {format(date, "d")}

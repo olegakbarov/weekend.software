@@ -45,7 +45,7 @@ export function DayCell({ cell, events, eventPositions, today }: DayCellProps) {
         <span
           className={cn(
             "flex size-7 items-center justify-center rounded-full text-sm",
-            isToday && "bg-cal-accent font-bold text-cal-accent-text",
+            isToday && "bg-cal-primary font-bold text-cal-primary-text",
             !isToday && cell.currentMonth && "text-cal-text",
             !cell.currentMonth && "text-cal-text-faint"
           )}

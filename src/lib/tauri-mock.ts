@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow as tauriGetCurrentWindow } from "@tauri-apps/api/window";
 
 type ThemeMode = "light" | "dark";
@@ -51,4 +52,9 @@ export function getCurrentWindow(): WindowApiLike {
       }
     },
   };
+}
+
+export async function setTrafficLightsVisible(visible: boolean): Promise<void> {
+  if (MOCK_MODE) return;
+  await invoke("set_traffic_lights_visible", { visible });
 }

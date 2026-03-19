@@ -58,6 +58,15 @@ function SettingsRoute() {
     [controller]
   );
 
+  const handleShowArchivedAppsChange = useCallback(
+    (enabled: boolean) => {
+      if (enabled !== state.showArchived) {
+        controller.toggleShowArchived();
+      }
+    },
+    [controller, state.showArchived]
+  );
+
   return (
     <SettingsPage
       error={state.runtimeDebugError}
@@ -67,6 +76,8 @@ function SettingsRoute() {
       isVimModeEnabled={isVimModeEnabled}
       onRefreshSharedAssets={refreshSharedAssets}
       onVimModeEnabledChange={setIsVimModeEnabled}
+      showArchivedApps={state.showArchived}
+      onShowArchivedAppsChange={handleShowArchivedAppsChange}
       onRefreshRuntimeSnapshot={refreshRuntimeSnapshot}
       onUploadSharedAssets={handleUploadSharedAssets}
       onRenameSharedAsset={handleRenameSharedAsset}

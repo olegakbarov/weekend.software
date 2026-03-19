@@ -5,7 +5,6 @@ import type { PlayState } from "@/lib/controller";
 import { useSidebarData, useSidebarActions } from "@/components/sidebar/sidebar-context";
 import { ProjectStatusDot } from "@/components/sidebar/project-status-dot";
 import { ProjectActionButton } from "@/components/sidebar/project-action-button";
-import { TerminalList } from "@/components/sidebar/terminal-list";
 
 export function SidebarProjectItem({
   project,
@@ -24,10 +23,6 @@ export function SidebarProjectItem({
   const playError = isArchiveView
     ? null
     : (data.playErrorByProject[project] ?? null);
-  const terminalSessions = isArchiveView
-    ? []
-    : (data.terminalSessionsByProject[project] ?? []);
-  const activeTerminalId = isArchiveView ? null : data.activeTerminalId;
   const isProjectRunning = playState === "running";
 
   const {
@@ -117,18 +112,6 @@ export function SidebarProjectItem({
         </button>
       )}
 
-      {/* ── Terminal sessions ── */}
-      {isSelected && !isArchiveView && (
-        <TerminalList
-          project={project}
-          terminalSessions={terminalSessions}
-          activeTerminalId={activeTerminalId}
-          onSelectTerminal={actions.onSelectTerminal}
-          onCreateTerminal={actions.onCreateTerminal}
-          onRenameTerminal={actions.onRenameTerminal}
-          onRemoveTerminal={actions.onRemoveTerminal}
-        />
-      )}
     </div>
   );
 }

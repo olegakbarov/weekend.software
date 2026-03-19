@@ -44,6 +44,7 @@ commands.allow = [
   "logs_read_weekend",
   "logs_read_project",
   "shell_name",
+  "set_traffic_lights_visible",
   "find_available_port",
   "probe_runtime_url"
 ]
@@ -92,6 +93,7 @@ commands.deny = [
   "logs_read_weekend",
   "logs_read_project",
   "shell_name",
+  "set_traffic_lights_visible",
   "find_available_port",
   "probe_runtime_url"
 ]

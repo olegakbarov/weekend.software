@@ -10,7 +10,7 @@ export function Sidebar() {
       style={{ width: `${SIDEBAR_WIDTH_PX}px` }}
     >
       <SidebarHeader />
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col [mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)]">
         <SidebarProjectList />
       </div>
       <SidebarFooter />

@@ -14,7 +14,7 @@ export interface SwitchProps
  * Standardized Switch component
  *
  * Toggle switch with optional labels on both sides.
- * Uses accent color for the active state indicator.
+ * Uses the primary color for the active state indicator.
  */
 const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
   (
@@ -54,7 +54,7 @@ const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
         {offLabel && (
           <span
             className={`font-vcr ${sizes.label} transition-colors ${
-              checked ? "text-muted-foreground" : "text-accent"
+              checked ? "text-muted-foreground" : "text-primary"
             }`}
           >
             {offLabel}
@@ -86,14 +86,14 @@ const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
                   ? "translateX(12px)"
                   : "translateX(16px)"
                 : "translateX(0)",
-              backgroundColor: checked ? "var(--accent)" : undefined,
+              backgroundColor: checked ? "var(--primary)" : undefined,
             }}
           />
         </span>
         {onLabel && (
           <span
             className={`font-vcr ${sizes.label} transition-colors ${
-              checked ? "text-accent" : "text-muted-foreground"
+              checked ? "text-primary" : "text-muted-foreground"
             }`}
           >
             {onLabel}

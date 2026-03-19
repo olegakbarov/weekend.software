@@ -149,6 +149,14 @@ function WorkspaceRoute() {
     projectActions.stop();
   }, [projectActions]);
 
+  const handleOpenConfigFile = useCallback(() => {
+    setSelectedEditorFilePathByProject((prev) => ({
+      ...prev,
+      [project]: "weekend.config.json",
+    }));
+    projectActions.workspaceModeChange("editor");
+  }, [project, projectActions]);
+
   const workspaceMode = useMemo(() => {
     if (view === "editor") return "editor" as const;
     if (view === "settings") return "settings" as const;
@@ -204,7 +212,12 @@ function WorkspaceRoute() {
             onDeleteProject={projectActions.deleteProject}
           />
         }
-        agentTerminalLabel={activeTerminalLabel}
+        terminalSessions={state.terminalSessionsByProject[project] ?? []}
+        activeTerminalId={activeTerminalId ?? null}
+        onSelectTerminal={projectActions.selectTerminal}
+        onCreateTerminal={projectActions.createTerminal}
+        onRemoveTerminal={projectActions.removeTerminal}
+        onOpenConfigFile={handleOpenConfigFile}
         onElementGrabbed={projectActions.elementGrabbed}
         onWorkspaceModeChange={projectActions.workspaceModeChange}
         onPlayProject={projectActions.playFromBrowser}
@@ -214,7 +227,6 @@ function WorkspaceRoute() {
         projectKey={project}
         filesystemEventVersion={filesystemEventVersion}
         hasHealthyRuntimeProcess={hasHealthyRuntimeProcess}
-        selectedEditorFilePath={selectedEditorFilePath}
         workspaceMode={workspaceMode}
         isProjectConfigLoading={isProjectConfigLoading}
       />

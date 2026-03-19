@@ -50,6 +50,7 @@ New projects can be created empty or from a GitHub repo. Each project is seeded 
 
 - `weekend.config.json`
 - `.mcp.json`
+- `.codex/config.toml`
 - `AGENTS.md`
 - `CLAUDE.md`
 
@@ -102,6 +103,8 @@ Notes:
 ## Browser MCP
 
 The bundled `weekend-browser-mcp` sidecar lets agents interact with the live browser pane from inside project terminals. The core loop is:
+
+Weekend seeds both `.mcp.json` and `.codex/config.toml` so supported agent CLIs can discover the bundled browser MCP server with the correct project context.
 
 1. `browser_snapshot`
 2. `browser_click_ref` or `browser_type_ref`

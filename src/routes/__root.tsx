@@ -4,7 +4,7 @@ import {
   useNavigate,
   useRouterState,
 } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import {
@@ -21,6 +21,7 @@ import { useFullscreen } from "@/hooks/use-fullscreen";
 import { useSidebarVisibility } from "@/hooks/use-sidebar-visibility";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import type { WorkspaceController } from "@/hooks/use-workspace-controller";
+import { setTrafficLightsVisible } from "@/lib/tauri-mock";
 import { useWorkspaceState } from "@/hooks/use-workspace-state";
 import { cn } from "@/lib/utils";
 
@@ -98,8 +99,18 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
   const { isSidebarVisible, setIsSidebarVisible, isSidebarCollapsed, toggleSidebarCollapsed } =
     useSidebarVisibility(isFullscreen);
   const appActions = useAppActions(controller, state);
+  const shouldShowTrafficLights = !isFullscreen && !isSidebarCollapsed;
 
-  useKeyboardShortcuts(controller, routeInfo.project, routeInfo.route === "workspace" ? routeInfo.view : null, toggleSidebarCollapsed);
+  useKeyboardShortcuts(
+    controller,
+    routeInfo.project,
+    routeInfo.route === "workspace" ? routeInfo.view : null,
+    toggleSidebarCollapsed,
+  );
+
+  useEffect(() => {
+    void setTrafficLightsVisible(shouldShowTrafficLights).catch(() => undefined);
+  }, [shouldShowTrafficLights]);
 
   const sidebarData: SidebarData = {
     currentProject: routeInfo.project,

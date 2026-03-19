@@ -63,8 +63,6 @@ function applyDesignTokens(theme: "dark" | "light") {
     "--input": colors.input,
     "--primary": colors.primary,
     "--primary-foreground": colors.primaryForeground,
-    "--accent": colors.accent,
-    "--accent-foreground": colors.accentForeground,
     "--destructive": colors.destructive,
     "--destructive-foreground": colors.destructiveForeground,
     "--success": colors.success,

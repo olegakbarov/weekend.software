@@ -14,6 +14,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 import type { ProjectTreeNode } from "@/lib/controller";
 
@@ -115,6 +116,12 @@ function toErrorMessage(error: unknown): string {
   return String(error);
 }
 
+type PendingDeleteTarget = {
+  path: string;
+  name: string;
+  isDir: boolean;
+};
+
 export function ProjectFileTree({
   tree,
   selectedPath,
@@ -137,6 +144,8 @@ export function ProjectFileTree({
 }) {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+  const [pendingDeleteTarget, setPendingDeleteTarget] =
+    useState<PendingDeleteTarget | null>(null);
 
   const handleDragOverTarget = useCallback(
     (event: DragEvent<HTMLElement>, targetDirPath: string | null) => {
@@ -180,38 +189,70 @@ export function ProjectFileTree({
     });
   }, []);
 
+  const confirmDeleteTarget = useCallback(() => {
+    const target = pendingDeleteTarget;
+    if (!target) return;
+
+    void onDeletePath(target.path).catch((error) => {
+      window.alert(toErrorMessage(error));
+    });
+  }, [onDeletePath, pendingDeleteTarget]);
+
   return (
-    <div
-      className={cn(
-        "h-full overflow-y-auto overflow-x-hidden py-1.5 font-code text-[15px] leading-relaxed",
-        dropTargetKey === ROOT_DROP_TARGET_KEY && "bg-primary/5"
-      )}
-      onDragLeave={(event) => {
-        if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
-          return;
+    <>
+      <div
+        className={cn(
+          "h-full overflow-y-auto overflow-x-hidden py-1.5 font-code text-[15px] leading-relaxed",
+          dropTargetKey === ROOT_DROP_TARGET_KEY && "bg-primary/5"
+        )}
+        onDragLeave={(event) => {
+          if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            return;
+          }
+          setDropTargetKey(null);
+        }}
+        onDragOver={(event) => handleDragOverTarget(event, null)}
+        onDrop={(event) => {
+          void handleDropToTarget(event, null);
+        }}
+      >
+        <TreeNodes
+          nodes={tree}
+          depth={0}
+          dropTargetKey={dropTargetKey}
+          expandedPaths={expandedPaths}
+          isMutating={isMutating}
+          onDeletePath={onDeletePath}
+          onDragOverTarget={handleDragOverTarget}
+          onDropToTarget={handleDropToTarget}
+          onRenamePath={onRenamePath}
+          onRequestDelete={setPendingDeleteTarget}
+          onSelectFile={onSelectFile}
+          onToggleDir={toggleDir}
+          selectedPath={selectedPath}
+        />
+      </div>
+      <ConfirmDialog
+        cancelText="Cancel"
+        confirmText="Delete"
+        message={
+          pendingDeleteTarget
+            ? pendingDeleteTarget.isDir
+              ? `Delete folder "${pendingDeleteTarget.name}" and all its contents?`
+              : `Delete file "${pendingDeleteTarget.name}"?`
+            : ""
         }
-        setDropTargetKey(null);
-      }}
-      onDragOver={(event) => handleDragOverTarget(event, null)}
-      onDrop={(event) => {
-        void handleDropToTarget(event, null);
-      }}
-    >
-      <TreeNodes
-        nodes={tree}
-        depth={0}
-        dropTargetKey={dropTargetKey}
-        expandedPaths={expandedPaths}
-        isMutating={isMutating}
-        onDeletePath={onDeletePath}
-        onDragOverTarget={handleDragOverTarget}
-        onDropToTarget={handleDropToTarget}
-        onRenamePath={onRenamePath}
-        onSelectFile={onSelectFile}
-        onToggleDir={toggleDir}
-        selectedPath={selectedPath}
+        onConfirm={confirmDeleteTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDeleteTarget(null);
+          }
+        }}
+        open={pendingDeleteTarget !== null}
+        title={pendingDeleteTarget?.isDir ? "Delete folder?" : "Delete file?"}
+        variant="danger"
       />
-    </div>
+    </>
   );
 }
 
@@ -225,6 +266,7 @@ function TreeNodes({
   onSelectFile,
   onRenamePath,
   onDeletePath,
+  onRequestDelete,
   onDragOverTarget,
   onDropToTarget,
   isMutating,
@@ -238,6 +280,7 @@ function TreeNodes({
   onSelectFile: (path: string) => void;
   onRenamePath: (path: string, newName: string) => Promise<void>;
   onDeletePath: (path: string) => Promise<void>;
+  onRequestDelete: (target: PendingDeleteTarget) => void;
   onDragOverTarget: (
     event: DragEvent<HTMLElement>,
     targetDirPath: string | null
@@ -275,19 +318,12 @@ function TreeNodes({
           }
         };
 
-        const handleDelete = async () => {
-          const confirmed = window.confirm(
-            node.isDir
-              ? `Delete folder "${node.name}" and all its contents?`
-              : `Delete file "${node.name}"?`
-          );
-          if (!confirmed) return;
-
-          try {
-            await onDeletePath(node.path);
-          } catch (error) {
-            window.alert(toErrorMessage(error));
-          }
+        const handleDelete = () => {
+          onRequestDelete({
+            path: node.path,
+            name: node.name,
+            isDir: node.isDir,
+          });
         };
 
         const contextMenu = (
@@ -357,6 +393,7 @@ function TreeNodes({
                   onDragOverTarget={onDragOverTarget}
                   onDropToTarget={onDropToTarget}
                   onRenamePath={onRenamePath}
+                  onRequestDelete={onRequestDelete}
                   onSelectFile={onSelectFile}
                   onToggleDir={onToggleDir}
                   selectedPath={selectedPath}

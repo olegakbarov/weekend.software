@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import type { SharedAssetSnapshot } from "@/lib/controller";
@@ -87,6 +88,9 @@ function SharedDropRoute() {
   const [lastSyncMessage, setLastSyncMessage] = useState<string | null>(null);
   const [renamingFileName, setRenamingFileName] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState("");
+  const [pendingDeleteFileName, setPendingDeleteFileName] = useState<string | null>(
+    null
+  );
   const hasRuntime = hasTauriRuntime();
 
   const refreshAssets = useEffectEvent(async () => {
@@ -318,11 +322,7 @@ function SharedDropRoute() {
 
   const requestDelete = (fileName: string) => {
     if (isBusy) return;
-    const confirmed = window.confirm(
-      `Remove "${fileName}" from Shared Files and every project copy?`
-    );
-    if (!confirmed) return;
-    void deleteAsset(fileName);
+    setPendingDeleteFileName(fileName);
   };
 
   return (
@@ -560,6 +560,28 @@ function SharedDropRoute() {
           )}
         </section>
       </section>
+      <ConfirmDialog
+        cancelText="Cancel"
+        confirmText="Remove"
+        message={
+          pendingDeleteFileName
+            ? `Remove "${pendingDeleteFileName}" from Shared Files and every project copy?`
+            : ""
+        }
+        onConfirm={() => {
+          const target = pendingDeleteFileName;
+          if (!target) return;
+          void deleteAsset(target);
+        }}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDeleteFileName(null);
+          }
+        }}
+        open={pendingDeleteFileName !== null}
+        title="Remove shared file?"
+        variant="danger"
+      />
     </div>
   );
 }

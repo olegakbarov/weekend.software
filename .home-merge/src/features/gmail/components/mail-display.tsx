@@ -142,7 +142,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         <div className="absolute right-4 top-14 z-30 min-w-[170px] rounded-md border bg-popover p-1 shadow-md">
           {["Mark as unread", "Star thread", "Add label", "Mute thread"].map((item) => (
             <button
-              className="flex w-full cursor-default items-center rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
+              className="flex w-full cursor-default items-center rounded-sm px-2 py-1.5 text-left text-sm hover:bg-primary/10 hover:text-primary"
               key={item}
               onClick={() => setShowMore(false)}
               type="button"

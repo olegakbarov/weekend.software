@@ -54,7 +54,7 @@ export function ThemeSelector({
         <div className="space-y-2">
           <label className="flex items-center gap-2 font-medium text-sm">
             <Palette className="size-3.5" />
-            Accent Color
+            Theme Hue
           </label>
           <div className="grid grid-cols-3 gap-2">
             {presetOptions.map((option) => (

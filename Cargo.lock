@@ -4322,12 +4322,14 @@ version = "0.2.0"
 dependencies = [
  "base64 0.22.1",
  "notify",
+ "objc2-app-kit",
  "portable-pty",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
  "tokio",
+ "toml 0.8.2",
  "uuid",
 ]
 

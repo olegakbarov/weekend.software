@@ -87,7 +87,7 @@ export function WeekView({ currentDate, events }: WeekViewProps) {
               <div
                 className={cn(
                   "mx-auto mt-0.5 flex size-7 items-center justify-center rounded-full text-sm",
-                  isCurrentDay && "bg-cal-accent font-bold text-cal-accent-text",
+                  isCurrentDay && "bg-cal-primary font-bold text-cal-primary-text",
                   !isCurrentDay && "text-cal-text"
                 )}
               >

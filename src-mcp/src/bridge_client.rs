@@ -119,7 +119,7 @@ fn normalize_project_name(value: &str) -> Option<String> {
     }
 }
 
-fn project_name_from_context() -> Option<String> {
+pub(crate) fn project_name_from_context() -> Option<String> {
     if let Ok(value) = std::env::var("WEEKEND_PROJECT") {
         if let Some(project_name) = normalize_project_name(&value) {
             return Some(project_name);

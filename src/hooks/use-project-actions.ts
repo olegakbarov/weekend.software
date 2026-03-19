@@ -57,6 +57,28 @@ export function useProjectActions(
     [controller, navigateWithinProject, project]
   );
 
+  const selectTerminal = useCallback(
+    (terminalId: string) => {
+      navigateWithinProject({ view: "terminal", terminalId });
+    },
+    [navigateWithinProject]
+  );
+
+  const createTerminal = useCallback(() => {
+    const descriptor = controller.createTerminalSession(project);
+    navigateWithinProject({
+      view: "terminal",
+      terminalId: descriptor.terminalId,
+    });
+  }, [controller, navigateWithinProject, project]);
+
+  const removeTerminal = useCallback(
+    (terminalId: string) => {
+      controller.removeTerminalSession(terminalId);
+    },
+    [controller]
+  );
+
   const elementGrabbed = useCallback(
     (data: GrabbedElement) => {
       const agentTerminalId =
@@ -144,12 +166,15 @@ export function useProjectActions(
 
   return {
     archiveProject,
+    createTerminal,
     deleteProject,
     elementGrabbed,
     isArchivingProject,
     isDeletingProject,
     playFromBrowser,
     playFromSettings,
+    removeTerminal,
+    selectTerminal,
     stop,
     workspaceModeChange,
   };

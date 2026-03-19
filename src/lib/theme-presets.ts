@@ -6,27 +6,27 @@ export const THEME_PRESETS = {
   default: {
     name: "Purple",
     hue: 250,
-    description: "Default purple accent",
+    description: "Default purple hue",
   },
   blue: {
     name: "Blue",
     hue: 220,
-    description: "Cool blue accent",
+    description: "Cool blue hue",
   },
   green: {
     name: "Green",
     hue: 145,
-    description: "Natural green accent",
+    description: "Natural green hue",
   },
   orange: {
     name: "Orange",
     hue: 35,
-    description: "Warm orange accent",
+    description: "Warm orange hue",
   },
   pink: {
     name: "Pink",
     hue: 330,
-    description: "Vibrant pink accent",
+    description: "Vibrant pink hue",
   },
   custom: {
     name: "Custom",

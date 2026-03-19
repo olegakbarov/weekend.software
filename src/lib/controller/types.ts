@@ -66,6 +66,7 @@ export type ProjectConfigReadSnapshot = {
   configValid: boolean;
   runtimeMode?: string | null;
   runtimeUrl?: string | null;
+  deployUrl?: string | null;
   startupCommands: string[];
   processes: Record<string, ProcessEntrySnapshot>;
   source: string;

@@ -1,4 +1,4 @@
-use crate::bridge_client::BridgeClient;
+use crate::bridge_client::{project_name_from_context, BridgeClient};
 use crate::tools;
 use serde_json::{json, Value};
 use std::io::{self, BufRead, Write};
@@ -204,15 +204,12 @@ fn handle_tools_call(id: &Option<Value>, message: &Value, client: &mut BridgeCli
 /// Resolve the default webview label for tool calls that don't specify one.
 ///
 /// Strategy:
-///   1. Read WEEKEND_PROJECT env var (set by terminal_open)
+///   1. Resolve project context from WEEKEND_PROJECT or the current project cwd
 ///   2. List all browser webviews from the bridge
 ///   3. Pick the one matching `browser-pane:{project}:*`
 ///   4. If no project match: use the single available webview, otherwise require explicit label
 fn resolve_default_label(call_id: &str, client: &mut BridgeClient) -> Result<String, String> {
-    let project = std::env::var("WEEKEND_PROJECT")
-        .ok()
-        .map(|proj| proj.trim().to_string())
-        .filter(|proj| !proj.is_empty());
+    let project = project_name_from_context();
 
     let list_req = json!({
         "id": format!("{call_id}-list"),
@@ -255,8 +252,11 @@ fn resolve_default_label(call_id: &str, client: &mut BridgeClient) -> Result<Str
         );
     }
 
-    // If we know the project, prefer the webview for this project
-    if let Some(ref proj) = project {
+    select_default_label(&labels, project.as_deref())
+}
+
+fn select_default_label(labels: &[String], project: Option<&str>) -> Result<String, String> {
+    if let Some(proj) = project {
         let prefix = format!("browser-pane:{proj}:");
         if let Some(matched) = labels.iter().find(|label| label.starts_with(&prefix)) {
             return Ok(matched.clone());
@@ -285,4 +285,42 @@ fn make_tool_result(id: &Option<Value>, is_error: bool, text: &str) -> Value {
             "isError": is_error
         }
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::select_default_label;
+
+    #[test]
+    fn selects_project_matched_label_when_available() {
+        let labels = vec![
+            "browser-pane:home:0".to_string(),
+            "browser-pane:sandbox:1".to_string(),
+        ];
+
+        let resolved = select_default_label(&labels, Some("sandbox")).expect("resolved label");
+
+        assert_eq!(resolved, "browser-pane:sandbox:1");
+    }
+
+    #[test]
+    fn falls_back_to_single_label_when_only_one_webview_is_open() {
+        let labels = vec!["browser-pane:home:0".to_string()];
+
+        let resolved = select_default_label(&labels, Some("sandbox")).expect("resolved label");
+
+        assert_eq!(resolved, "browser-pane:home:0");
+    }
+
+    #[test]
+    fn requires_explicit_label_when_multiple_webviews_are_open_without_project_match() {
+        let labels = vec![
+            "browser-pane:home:0".to_string(),
+            "browser-pane:music:1".to_string(),
+        ];
+
+        let error = select_default_label(&labels, Some("sandbox")).expect_err("missing label");
+
+        assert!(error.contains("Specify `label` explicitly"));
+    }
 }

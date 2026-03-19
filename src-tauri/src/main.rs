@@ -31,6 +31,9 @@ use tauri::{
 };
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
+#[cfg(target_os = "macos")]
+use objc2_app_kit::{NSWindow, NSWindowButton};
+
 use logging::{
     append_log, log_backend, now_unix_ms, project_log_path, read_log_tail_from_path,
     surface_log_path, LOG_TAIL_DEFAULT_MAX_BYTES,
@@ -193,6 +196,8 @@ struct ProjectRuntimeConfig {
     mode: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    deploy_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -251,6 +256,7 @@ struct ProjectConfigReadSnapshot {
     config_valid: bool,
     runtime_mode: Option<String>,
     runtime_url: Option<String>,
+    deploy_url: Option<String>,
     startup_commands: Vec<String>,
     processes: HashMap<String, ProcessEntrySnapshot>,
     source: String,
@@ -292,6 +298,8 @@ const PROJECT_CONFIG_FILE_NAME: &str = "weekend.config.json";
 const LEGACY_PROJECT_CONFIG_FILE_NAME: &str = "aios.config.json";
 const PROJECT_CLAUDE_FILE_NAME: &str = "CLAUDE.md";
 const PROJECT_AGENTS_FILE_NAME: &str = "AGENTS.md";
+const PROJECT_CODEX_DIR_NAME: &str = ".codex";
+const PROJECT_CODEX_CONFIG_FILE_NAME: &str = "config.toml";
 const PROJECT_GITIGNORE_FILE_NAME: &str = ".gitignore";
 const SHARED_ASSETS_ROOT_DIR_NAME: &str = "shared-assets";
 const PROJECT_BRIDGE_PORT_DIR_NAME: &str = "bridge-projects";
@@ -683,6 +691,53 @@ fn show_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     window
         .set_focus()
         .map_err(|error| format!("failed to focus main window: {error}"))
+}
+
+#[cfg(target_os = "macos")]
+fn set_main_window_traffic_lights_visible<R: Runtime>(
+    app: &AppHandle<R>,
+    visible: bool,
+) -> Result<(), String> {
+    let app_handle = app.clone();
+    let (tx, rx) = std::sync::mpsc::channel();
+
+    app.run_on_main_thread(move || {
+        let result = (|| -> Result<(), String> {
+            let window = app_handle
+                .get_webview_window("main")
+                .ok_or_else(|| "main window not found".to_string())?;
+            let ns_window = window
+                .ns_window()
+                .map_err(|error| format!("failed to access macOS window: {error}"))?;
+            let ns_window: &NSWindow = unsafe { &*ns_window.cast() };
+
+            for button_kind in [
+                NSWindowButton::MiniaturizeButton,
+                NSWindowButton::CloseButton,
+                NSWindowButton::ZoomButton,
+            ] {
+                if let Some(button) = ns_window.standardWindowButton(button_kind) {
+                    button.setHidden(!visible);
+                }
+            }
+
+            Ok(())
+        })();
+
+        let _ = tx.send(result);
+    })
+    .map_err(|error| format!("failed to schedule traffic light update: {error}"))?;
+
+    rx.recv()
+        .map_err(|_| "failed to receive traffic light update result".to_string())?
+}
+
+#[cfg(not(target_os = "macos"))]
+fn set_main_window_traffic_lights_visible<R: Runtime>(
+    _app: &AppHandle<R>,
+    _visible: bool,
+) -> Result<(), String> {
+    Ok(())
 }
 
 fn set_tray_icon_pixel(rgba: &mut [u8], width: u32, x: i32, y: i32) {
@@ -1231,6 +1286,7 @@ fn read_project_config_from_path(config_path: &Path) -> ProjectConfigLookup {
         runtime: ProjectRuntimeConfig {
             mode: Some(runtime_mode.as_str().to_string()),
             url: Some(runtime_url),
+            deploy_url: parsed.runtime.deploy_url,
         },
         startup_commands,
         processes,
@@ -1666,6 +1722,7 @@ fn write_project_config(
         runtime: ProjectRuntimeConfig {
             mode: Some(ProjectRuntimeMode::Portless.as_str().to_string()),
             url: Some(normalized_runtime_url),
+            deploy_url: None,
         },
         startup: ProjectStartupConfig {
             commands: normalize_startup_commands(startup_commands),
@@ -1707,21 +1764,27 @@ fn seed_agent_runtime_guidance_files(project_dir: &Path) -> Result<(), String> {
         .map_err(|error| format!("failed to write {}: {error}", agents_path.display()))?;
 
     seed_mcp_json(project_dir)?;
+    seed_codex_config(project_dir)?;
 
     Ok(())
 }
 
-fn seed_mcp_json(project_dir: &Path) -> Result<(), String> {
-    let mcp_path = project_dir.join(".mcp.json");
-    let project_name = project_dir
+fn project_name_for_dir(project_dir: &Path) -> Result<String, String> {
+    project_dir
         .file_name()
         .and_then(|value| value.to_str())
+        .map(ToOwned::to_owned)
         .ok_or_else(|| {
             format!(
                 "failed to resolve project name for {}",
                 project_dir.display()
             )
-        })?;
+        })
+}
+
+fn seed_mcp_json(project_dir: &Path) -> Result<(), String> {
+    let mcp_path = project_dir.join(".mcp.json");
+    let project_name = project_name_for_dir(project_dir)?;
     let binary_path = resolve_mcp_binary_path();
     let weekend_browser_config = serde_json::json!({
         "command": binary_path,
@@ -1755,6 +1818,57 @@ fn seed_mcp_json(project_dir: &Path) -> Result<(), String> {
         .map_err(|error| format!("failed to serialize .mcp.json: {error}"))?;
     std::fs::write(&mcp_path, format!("{serialized}\n"))
         .map_err(|error| format!("failed to write {}: {error}", mcp_path.display()))?;
+    Ok(())
+}
+
+fn seed_codex_config(project_dir: &Path) -> Result<(), String> {
+    let project_name = project_name_for_dir(project_dir)?;
+    let codex_dir = project_dir.join(PROJECT_CODEX_DIR_NAME);
+    if codex_dir.exists() && !codex_dir.is_dir() {
+        return Err(format!("{} must be a directory", codex_dir.display()));
+    }
+    std::fs::create_dir_all(&codex_dir)
+        .map_err(|error| format!("failed to create {}: {error}", codex_dir.display()))?;
+
+    let config_path = codex_dir.join(PROJECT_CODEX_CONFIG_FILE_NAME);
+    let binary_path = resolve_mcp_binary_path();
+    let mut weekend_browser_env = toml::map::Map::new();
+    weekend_browser_env.insert(
+        "WEEKEND_PROJECT".to_string(),
+        toml::Value::String(project_name),
+    );
+
+    let mut weekend_browser_config = toml::map::Map::new();
+    weekend_browser_config.insert("command".to_string(), toml::Value::String(binary_path));
+    weekend_browser_config.insert("args".to_string(), toml::Value::Array(Vec::new()));
+    weekend_browser_config.insert("env".to_string(), toml::Value::Table(weekend_browser_env));
+
+    let mut content = if config_path.exists() {
+        std::fs::read_to_string(&config_path)
+            .map_err(|error| format!("failed to read {}: {error}", config_path.display()))?
+            .parse::<toml::Value>()
+            .map_err(|error| format!("failed to parse {}: {error}", config_path.display()))?
+    } else {
+        toml::Value::Table(toml::map::Map::new())
+    };
+
+    let root = content
+        .as_table_mut()
+        .ok_or_else(|| format!("{} must contain a TOML table", config_path.display()))?;
+    let mcp_servers = root
+        .entry("mcp_servers".to_string())
+        .or_insert_with(|| toml::Value::Table(toml::map::Map::new()))
+        .as_table_mut()
+        .ok_or_else(|| format!("{}.mcp_servers must be a TOML table", config_path.display()))?;
+    mcp_servers.insert(
+        "weekend-browser".to_string(),
+        toml::Value::Table(weekend_browser_config),
+    );
+
+    let serialized = toml::to_string_pretty(&content)
+        .map_err(|error| format!("failed to serialize .codex/config.toml: {error}"))?;
+    std::fs::write(&config_path, format!("{serialized}\n"))
+        .map_err(|error| format!("failed to write {}: {error}", config_path.display()))?;
     Ok(())
 }
 
@@ -3487,10 +3601,11 @@ mod config_tests {
 
 #[cfg(test)]
 mod mcp_config_tests {
-    use super::{project_name_from_browser_webview_label, seed_mcp_json};
+    use super::{project_name_from_browser_webview_label, seed_codex_config, seed_mcp_json};
     use serde_json::Value;
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};
+    use toml::Value as TomlValue;
 
     fn make_temp_project_dir(prefix: &str) -> PathBuf {
         let unique = SystemTime::now()
@@ -3534,6 +3649,38 @@ mod mcp_config_tests {
         );
         assert_eq!(
             parsed["mcpServers"]["weekend-browser"]["env"]["WEEKEND_PROJECT"].as_str(),
+            Some("rl-lab")
+        );
+    }
+
+    #[test]
+    fn seed_codex_config_preserves_other_servers_and_sets_weekend_project_env() {
+        let root = make_temp_project_dir("weekend-codex-config");
+        let project_dir = root.join("rl-lab");
+        let codex_dir = project_dir.join(".codex");
+        std::fs::create_dir_all(&codex_dir).expect("codex dir");
+        std::fs::write(
+            codex_dir.join("config.toml"),
+            r#"[mcp_servers.other-server]
+command = "node"
+args = ["other.js"]
+"#,
+        )
+        .expect("write codex config");
+
+        seed_codex_config(&project_dir).expect("seed codex config");
+        let parsed: TomlValue = std::fs::read_to_string(codex_dir.join("config.toml"))
+            .expect("read codex config")
+            .parse()
+            .expect("parse codex config");
+        let _ = std::fs::remove_dir_all(&root);
+
+        assert_eq!(
+            parsed["mcp_servers"]["other-server"]["command"].as_str(),
+            Some("node")
+        );
+        assert_eq!(
+            parsed["mcp_servers"]["weekend-browser"]["env"]["WEEKEND_PROJECT"].as_str(),
             Some("rl-lab")
         );
     }
@@ -3773,7 +3920,7 @@ fn backfill_mcp_configs() -> Result<(), String> {
     let entries =
         std::fs::read_dir(&root).map_err(|error| format!("failed to read ~/.weekend: {error}"))?;
 
-    let mut mcp_count = 0u32;
+    let mut config_count = 0u32;
     for entry in entries.flatten() {
         let Ok(file_type) = entry.file_type() else {
             continue;
@@ -3796,24 +3943,21 @@ fn backfill_mcp_configs() -> Result<(), String> {
         if let Err(error) = seed_agent_runtime_guidance_files(&project_dir) {
             log_backend(
                 "WARN",
-                format!("failed to refresh guidance for project={project_name}: {error}"),
-            );
-        }
-
-        if let Err(error) = seed_mcp_json(&project_dir) {
-            log_backend(
-                "WARN",
-                format!("failed to refresh .mcp.json for project={project_name}: {error}"),
+                format!(
+                    "failed to refresh guidance and MCP config for project={project_name}: {error}"
+                ),
             );
         } else {
-            mcp_count += 1;
+            config_count += 1;
         }
     }
 
-    if mcp_count > 0 {
+    if config_count > 0 {
         log_backend(
             "INFO",
-            format!("refreshed .mcp.json for {mcp_count} existing project(s)"),
+            format!(
+                "refreshed agent guidance, .mcp.json, and .codex/config.toml for {config_count} existing project(s)"
+            ),
         );
     }
     Ok(())
@@ -4395,6 +4539,7 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             config_valid: true,
             runtime_mode: config.runtime.mode,
             runtime_url: config.runtime.url,
+            deploy_url: config.runtime.deploy_url,
             startup_commands: config.startup_commands,
             processes: config.processes,
             source: "project-config".to_string(),
@@ -4409,6 +4554,7 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             config_valid: false,
             runtime_mode: None,
             runtime_url: None,
+            deploy_url: None,
             startup_commands: Vec::new(),
             processes: HashMap::new(),
             source: "missing".to_string(),
@@ -4423,6 +4569,7 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             config_valid: false,
             runtime_mode: None,
             runtime_url: None,
+            deploy_url: None,
             startup_commands: Vec::new(),
             processes: HashMap::new(),
             source: "invalid".to_string(),
@@ -5710,6 +5857,11 @@ fn browser_probe_runtime_url(url: String) -> Result<BrowserRuntimeProbeResult, S
 }
 
 #[tauri::command]
+fn set_traffic_lights_visible<R: Runtime>(app: AppHandle<R>, visible: bool) -> Result<(), String> {
+    set_main_window_traffic_lights_visible(&app, visible)
+}
+
+#[tauri::command]
 fn browser_push_event<R: Runtime>(
     webview: tauri::Webview<R>,
     app: AppHandle<R>,
@@ -6158,6 +6310,7 @@ fn main() {
             logs_read_weekend,
             logs_read_project,
             shell_name,
+            set_traffic_lights_visible,
             find_available_port,
             probe_runtime_url
         ])

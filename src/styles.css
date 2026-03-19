@@ -132,8 +132,6 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
@@ -178,11 +176,11 @@
   /* Tell browser this is a dark theme - affects native scrollbars */
   color-scheme: dark;
 
-  /* Brand hue - configurable accent color (0-360) */
+  /* Brand hue - configurable theme hue (0-360) */
   --brand-hue: 250;
 
-  /* Cyan accent for selected/active states */
-  --cyan-accent: oklch(0.7 0.15 195);
+  /* Cyan tone for selected and active states */
+  --cyan-selection: oklch(0.7 0.15 195);
 
   /* Text highlight (selection + focus ring) */
   --text-highlight: #00BE83;
@@ -210,10 +208,6 @@
   /* Primary - Neutral (not colored) */
   --primary: #DEDEDE;
   --primary-foreground: #030303;
-
-  /* Accent - Neutral */
-  --accent: #DEDEDE;
-  --accent-foreground: #030303;
 
   /* Status Colors */
   --destructive: #F14D4C;
@@ -271,10 +265,6 @@
   /* Primary - Warm dark brown */
   --primary: #2C2420;
   --primary-foreground: #F5F0EB;
-
-  /* Accent - Hot pink */
-  --accent: #E84B8A;
-  --accent-foreground: #FFFFFF;
 
   /* Status Colors */
   --destructive: #D40924;
@@ -397,6 +387,14 @@ body {
 .light ::-webkit-scrollbar-thumb:hover {
   background: oklch(0.5 0.02 60);
   background-clip: content-box;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 /* ============================================================================
@@ -760,7 +758,6 @@ ol li > p > input[type="checkbox"] {
   width: 1rem;
   height: 1rem;
   margin-right: 0.5rem;
-  accent-color: var(--primary);
   cursor: pointer;
   vertical-align: middle;
   border-radius: 3px;
@@ -959,22 +956,6 @@ ol li > p > input[type="checkbox"]:checked::after {
 /* Light mode scrollbar is handled by CSS variables in the Scrollbar section above */
 
 /* Light mode selection is handled by --text-highlight-selection */
-
-/* ============================================================================
-   Cyan Accent Utilities
-   ============================================================================ */
-
-@utility text-cyan-accent {
-  color: var(--cyan-accent);
-}
-
-@utility bg-cyan-accent {
-  background-color: var(--cyan-accent);
-}
-
-@utility border-cyan-accent {
-  border-color: var(--cyan-accent);
-}
 
 /* ============================================================================
    Streamdown - AI Output Markdown Rendering
@@ -1388,7 +1369,7 @@ diffs-container {
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: var(--cyan-accent, oklch(0.7 0.15 195));
+  stroke: var(--cyan-selection, oklch(0.7 0.15 195));
   stroke-width: 2.5;
 }
 
@@ -1403,13 +1384,13 @@ diffs-container {
 }
 
 .react-flow__edge.selected .react-flow__edgemarker {
-  fill: var(--cyan-accent, oklch(0.7 0.15 195));
+  fill: var(--cyan-selection, oklch(0.7 0.15 195));
 }
 
 /* Selection box */
 .react-flow__selection {
   background: oklch(0.7 0.15 195 / 0.1) !important;
-  border: 1px solid var(--cyan-accent) !important;
+  border: 1px solid var(--cyan-selection) !important;
 }
 
 /* Minimap */

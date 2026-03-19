@@ -10,6 +10,7 @@ import {
 import type {
   PlayState,
   ProjectConfigReadSnapshot,
+  TerminalSessionDescriptor,
 } from "@/lib/controller";
 import { MOCK_MODE } from "@/lib/tauri-mock";
 import {
@@ -21,7 +22,7 @@ import {
 import {
   resolveBrowserRuntimeTarget,
 } from "./browser-runtime";
-import { BrowserToolbar } from "./browser-toolbar";
+import { BrowserToolbar, type BrowserSource } from "./browser-toolbar";
 import { useBrowserWebview } from "./browser-webview";
 
 type WorkspaceMode =
@@ -42,11 +43,15 @@ export function BrowserPane({
   onWorkspaceModeChange,
   onPlayProject,
   playState,
-  selectedEditorFilePath,
   editorContent,
   settingsContent,
   agentContent,
-  agentTerminalLabel,
+  terminalSessions,
+  activeTerminalId,
+  onSelectTerminal,
+  onCreateTerminal,
+  onRemoveTerminal,
+  onOpenConfigFile,
   onElementGrabbed,
 }: {
   projectKey: string;
@@ -61,11 +66,16 @@ export function BrowserPane({
   ) => void;
   onPlayProject: () => void;
   playState: PlayState;
-  selectedEditorFilePath: string | null;
   editorContent?: ReactNode;
   settingsContent?: ReactNode;
   agentContent?: ReactNode;
-  agentTerminalLabel?: string | null;
+  // Terminal tabs
+  terminalSessions: TerminalSessionDescriptor[];
+  activeTerminalId: string | null;
+  onSelectTerminal: (terminalId: string) => void;
+  onCreateTerminal: () => void;
+  onRemoveTerminal: (terminalId: string) => void;
+  onOpenConfigFile: () => void;
   onElementGrabbed?: (data: {
     tag: string;
     id: string;
@@ -75,6 +85,17 @@ export function BrowserPane({
     outerHTML?: string;
   }) => void;
 }) {
+  const [browserSource, setBrowserSource] = useState<BrowserSource>("local");
+  const deployUrl = projectConfigSnapshot?.deployUrl?.trim() || null;
+  const hasDeployUrl = !!deployUrl;
+
+  // Reset to local when deploy URL disappears
+  useEffect(() => {
+    if (browserSource === "web" && !hasDeployUrl) {
+      setBrowserSource("local");
+    }
+  }, [browserSource, hasDeployUrl]);
+
   const [frameVersionByProject, setFrameVersionByProject] = useState<
     Record<string, number>
   >({});
@@ -151,13 +172,20 @@ export function BrowserPane({
         : storedUrlInputDraft ?? currentPageUrl ?? ""
       : "";
   const addressBarError = addressBarErrorByProject[projectKey] ?? null;
-  const selectedEditorFileName =
-    selectedEditorFilePath?.split("/").pop() ?? selectedEditorFilePath;
   const isEmbeddedBrowserAvailable = !MOCK_MODE;
 
+  // When in "web" mode, override navigation to use the deploy URL
+  const effectiveNavigationUrl =
+    browserSource === "web" && deployUrl ? deployUrl : navigationUrl;
+  const effectiveUrlInputDraft =
+    browserSource === "web" && deployUrl ? deployUrl : urlInputDraft;
+
   const runtimeSurfaceUrl = useMemo(
-    () => (navigationUrl ? buildBrowserSurfaceUrl(navigationUrl) : null),
-    [navigationUrl]
+    () =>
+      effectiveNavigationUrl
+        ? buildBrowserSurfaceUrl(effectiveNavigationUrl)
+        : null,
+    [effectiveNavigationUrl]
   );
 
   // --- Stable callbacks for the webview hook ---
@@ -217,9 +245,9 @@ export function BrowserPane({
   } = useBrowserWebview({
     projectKey,
     frameVersion,
-    navigationUrl,
-    currentPageUrl,
-    configuredRuntimeUrl,
+    navigationUrl: effectiveNavigationUrl,
+    currentPageUrl: browserSource === "web" ? deployUrl : currentPageUrl,
+    configuredRuntimeUrl: browserSource === "web" ? deployUrl : configuredRuntimeUrl,
     runtimeSurfaceUrl,
     workspaceMode,
     playState,
@@ -388,7 +416,8 @@ export function BrowserPane({
     storedUrlInputDraft,
   ]);
 
-  const hasBrowserUrl = isEmbeddedBrowserAvailable && Boolean(navigationUrl);
+  const hasBrowserUrl =
+    isEmbeddedBrowserAvailable && Boolean(effectiveNavigationUrl);
   const effectiveBrowserErrorMessage =
     startupProbeErrorMessage ?? frameErrorMessage;
   const showBrowserShell =
@@ -407,7 +436,7 @@ export function BrowserPane({
         workspaceMode={workspaceMode}
         onWorkspaceModeChange={onWorkspaceModeChange}
         projectId={projectKey}
-        urlInputDraft={urlInputDraft}
+        urlInputDraft={effectiveUrlInputDraft}
         addressBarError={addressBarError}
         hasBrowserUrl={hasBrowserUrl}
         onAddressBarDraftChange={updateAddressBarDraft}
@@ -417,14 +446,21 @@ export function BrowserPane({
         onReloadCurrentPage={reloadCurrentPage}
         isGrabbing={isGrabbing}
         onToggleElementGrab={toggleElementGrab}
-        selectedEditorFilePath={selectedEditorFilePath}
-        selectedEditorFileName={selectedEditorFileName}
-        agentTerminalLabel={agentTerminalLabel}
+        terminalSessions={terminalSessions}
+        activeTerminalId={activeTerminalId}
+        onSelectTerminal={onSelectTerminal}
+        onCreateTerminal={onCreateTerminal}
+        onRemoveTerminal={onRemoveTerminal}
+        browserSource={browserSource}
+        onBrowserSourceChange={setBrowserSource}
+        hasDeployUrl={hasDeployUrl}
+        onOpenConfigFile={onOpenConfigFile}
       />
 
       <div className="relative min-h-0 flex-1 bg-background">
         {isEmbeddedBrowserAvailable &&
-        browserTarget.status === "ready" &&
+        (browserTarget.status === "ready" ||
+          (browserSource === "web" && deployUrl)) &&
         displayRuntimeSurfaceUrl ? (
           <div
             aria-hidden={workspaceMode !== "browser"}

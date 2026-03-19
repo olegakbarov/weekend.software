@@ -92,7 +92,7 @@ function MiniMonth({
                   "flex size-5 items-center justify-center rounded-full text-[10px]",
                   !isCurrentMonth && "text-transparent",
                   isCurrentMonth && !isCurrentDay && "text-cal-text-muted",
-                  isCurrentDay && "bg-cal-accent font-bold text-cal-accent-text"
+                  isCurrentDay && "bg-cal-primary font-bold text-cal-primary-text"
                 )}
               >
                 {cell.day}
