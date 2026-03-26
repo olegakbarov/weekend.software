@@ -53,6 +53,10 @@ import {
   renameSharedAsset as renameSharedAssetImpl,
   uploadSharedAssets as uploadSharedAssetsImpl,
 } from "./shared-assets";
+import {
+  refreshSharedEnv as refreshSharedEnvImpl,
+  updateSharedEnv as updateSharedEnvImpl,
+} from "./shared-env";
 import { setupListeners } from "./listeners";
 import {
   isAlreadyPortlessWrapped,
@@ -108,6 +112,9 @@ export function createWorkspaceController() {
     sharedAssetsLoading: false,
     sharedAssetsError: null,
     sharedAssetsUploading: false,
+    sharedEnv: {},
+    sharedEnvLoading: false,
+    sharedEnvError: null,
   };
   persistTerminalSessions(state.terminalSessionsByProject);
 
@@ -164,6 +171,7 @@ export function createWorkspaceController() {
     refreshRuntimeSnapshotImpl(ctx, runtimeInternals);
 
   const refreshSharedAssets = () => refreshSharedAssetsImpl(ctx);
+  const refreshSharedEnv = () => refreshSharedEnvImpl(ctx);
 
   const stopProject = (project: string): void => {
     const projectName = project.trim();
@@ -315,8 +323,11 @@ export function createWorkspaceController() {
 
     if (state.initialized) {
       await loadProjectsImpl(ctx, projectInternals, runtimeInternals, preferredProject);
-      await refreshRuntimeSnapshot().catch(() => undefined);
-      await refreshSharedAssets().catch(() => undefined);
+      await Promise.all([
+        refreshRuntimeSnapshot().catch(() => undefined),
+        refreshSharedAssets().catch(() => undefined),
+        refreshSharedEnv().catch(() => undefined),
+      ]);
       startRuntimeDebugPolling(runtimeInternals, refreshRuntimeSnapshot);
       return;
     }
@@ -399,8 +410,11 @@ export function createWorkspaceController() {
       });
 
       await loadProjectsImpl(ctx, projectInternals, runtimeInternals, preferredProject);
-      await refreshRuntimeSnapshot().catch(() => undefined);
-      await refreshSharedAssets().catch(() => undefined);
+      await Promise.all([
+        refreshRuntimeSnapshot().catch(() => undefined),
+        refreshSharedAssets().catch(() => undefined),
+        refreshSharedEnv().catch(() => undefined),
+      ]);
       startRuntimeDebugPolling(runtimeInternals, refreshRuntimeSnapshot);
     })().finally(() => {
       initPromise = null;
@@ -467,8 +481,8 @@ export function createWorkspaceController() {
       renameSharedAssetImpl(ctx, fileName, newFileName),
     deleteSharedAsset: (fileName: string) =>
       deleteSharedAssetImpl(ctx, fileName),
-    updateProjectConfig: (project: string) =>
-      updateProjectConfigImpl(ctx, runtimeInternals, project),
+    updateProjectConfig: (project: string, options?: { env?: Record<string, string> }) =>
+      updateProjectConfigImpl(ctx, runtimeInternals, project, options),
     deleteProject: (project: string) =>
       deleteProjectImpl(ctx, projectInternals, runtimeInternals, project),
     renameProject: (oldName: string, newName: string) =>
@@ -497,5 +511,8 @@ export function createWorkspaceController() {
     unarchiveProject: (project: string) =>
       unarchiveProjectImpl(ctx, projectInternals, runtimeInternals, project),
     toggleShowArchived: () => toggleShowArchivedImpl(ctx),
+    refreshSharedEnv,
+    updateSharedEnv: (env: Record<string, string>) =>
+      updateSharedEnvImpl(ctx, env),
   };
 }

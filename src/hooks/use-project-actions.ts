@@ -8,7 +8,7 @@ import {
   type WorkspaceSearch,
 } from "@/lib/workspace-navigation";
 
-type ProjectWorkspaceMode = "browser" | "editor" | "agent" | "settings";
+type ProjectWorkspaceMode = "browser" | "editor" | "agent" | "settings" | "skills";
 
 type GrabbedElement = {
   tag: string;
@@ -47,6 +47,10 @@ export function useProjectActions(
       }
       if (mode === "settings") {
         navigateWithinProject({ view: "settings" });
+        return;
+      }
+      if (mode === "skills") {
+        navigateWithinProject({ view: "skills" });
         return;
       }
       const agentId =

@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { EnvVarsEditor } from "@/components/ui/env-vars-editor";
 import { Input } from "@/components/ui/input";
 import type { SharedAssetSnapshot } from "@/lib/controller";
 import {
@@ -39,6 +40,8 @@ export type SharedPageProps = {
   onUpload: (files: File[]) => Promise<void>;
   onRename: (fileName: string, newFileName: string) => Promise<void>;
   onDelete: (fileName: string) => Promise<void>;
+  sharedEnv: Record<string, string>;
+  onUpdateSharedEnv: (env: Record<string, string>) => Promise<void>;
 };
 
 function AssetRow({
@@ -163,6 +166,8 @@ export function SharedPage({
   onUpload,
   onRename,
   onDelete,
+  sharedEnv,
+  onUpdateSharedEnv,
 }: SharedPageProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -279,6 +284,16 @@ export function SharedPage({
             </span>
           </div>
         )}
+      </div>
+
+      {/* Shared Environment Variables */}
+      <div className="mx-4 mt-3">
+        <EnvVarsEditor
+          env={sharedEnv}
+          onUpdate={onUpdateSharedEnv}
+          title="Shared Environment Variables"
+          description="Variables inherited by all projects. Project-level variables with the same key will override these."
+        />
       </div>
 
       {/* Bottom spacer */}

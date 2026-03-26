@@ -235,6 +235,8 @@ struct ProjectConfig {
     startup: ProjectStartupConfig,
     #[serde(default)]
     processes: Option<HashMap<String, ProcessEntry>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    env: Option<HashMap<String, String>>,
     #[serde(default)]
     archived: bool,
 }
@@ -259,6 +261,7 @@ struct ProjectConfigReadSnapshot {
     deploy_url: Option<String>,
     startup_commands: Vec<String>,
     processes: HashMap<String, ProcessEntrySnapshot>,
+    env: HashMap<String, String>,
     source: String,
     error: Option<String>,
     archived: bool,
@@ -269,6 +272,7 @@ struct ProjectConfigResolved {
     runtime: ProjectRuntimeConfig,
     startup_commands: Vec<String>,
     processes: HashMap<String, ProcessEntrySnapshot>,
+    env: HashMap<String, String>,
     archived: bool,
 }
 
@@ -404,6 +408,35 @@ when you need to inspect, test, or interact with the running application.
 - Chain multiple reads before acting: get the DOM, understand it, then click.
 - Prefer `browser_get_text` for quick content checks over full DOM dumps.
 "#;
+
+const SHARED_ENV_FILE_NAME: &str = "shared.env.json";
+
+fn shared_env_path() -> Result<PathBuf, String> {
+    Ok(weekend_root()?.join(SHARED_ENV_FILE_NAME))
+}
+
+fn read_shared_env() -> Result<HashMap<String, String>, String> {
+    let path = shared_env_path()?;
+    let raw = match std::fs::read_to_string(&path) {
+        Ok(value) => value,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(HashMap::new());
+        }
+        Err(error) => {
+            return Err(format!("failed to read {}: {error}", path.display()));
+        }
+    };
+    serde_json::from_str(&raw)
+        .map_err(|error| format!("failed to parse {}: {error}", path.display()))
+}
+
+fn write_shared_env(env: &HashMap<String, String>) -> Result<(), String> {
+    let path = shared_env_path()?;
+    let serialized = serde_json::to_string_pretty(env)
+        .map_err(|error| format!("failed to serialize shared env: {error}"))?;
+    std::fs::write(&path, format!("{serialized}\n"))
+        .map_err(|error| format!("failed to write {}: {error}", path.display()))
+}
 
 fn shared_assets_root() -> Result<PathBuf, String> {
     Ok(weekend_root()?.join(SHARED_ASSETS_ROOT_DIR_NAME))
@@ -702,13 +735,12 @@ const MAIN_WINDOW_TRAFFIC_LIGHT_POSITION_Y: f64 = 24.0;
 
 #[cfg(target_os = "macos")]
 fn set_main_window_standard_buttons_hidden(ns_window: &NSWindow, hidden: bool) {
-    for button_kind in [
-        NSWindowButton::MiniaturizeButton,
-        NSWindowButton::CloseButton,
-        NSWindowButton::ZoomButton,
-    ] {
-        if let Some(button) = ns_window.standardWindowButton(button_kind) {
-            button.setHidden(hidden);
+    // Hide the container view rather than individual buttons so that macOS's
+    // NSThemeFrame layout engine cannot restore them during layout passes
+    // (which happen during the sidebar width animation).
+    if let Some(close) = ns_window.standardWindowButton(NSWindowButton::CloseButton) {
+        if let Some(container) = unsafe { close.superview() } {
+            container.setHidden(hidden);
         }
     }
 
@@ -1348,6 +1380,7 @@ fn read_project_config_from_path(config_path: &Path) -> ProjectConfigLookup {
         },
         startup_commands,
         processes,
+        env: parsed.env.unwrap_or_default(),
         archived: parsed.archived,
     })
 }
@@ -1772,6 +1805,7 @@ fn write_project_config(
     runtime_url: &str,
     startup_commands: &[String],
     processes: Option<&HashMap<String, ProcessEntrySnapshot>>,
+    env: Option<&HashMap<String, String>>,
     archived: bool,
 ) -> Result<PathBuf, String> {
     let normalized_runtime_url = normalize_runtime_url(Some(runtime_url))?
@@ -1799,6 +1833,7 @@ fn write_project_config(
                 })
                 .collect()
         }),
+        env: env.filter(|e| !e.is_empty()).cloned(),
         archived,
     };
     let serialized = serde_json::to_string_pretty(&config)
@@ -4418,11 +4453,13 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                 } else {
                     Some(config.processes)
                 };
+                let env_ref = if config.env.is_empty() { None } else { Some(&config.env) };
                 write_project_config(
                     &project_dir,
                     &runtime_url,
                     &startup_commands,
                     procs.as_ref(),
+                    env_ref,
                     config.archived,
                 )?;
             }
@@ -4434,6 +4471,7 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                     &runtime_url,
                     &default_startup_commands(),
                     Some(&default_procs),
+                    None,
                     false,
                 )?;
             }
@@ -4471,6 +4509,7 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                         &runtime_url,
                         &startup_commands,
                         procs.as_ref(),
+                        parsed.env.as_ref(),
                         parsed.archived,
                     )?;
                 } else {
@@ -4600,6 +4639,7 @@ fn create_new_project(
         &created_runtime_url,
         &default_startup_commands(),
         Some(&default_processes),
+        None,
         false,
     )?;
     let shared_root = ensure_shared_assets_root()?;
@@ -4620,6 +4660,17 @@ fn create_new_project(
     );
 
     Ok(candidate.display().to_string())
+}
+
+#[tauri::command]
+fn shared_env_read() -> Result<HashMap<String, String>, String> {
+    read_shared_env()
+}
+
+#[tauri::command]
+fn shared_env_write(env: HashMap<String, String>) -> Result<HashMap<String, String>, String> {
+    write_shared_env(&env)?;
+    Ok(env)
 }
 
 #[tauri::command]
@@ -4804,6 +4855,7 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             deploy_url: config.runtime.deploy_url,
             startup_commands: config.startup_commands,
             processes: config.processes,
+            env: config.env,
             source: "project-config".to_string(),
             error: None,
             archived: config.archived,
@@ -4819,6 +4871,7 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             deploy_url: None,
             startup_commands: Vec::new(),
             processes: HashMap::new(),
+            env: HashMap::new(),
             source: "missing".to_string(),
             error: None,
             archived: false,
@@ -4834,6 +4887,7 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             deploy_url: None,
             startup_commands: Vec::new(),
             processes: HashMap::new(),
+            env: HashMap::new(),
             source: "invalid".to_string(),
             error: Some(error),
             archived: false,
@@ -4845,6 +4899,7 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
 fn project_config_write(
     project: String,
     startup_commands: Option<Vec<String>>,
+    env: Option<HashMap<String, String>>,
 ) -> Result<ProjectConfigReadSnapshot, String> {
     let project_name = project.trim();
     if project_name.is_empty() {
@@ -4880,6 +4935,15 @@ fn project_config_write(
         }
         _ => None,
     };
+    let resolved_env = match env {
+        Some(e) => Some(e),
+        None => match &existing {
+            ProjectConfigLookup::Valid(config) if !config.env.is_empty() => {
+                Some(config.env.clone())
+            }
+            _ => None,
+        },
+    };
     let resolved_archived = match &existing {
         ProjectConfigLookup::Valid(config) => config.archived,
         _ => false,
@@ -4890,6 +4954,7 @@ fn project_config_write(
         &runtime_url,
         &resolved_startup_commands,
         resolved_processes.as_ref(),
+        resolved_env.as_ref(),
         resolved_archived,
     )?;
 
@@ -5571,6 +5636,19 @@ fn terminal_open<R: Runtime>(
                 }
             }
             let project_dir = resolve_project_dir(project_name)?;
+            let shared_env = match read_shared_env() {
+                Ok(env) => env,
+                Err(error) => {
+                    log_backend(
+                        "WARN",
+                        format!("terminal_open project={project_name}: failed to read shared env ({error}); shared env not injected"),
+                    );
+                    HashMap::new()
+                }
+            };
+            for (key, value) in &shared_env {
+                cmd.env(key, value);
+            }
             match read_project_config(&project_dir) {
                 ProjectConfigLookup::Valid(config) => {
                     if let Some(runtime_mode) = config.runtime.mode {
@@ -5578,6 +5656,10 @@ fn terminal_open<R: Runtime>(
                     }
                     if let Some(runtime_url) = config.runtime.url {
                         cmd.env("WEEKEND_RUNTIME_URL", runtime_url);
+                    }
+                    // Inject project-level env vars (overrides shared)
+                    for (key, value) in &config.env {
+                        cmd.env(key, value);
                     }
                 }
                 ProjectConfigLookup::Missing => {
@@ -6494,6 +6576,8 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             create_new_project,
+            shared_env_read,
+            shared_env_write,
             shared_assets_list,
             shared_assets_upload_batch,
             shared_assets_import_paths,

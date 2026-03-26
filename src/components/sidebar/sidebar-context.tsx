@@ -32,7 +32,6 @@ export type SidebarActions = {
   onPlay: (project: string) => void;
   onStop: (project: string) => void;
   onOpenSettings: () => void;
-  onOpenSkills: () => void;
   onOpenShared: () => void;
   onOpenLogs: () => void;
   onToggleShowArchived: () => void;

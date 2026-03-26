@@ -1,5 +1,5 @@
 export type WorkspaceSearch = {
-  view: "browser" | "editor" | "terminal" | "settings";
+  view: "browser" | "editor" | "terminal" | "settings" | "skills";
   terminalId?: string;
 };
 

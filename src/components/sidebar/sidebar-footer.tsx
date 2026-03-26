@@ -1,4 +1,4 @@
-import { Plus, Settings, Blocks, FolderSync } from "lucide-react";
+import { Plus, Settings, FolderSync } from "lucide-react";
 import { useSidebarData, useSidebarActions } from "@/components/sidebar/sidebar-context";
 import { FooterIconButton } from "@/components/sidebar/footer-icon-button";
 import { cn } from "@/lib/utils";
@@ -27,12 +27,6 @@ export function SidebarFooter() {
           icon={<FolderSync className="size-3.5" />}
           onClick={actions.onOpenShared}
           title="Shared"
-        />
-        <FooterIconButton
-          active={data.currentRoute === "skills"}
-          icon={<Blocks className="size-3.5" />}
-          onClick={actions.onOpenSkills}
-          title="Skills"
         />
         <FooterIconButton
           active={data.currentRoute === "settings"}

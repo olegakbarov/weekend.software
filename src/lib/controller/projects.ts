@@ -291,7 +291,8 @@ export async function createProject(
 export async function updateProjectConfig(
   ctx: ControllerContext,
   runtimeInternals: RuntimeInternals,
-  project: string
+  project: string,
+  options?: { env?: Record<string, string> }
 ): Promise<ProjectConfigReadSnapshot> {
   const projectName = project.trim();
   if (!projectName) {
@@ -315,6 +316,7 @@ export async function updateProjectConfig(
       "project_config_write",
       {
         project: projectName,
+        env: options?.env,
       }
     );
 

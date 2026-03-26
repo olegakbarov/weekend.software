@@ -69,6 +69,7 @@ export type ProjectConfigReadSnapshot = {
   deployUrl?: string | null;
   startupCommands: string[];
   processes: Record<string, ProcessEntrySnapshot>;
+  env: Record<string, string>;
   source: string;
   error: string | null;
 };
@@ -127,6 +128,9 @@ export type WorkspaceControllerState = {
   sharedAssetsLoading: boolean;
   sharedAssetsError: string | null;
   sharedAssetsUploading: boolean;
+  sharedEnv: Record<string, string>;
+  sharedEnvLoading: boolean;
+  sharedEnvError: string | null;
 };
 
 export const RESERVED_PROJECT_NAMES = new Set(["logs", "shared-assets"]);

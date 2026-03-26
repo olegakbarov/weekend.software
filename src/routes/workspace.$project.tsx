@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BrowserPane } from "@/components/browser/browser-pane";
 import { ProjectEditorPane } from "@/components/editor/project-editor-pane";
 import { ProjectSettingsPage } from "@/components/settings/project-settings-page";
+import { ProjectSkillsPage } from "@/components/skills/project-skills-page";
 import { TerminalView } from "@/components/terminal/terminal-view";
 import { useProjectActions } from "@/hooks/use-project-actions";
 import { useVimMode } from "@/hooks/use-vim-mode";
@@ -16,7 +17,7 @@ import {
 export const Route = createFileRoute("/workspace/$project")({
   validateSearch: (search: Record<string, unknown>): WorkspaceSearch => {
     const view = search.view as string | undefined;
-    const validViews = ["browser", "editor", "terminal", "settings"];
+    const validViews = ["browser", "editor", "terminal", "settings", "skills"];
     return {
       view: validViews.includes(view ?? "") ? (view as WorkspaceSearch["view"]) : "browser",
       terminalId: (search.terminalId as string) ?? undefined,
@@ -149,6 +150,13 @@ function WorkspaceRoute() {
     projectActions.stop();
   }, [projectActions]);
 
+  const handleUpdateEnv = useCallback(
+    async (env: Record<string, string>) => {
+      await controller.updateProjectConfig(project, { env });
+    },
+    [controller, project]
+  );
+
   const handleOpenConfigFile = useCallback(() => {
     setSelectedEditorFilePathByProject((prev) => ({
       ...prev,
@@ -160,6 +168,7 @@ function WorkspaceRoute() {
   const workspaceMode = useMemo(() => {
     if (view === "editor") return "editor" as const;
     if (view === "settings") return "settings" as const;
+    if (view === "skills") return "skills" as const;
     if (view === "terminal") {
       return activeTerminalSession?.processRole === "agent"
         ? ("agent" as const)
@@ -197,6 +206,12 @@ function WorkspaceRoute() {
             onSelectedFilePathChange={handleSelectedFilePathChange}
           />
         }
+        skillsContent={
+          <ProjectSkillsPage
+            project={project}
+            controller={controller}
+          />
+        }
         settingsContent={
           <ProjectSettingsPage
             project={project}
@@ -210,6 +225,7 @@ function WorkspaceRoute() {
             onArchiveProject={projectActions.archiveProject}
             isDeletingProject={projectActions.isDeletingProject}
             onDeleteProject={projectActions.deleteProject}
+            onUpdateEnv={handleUpdateEnv}
           />
         }
         terminalSessions={state.terminalSessionsByProject[project] ?? []}

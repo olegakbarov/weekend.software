@@ -30,7 +30,8 @@ type WorkspaceMode =
   | "editor"
   | "agent"
   | "terminal"
-  | "settings";
+  | "settings"
+  | "skills";
 
 export function BrowserPane({
   projectKey,
@@ -45,6 +46,7 @@ export function BrowserPane({
   playState,
   editorContent,
   settingsContent,
+  skillsContent,
   agentContent,
   terminalSessions,
   activeTerminalId,
@@ -62,12 +64,13 @@ export function BrowserPane({
   projectConfigError: string | null;
   workspaceMode: WorkspaceMode;
   onWorkspaceModeChange: (
-    mode: "browser" | "editor" | "agent" | "settings"
+    mode: "browser" | "editor" | "agent" | "settings" | "skills"
   ) => void;
   onPlayProject: () => void;
   playState: PlayState;
   editorContent?: ReactNode;
   settingsContent?: ReactNode;
+  skillsContent?: ReactNode;
   agentContent?: ReactNode;
   // Terminal tabs
   terminalSessions: TerminalSessionDescriptor[];
@@ -451,6 +454,8 @@ export function BrowserPane({
         onSelectTerminal={onSelectTerminal}
         onCreateTerminal={onCreateTerminal}
         onRemoveTerminal={onRemoveTerminal}
+        playState={playState}
+        onPlay={onPlayProject}
         browserSource={browserSource}
         onBrowserSourceChange={setBrowserSource}
         hasDeployUrl={hasDeployUrl}
@@ -490,6 +495,14 @@ export function BrowserPane({
             <div className="flex h-full items-center justify-center">
               <p className="font-code text-sm text-muted-foreground/50">
                 Project settings
+              </p>
+            </div>
+          )
+        ) : workspaceMode === "skills" ? (
+          skillsContent ?? (
+            <div className="flex h-full items-center justify-center">
+              <p className="font-code text-sm text-muted-foreground/50">
+                Project skills
               </p>
             </div>
           )

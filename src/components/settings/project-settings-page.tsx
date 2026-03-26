@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { AlertTriangle, Archive, Loader2, Play, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EnvVarsEditor } from "@/components/ui/env-vars-editor";
 import { Input } from "@/components/ui/input";
 import type {
   PlayState,
@@ -31,6 +32,7 @@ export type ProjectSettingsPageProps = {
   onArchiveProject: () => Promise<void>;
   isDeletingProject: boolean;
   onDeleteProject: () => Promise<void>;
+  onUpdateEnv: (env: Record<string, string>) => Promise<void>;
 };
 
 export function ProjectSettingsPage({
@@ -45,6 +47,7 @@ export function ProjectSettingsPage({
   onArchiveProject,
   isDeletingProject,
   onDeleteProject,
+  onUpdateEnv,
 }: ProjectSettingsPageProps) {
   const isStarting = playState === "starting";
   const isRunning = playState === "running";
@@ -82,6 +85,13 @@ export function ProjectSettingsPage({
             </label>
           </div>
         </div>
+
+        <EnvVarsEditor
+          env={projectConfigSnapshot?.env ?? {}}
+          onUpdate={onUpdateEnv}
+          title="Environment Variables"
+          description="Variables injected into all terminal sessions for this project. These override shared environment variables."
+        />
 
         <div className="rounded-lg border border-border/70 bg-background/60 p-4">
           <div className="space-y-3">

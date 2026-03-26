@@ -34,6 +34,9 @@ function makeState(): WorkspaceControllerState {
     sharedAssetsLoading: false,
     sharedAssetsError: null,
     sharedAssetsUploading: false,
+    sharedEnv: {},
+    sharedEnvLoading: false,
+    sharedEnvError: null,
   };
 }
 

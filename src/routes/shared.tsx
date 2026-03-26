@@ -36,6 +36,13 @@ function SharedRoute() {
     [controller],
   );
 
+  const handleUpdateSharedEnv = useCallback(
+    async (env: Record<string, string>) => {
+      await controller.updateSharedEnv(env);
+    },
+    [controller],
+  );
+
   return (
     <SharedPage
       sharedAssets={state.sharedAssets}
@@ -46,6 +53,8 @@ function SharedRoute() {
       onUpload={handleUploadSharedAssets}
       onRename={handleRenameSharedAsset}
       onDelete={handleDeleteSharedAsset}
+      sharedEnv={state.sharedEnv}
+      onUpdateSharedEnv={handleUpdateSharedEnv}
     />
   );
 }

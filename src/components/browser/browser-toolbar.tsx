@@ -1,11 +1,13 @@
 import { useRef, useEffect, useCallback } from "react";
 import {
+  Blocks,
   ChevronLeft,
   ChevronRight,
   Crosshair,
   FileCode2,
   Globe,
   Monitor,
+  Play,
   Plus,
   RefreshCw,
   Settings,
@@ -14,6 +16,7 @@ import {
 } from "lucide-react";
 import type { FormEvent } from "react";
 import {
+  type PlayState,
   type TerminalSessionDescriptor,
   terminalDisplayLabel,
 } from "@/lib/controller";
@@ -25,7 +28,8 @@ type WorkspaceMode =
   | "editor"
   | "agent"
   | "terminal"
-  | "settings";
+  | "settings"
+  | "skills";
 
 export function BrowserToolbar({
   workspaceMode,
@@ -50,6 +54,9 @@ export function BrowserToolbar({
   onSelectTerminal,
   onCreateTerminal,
   onRemoveTerminal,
+  // Play
+  playState,
+  onPlay,
   // Browser source
   browserSource,
   onBrowserSourceChange,
@@ -58,7 +65,7 @@ export function BrowserToolbar({
 }: {
   workspaceMode: WorkspaceMode;
   onWorkspaceModeChange: (
-    mode: "browser" | "editor" | "agent" | "settings"
+    mode: "browser" | "editor" | "agent" | "settings" | "skills"
   ) => void;
   projectId: string | null;
   // Address bar
@@ -80,6 +87,9 @@ export function BrowserToolbar({
   onSelectTerminal: (terminalId: string) => void;
   onCreateTerminal: () => void;
   onRemoveTerminal: (terminalId: string) => void;
+  // Play
+  playState: PlayState;
+  onPlay: () => void;
   // Browser source
   browserSource: BrowserSource;
   onBrowserSourceChange: (source: BrowserSource) => void;
@@ -87,6 +97,8 @@ export function BrowserToolbar({
   onOpenConfigFile: () => void;
 }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const isAppIdle = playState === "idle" || playState === "failed";
 
   // Tab index: terminal sessions only (no Local tab)
   const activeTabIndex = activeTerminalId
@@ -96,9 +108,11 @@ export function BrowserToolbar({
     : null;
 
   const TAB_WIDTH = 132;
+  // Offset by one tab when the Play tab is present before terminal tabs
+  const playTabOffset = isAppIdle ? 1 : 0;
   const tabPlateTranslateX =
     activeTabIndex !== null && activeTabIndex >= 0
-      ? activeTabIndex * TAB_WIDTH
+      ? (activeTabIndex + playTabOffset) * TAB_WIDTH
       : null;
 
   // Scroll active terminal tab into view
@@ -148,6 +162,22 @@ export function BrowserToolbar({
             />
           ) : null}
 
+          {/* Play tab (when app not running) */}
+          {isAppIdle && (
+            <button
+              className={terminalSessions.length === 0 ? activeTabClass : inactiveTabClass}
+              disabled={!projectId}
+              onClick={onPlay}
+              title="Start app"
+              type="button"
+            >
+              <Play className="size-3.5 shrink-0" />
+              <span className="max-w-[80px] truncate font-vcr text-[13px] uppercase tracking-wide">
+                Start
+              </span>
+            </button>
+          )}
+
           {/* Dynamic terminal tabs */}
           {terminalSessions.map((session) => {
             const isActive = activeTerminalId === session.terminalId;
@@ -186,16 +216,18 @@ export function BrowserToolbar({
             );
           })}
 
-          {/* New terminal button */}
-          <button
-            className="relative z-10 mx-[3px] inline-flex w-7 shrink-0 items-center justify-center self-center rounded-md text-muted-foreground/40 transition-colors hover:text-foreground/70"
-            disabled={!projectId}
-            onClick={onCreateTerminal}
-            title="New terminal"
-            type="button"
-          >
-            <Plus className="size-3.5" />
-          </button>
+          {/* New terminal button (only when app is running) */}
+          {!isAppIdle && (
+            <button
+              className="relative z-10 mx-[3px] inline-flex w-7 shrink-0 items-center justify-center self-center rounded-md text-muted-foreground/40 transition-colors hover:text-foreground/70"
+              disabled={!projectId}
+              onClick={onCreateTerminal}
+              title="New terminal"
+              type="button"
+            >
+              <Plus className="size-3.5" />
+            </button>
+          )}
         </div>
 
         {/* Local / Web tabs */}
@@ -340,6 +372,22 @@ export function BrowserToolbar({
           type="button"
         >
           <FileCode2 className="size-3.5" />
+        </button>
+
+        <button
+          aria-label="Skills"
+          aria-pressed={workspaceMode === "skills"}
+          className={
+            workspaceMode === "skills"
+              ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/60 text-foreground transition-colors"
+              : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground"
+          }
+          disabled={!projectId}
+          onClick={() => onWorkspaceModeChange("skills")}
+          title="Skills"
+          type="button"
+        >
+          <Blocks className="size-3.5" />
         </button>
 
         <button
