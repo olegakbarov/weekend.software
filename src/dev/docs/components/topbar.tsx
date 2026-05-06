@@ -1,24 +1,27 @@
 import { Icon } from "./icon";
 import type { FlatRoute } from "../routes";
-import type { Shape, Theme } from "../hooks/use-tweaks";
+import type { Shape } from "../hooks/use-tweaks";
 
 interface TopbarProps {
   current: FlatRoute;
-  theme: Theme;
-  onToggleTheme: () => void;
+  theme: string;
+  onCycleTheme: () => void;
   shape: Shape;
   onCycleShape: () => void;
   onOpenCmd: () => void;
 }
 
+const DARK_THEMES = new Set(["fluid-dark", "weekend-dark"]);
+
 export function Topbar({
   current,
   theme,
-  onToggleTheme,
+  onCycleTheme,
   shape,
   onCycleShape,
   onOpenCmd,
 }: TopbarProps): React.JSX.Element {
+  const isDark = DARK_THEMES.has(theme);
   return (
     <div className="topbar">
       <div className="crumbs">
@@ -33,11 +36,8 @@ export function Topbar({
         <TopbarIconButton onClick={onCycleShape} title={`Cycle shape (${shape})`}>
           <Icon name={shape === "pill" ? "circle" : "square"} size={13} />
         </TopbarIconButton>
-        <TopbarIconButton
-          onClick={onToggleTheme}
-          title={`Switch to ${theme === "dark" ? "light" : "dark"}`}
-        >
-          <Icon name={theme === "dark" ? "sun" : "moon"} size={13} />
+        <TopbarIconButton onClick={onCycleTheme} title={`Cycle theme (${theme})`}>
+          <Icon name={isDark ? "sun" : "moon"} size={13} />
         </TopbarIconButton>
         <a
           className="topbar-icon-link"

@@ -13,12 +13,33 @@ export const Route = createFileRoute("/dev/ds")({
 function DesignSystemRoute() {
   const [theme, setTheme] = useState<Theme>("fluid");
 
-  // Override the global data-theme on mount; restore weekend-dark on unmount.
+  // Weekend's ThemeProvider writes design tokens directly as inline styles on
+  // <html> (specificity 1,0,0,0), which beats every CSS rule including our
+  // :root[data-theme="..."] blocks. While this route is mounted, we snapshot
+  // and clear the inline tokens so the cascade can win, then restore on unmount.
   useEffect(() => {
-    const previous = document.documentElement.dataset.theme ?? "weekend-dark";
-    document.documentElement.dataset.theme = theme;
+    const root = document.documentElement;
+    const stolen: Array<[string, string]> = [];
+    const props: string[] = [];
+    for (let i = 0; i < root.style.length; i += 1) {
+      const prop = root.style[i];
+      if (prop && prop.startsWith("--")) props.push(prop);
+    }
+    for (const prop of props) {
+      stolen.push([prop, root.style.getPropertyValue(prop)]);
+      root.style.removeProperty(prop);
+    }
     return () => {
-      document.documentElement.dataset.theme = previous;
+      for (const [prop, value] of stolen) root.style.setProperty(prop, value);
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const previous = root.dataset.theme ?? "weekend-dark";
+    root.dataset.theme = theme;
+    return () => {
+      root.dataset.theme = previous;
     };
   }, [theme]);
 
@@ -29,17 +50,31 @@ function DesignSystemRoute() {
     });
   }, []);
 
+  // The host app uses TanStack hash history, so location.hash is reserved for
+  // the host router. Embedded docs contain anchors like <a href="/about"> (demo
+  // links) and <a href="#section-id"> (heading anchors) — both would clobber
+  // TanStack's hash. Intercept here: external links pass through, in-page
+  // fragments scroll manually without touching location.hash, everything else
+  // is blocked.
+  const handleAnchorIntercept = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const anchor = (event.target as HTMLElement).closest("a");
+    if (!anchor) return;
+    const href = anchor.getAttribute("href");
+    if (!href) return;
+    if (href.startsWith("http") || href.startsWith("mailto:")) return;
+    event.preventDefault();
+    if (href.startsWith("#") && !href.startsWith("#/")) {
+      const id = href.slice(1);
+      if (id) document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
+
   return (
-    <div className="relative h-full w-full overflow-auto bg-background">
-      {/* Theme toggle pinned in the corner */}
-      <button
-        type="button"
-        onClick={cycleTheme}
-        className="fixed bottom-4 right-4 z-50 rounded-md border border-border bg-card px-3 py-1.5 text-sm shadow-popover hover:bg-muted"
-      >
-        theme: {theme}
-      </button>
-      <DocsApp />
+    <div
+      className="relative h-full w-full overflow-auto bg-background"
+      onClick={handleAnchorIntercept}
+    >
+      <DocsApp theme={theme} onCycleTheme={cycleTheme} />
     </div>
   );
 }
