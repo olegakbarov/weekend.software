@@ -3,6 +3,37 @@
   "tier": "registry",
   "consumers": [
     {
+      "file": "src/components/theme/theme-toggle.tsx",
+      "line": 25,
+      "props": [
+        "content"
+      ]
+    },
+    {
+      "file": "src/components/ui/copy-button.tsx",
+      "line": 74,
+      "props": [
+        "side",
+        "content"
+      ]
+    },
+    {
+      "file": "src/components/ui/dialog.tsx",
+      "line": 220,
+      "props": [
+        "side",
+        "content"
+      ]
+    },
+    {
+      "file": "src/components/ui/sidebar-icon.tsx",
+      "line": 23,
+      "props": [
+        "side",
+        "content"
+      ]
+    },
+    {
       "file": "src/dev/docs/views/pages/tooltip.tsx",
       "line": 23,
       "props": [
@@ -19,8 +50,8 @@
     }
   ],
   "propUsage": {
-    "content": 2,
-    "side": 1
+    "content": 6,
+    "side": 4
   },
-  "totalUsages": 2
+  "totalUsages": 6
 }

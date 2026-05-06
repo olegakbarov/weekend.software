@@ -3,12 +3,8 @@
  * theme family. `fluid` ↔ `fluid-dark`, `weekend-paper` ↔ `weekend-dark`.
  */
 import { Moon, Sun } from "lucide-react";
+import { Tooltip } from "@weekend/design/registry";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import type { ThemeName } from "./theme-provider";
 import { useTheme } from "./use-theme";
 
@@ -26,18 +22,15 @@ export function ThemeToggle({ className }: { className?: string }) {
   const Icon = isDark ? Sun : Moon;
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          className={className}
-          onClick={() => setActiveTheme(next)}
-          size="icon-sm"
-          variant="ghost"
-        >
-          <Icon className="size-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Theme: {activeTheme}</TooltipContent>
+    <Tooltip content={`Theme: ${activeTheme}`}>
+      <Button
+        className={className}
+        onClick={() => setActiveTheme(next)}
+        size="icon-sm"
+        variant="ghost"
+      >
+        <Icon className="size-4" />
+      </Button>
     </Tooltip>
   );
 }

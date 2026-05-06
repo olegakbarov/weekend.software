@@ -1,11 +1,7 @@
 import { XIcon } from "lucide-react";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip } from "@weekend/design/registry";
 import { cn } from "@/lib/utils";
 
 type AnimationPhase = "closed" | "entering" | "open" | "exiting";
@@ -221,15 +217,13 @@ function DialogContent({
         >
           {children}
           {showCloseButton && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DialogClose className="absolute top-4 right-4 select-none rounded opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none">
-                  <XIcon className="h-4 w-4" />
-                </DialogClose>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <span className="font-vcr text-[12px]">CLOSE</span>
-              </TooltipContent>
+            <Tooltip
+              side="bottom"
+              content={<span className="font-vcr text-[12px]">CLOSE</span>}
+            >
+              <DialogClose className="absolute top-4 right-4 select-none rounded opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none">
+                <XIcon className="h-4 w-4" />
+              </DialogClose>
             </Tooltip>
           )}
         </div>

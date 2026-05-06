@@ -4,11 +4,7 @@
 
 import { Check, Copy } from "lucide-react";
 import { memo, useCallback, useState } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip } from "@weekend/design/registry";
 import { cn } from "@/lib/utils";
 
 interface CopyButtonProps {
@@ -75,11 +71,11 @@ export const CopyButton = memo(function CopyButton({
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side="top">
-        <span className="font-vcr text-[12px]">{tooltipText}</span>
-      </TooltipContent>
+    <Tooltip
+      side="top"
+      content={<span className="font-vcr text-[12px]">{tooltipText}</span>}
+    >
+      {button}
     </Tooltip>
   );
 });
