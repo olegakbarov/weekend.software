@@ -1,12 +1,6 @@
-import type { ReactNode } from "react";
-
 /**
- * Minimal shape of an icon component. Compatible with lucide-react icons and
- * plain function-component icons alike. Defined as a callable signature
- * (rather than `ComponentType<...>`) to avoid React's `propTypes` variance.
+ * Re-export the canonical IconComponent type from icon-map. Kept as a public
+ * entry point because `@weekend/design` exposes `IconComponent` from its root
+ * `index.ts` for consumers building their own icon-driven primitives.
  */
-export type IconComponent = (props: {
-  size?: number | string;
-  strokeWidth?: number | string;
-  className?: string;
-}) => ReactNode;
+export type { IconComponent, IconComponentProps } from "./icon-map";

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useShapeContext } from "@weekend/design/registry";
 
 export type Shape = "pill" | "rounded";
 export type Density = "comfy" | "compact";
@@ -28,9 +29,16 @@ function load(): Tweaks {
   }
 }
 
-/** Tweaks store: persists shape/density/collapsed to localStorage. Theme is owned by the host route. */
+/**
+ * Tweaks store: persists shape/density/collapsed to localStorage. Theme is
+ * owned by the host route. Shape is delegated to the design system's
+ * `<ShapeProvider>` (Phase F), which is the single source of truth for the
+ * `<html data-shape>` attribute and the React-Context class strings.
+ */
 export function useTweaks(): readonly [Tweaks, <K extends keyof Tweaks>(key: K, value: Tweaks[K]) => void] {
-  const [tweaks, setTweaks] = useState<Tweaks>(load);
+  const { shape, setShape } = useShapeContext();
+  // Density and sidebarCollapsed remain owned here; shape mirrors the provider.
+  const [tweaks, setTweaks] = useState<Tweaks>(() => ({ ...load(), shape }));
 
   useEffect(() => {
     try {
@@ -39,13 +47,21 @@ export function useTweaks(): readonly [Tweaks, <K extends keyof Tweaks>(key: K, 
       // ignore quota
     }
     const root = document.documentElement;
-    root.dataset["shape"] = tweaks.shape;
     root.dataset["density"] = tweaks.density;
     root.style.setProperty("--shape-item", tweaks.shape === "pill" ? "20px" : "8px");
     root.style.setProperty("--shape-container", tweaks.shape === "pill" ? "24px" : "12px");
   }, [tweaks]);
 
+  // Mirror provider shape into local tweaks state when it changes upstream.
+  useEffect(() => {
+    setTweaks((t) => (t.shape === shape ? t : { ...t, shape }));
+  }, [shape]);
+
   const setTweak = <K extends keyof Tweaks>(key: K, value: Tweaks[K]): void => {
+    if (key === "shape") {
+      setShape(value as Shape);
+      return;
+    }
     setTweaks((t) => ({ ...t, [key]: value }));
   };
 

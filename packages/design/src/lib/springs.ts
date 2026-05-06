@@ -1,13 +1,28 @@
-import type { Transition } from "framer-motion";
-
 /**
- * Three named spring presets. The vocabulary of motion:
- * fast for hovers/fades, moderate for menus/tooltips, slow for modals/panels.
+ * Three named spring presets — framer-motion v12 perceptual API.
+ * The vocabulary of motion: fast for hovers/fades, moderate for menus/tooltips,
+ * slow for modals/panels.
+ *
+ * Upstream parity: matches `registry/default/lib/springs.ts` at commit d850ecf
+ * (mickadesign/fluid-functionalism). Values mirror the CSS companion tokens
+ * in tokens.css (`--spring-fast-ms`/`--spring-moderate-ms`/`--spring-slow-ms`).
  */
 export const springs = {
-  fast: { type: "spring", stiffness: 600, damping: 40, mass: 0.5 },
-  moderate: { type: "spring", stiffness: 400, damping: 30, mass: 0.8 },
-  slow: { type: "spring", stiffness: 200, damping: 25, mass: 1 },
-} as const satisfies Record<string, Transition>;
+  fast: {
+    type: "spring" as const,
+    duration: 0.08,
+    bounce: 0,
+  },
+  moderate: {
+    type: "spring" as const,
+    duration: 0.16,
+    bounce: 0.15,
+  },
+  slow: {
+    type: "spring" as const,
+    duration: 0.24,
+    bounce: 0.15,
+  },
+} as const;
 
 export type SpringName = keyof typeof springs;

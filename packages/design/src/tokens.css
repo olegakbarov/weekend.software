@@ -37,6 +37,10 @@
   --input: #e5e5e5;
   --focus-ring: #6b97ff;
 
+  /* ── ColorPicker checkerboard (alpha channel preview) ─────────── */
+  --checker-a: #bbbbbb;
+  --checker-b: #ffffff;
+
   /* ── Status / destructive ─────────────────────────────────────── */
   --destructive: #ef4444;
   --destructive-light: #fef2f2;
@@ -192,7 +196,105 @@
 
   --card-red: #f87171;
 
+  /* ColorPicker checkerboard — dark variant */
+  --checker-a: #1f1f1f;
+  --checker-b: #2a2a2a;
+
   color-scheme: dark;
+}
+
+/* =====================================================================
+   Theme / shape transition envelope.
+   Active only while <html class="transitioning"> is set. Pair with
+   ThemeProvider / setShape — they should add the class, swap data-theme
+   / data-shape, and remove the class after 200ms. Mirrors upstream
+   `app/globals.css` (commit d850ecf).
+   ===================================================================== */
+html.transitioning *,
+html.transitioning *::before,
+html.transitioning *::after {
+  transition:
+    border-radius     180ms ease-in-out,
+    background-color  180ms ease-in-out,
+    color             180ms ease-in-out,
+    border-color      180ms ease-in-out,
+    fill              180ms ease-in-out,
+    stroke            180ms ease-in-out
+    !important;
+}
+
+/* =====================================================================
+   Spinner keyframes — used by Button loading states (registry).
+   Verbatim port of upstream `app/globals.css`.
+   ===================================================================== */
+@keyframes spinner-move {
+  to { stroke-dashoffset: -100; }
+}
+
+@keyframes spinner-dash {
+  0%, 100% { stroke-dasharray: 15 85; }
+  50%      { stroke-dasharray: 40 60; }
+}
+
+/* =====================================================================
+   Shimmer text animation — used by ThinkingIndicator / thinking states.
+   Verbatim port of upstream `app/globals.css` (light + dark gradients).
+   ===================================================================== */
+@keyframes shimmer-text {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.shimmer-text {
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    #a3a3a3 0%,
+    #a3a3a3 35%,
+    #525252 50%,
+    #a3a3a3 65%,
+    #a3a3a3 100%
+  );
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: shimmer-text 1.5s ease-in-out infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      #525252 0%,
+      #525252 35%,
+      #a3a3a3 50%,
+      #525252 65%,
+      #525252 100%
+    );
+    background-size: 300% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+  }
+}
+
+.dark .shimmer-text,
+:root[data-theme="fluid-dark"] .shimmer-text,
+:root[data-theme="weekend-dark"] .shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #525252 0%,
+    #525252 35%,
+    #a3a3a3 50%,
+    #525252 65%,
+    #525252 100%
+  );
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
 }
 
 /* =====================================================================
@@ -349,26 +451,29 @@
 
 /* =====================================================================
    FLUID THEME — dark
-   Mirrors the .dark block from this file.
+   Aligned to upstream `.dark` block (commit d850ecf) per D1: fluid theme
+   uses upstream identity verbatim. Surfaces are 2 shades lighter than the
+   legacy Weekend `.dark` block at the top of this file (see _tokens.md).
+   Weekend's own dark identity lives at [data-theme="weekend-dark"].
    Inert until something sets data-theme="fluid-dark" on <html>.
    ===================================================================== */
 :root[data-theme="fluid-dark"] {
   color-scheme: dark;
-  /* Mirror the existing .dark block's values verbatim. */
-  --background: #0a0a0a;
+  /* Surfaces — upstream-canonical dark values */
+  --background: #171717;
   --foreground: #f5f5f5;
-  --card: #171717;
+  --card: #262626;
   --card-foreground: #f5f5f5;
-  --muted: #1f1f1f;
+  --muted: #262626;
   --muted-foreground: #a3a3a3;
-  --accent: #2a2a2a;
+  --accent: #525252;
   --accent-foreground: #f5f5f5;
   --selected: #525252;
   --hover: color-mix(in oklab, var(--foreground) 6%, transparent);
   --active: color-mix(in oklab, var(--foreground) 10%, transparent);
-  --border: #2a2a2a;
+  --border: #404040;
   --ring: #404040;
-  --input: #2a2a2a;
+  --input: #404040;
   --focus-ring: #6b97ff;
   --destructive: #f87171;
   --destructive-light: #450a0a;
@@ -377,6 +482,9 @@
   --success-foreground: #052e16;
   --secondary: #1f1f1f;
   --secondary-foreground: #f5f5f5;
+  /* ColorPicker checkerboard — dark */
+  --checker-a: #1f1f1f;
+  --checker-b: #2a2a2a;
   /* Fluid type scale */
   --text-xs: 12px;
   --text-sm: 13px;

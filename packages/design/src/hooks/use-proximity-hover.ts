@@ -1,113 +1,169 @@
-import {
-  type MouseEvent as ReactMouseEvent,
-  useCallback,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
+"use client";
 
-export interface ProximityRect {
-  readonly top: number;
-  readonly left: number;
-  readonly width: number;
-  readonly height: number;
-}
+import { useRef, useState, useCallback, useEffect, type RefObject } from "react";
 
-export interface ProximityHandlers {
-  onMouseEnter: () => void;
-  onMouseMove: (e: ReactMouseEvent<HTMLElement>) => void;
-  onMouseLeave: () => void;
-}
-
-export interface ProximityHoverApi {
-  /** Index of the registered item closest to the cursor, or `null`. */
-  activeIndex: number | null;
-  setActiveIndex: (index: number | null) => void;
-  /** Item rects, indexed by `index`, expressed relative to the container. */
-  itemRects: ReadonlyArray<ProximityRect | undefined>;
-  /** Increments each time the cursor enters the container — useful as a motion `key`. */
-  sessionRef: RefObject<number>;
-  /** Mouse handlers to spread onto the container element. */
-  handlers: ProximityHandlers;
-  /** Register or unregister an item element by index. */
-  registerItem: (index: number, element: HTMLElement | null) => void;
-  /** Recompute item rects (call after content size changes). */
-  measureItems: () => void;
+export interface ItemRect {
+  top: number;
+  height: number;
+  left: number;
+  width: number;
 }
 
 /**
- * Tracks which registered item the cursor is closest to within a container.
- * The "closest center" model — rather than strict pointer-over — yields smoother
- * indicator transitions for animated hover backgrounds.
+ * @deprecated Use `ItemRect`. Kept as an alias for back-compat with earlier
+ * Weekend call sites that imported `ProximityRect`.
  */
-export function useProximityHover(
-  containerRef: RefObject<HTMLElement | null>,
-): ProximityHoverApi {
-  const itemsRef = useRef<Map<number, HTMLElement>>(new Map());
-  const [itemRects, setItemRects] = useState<Array<ProximityRect | undefined>>([]);
+export type ProximityRect = ItemRect;
+
+interface UseProximityHoverOptions {
+  axis?: "x" | "y";
+}
+
+export interface UseProximityHoverReturn {
+  activeIndex: number | null;
+  setActiveIndex: (index: number | null) => void;
+  itemRects: ItemRect[];
+  sessionRef: RefObject<number>;
+  handlers: {
+    onMouseMove: (e: React.MouseEvent) => void;
+    onMouseEnter: () => void;
+    onMouseLeave: () => void;
+  };
+  registerItem: (index: number, element: HTMLElement | null) => void;
+  measureItems: () => void;
+}
+
+/** @deprecated Alias for back-compat — use `UseProximityHoverReturn`. */
+export type ProximityHoverApi = UseProximityHoverReturn;
+
+/** Subset of the return value containing just the mouse handlers. */
+export type ProximityHandlers = UseProximityHoverReturn["handlers"];
+
+export function useProximityHover<T extends HTMLElement>(
+  containerRef: RefObject<T | null>,
+  options: UseProximityHoverOptions = {},
+): UseProximityHoverReturn {
+  const { axis = "y" } = options;
+  const itemsRef = useRef(new Map<number, HTMLElement>());
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [itemRects, setItemRects] = useState<ItemRect[]>([]);
+  const itemRectsRef = useRef<ItemRect[]>([]);
   const sessionRef = useRef(0);
+  const rafIdRef = useRef<number | null>(null);
 
-  const registerItem = useCallback((index: number, element: HTMLElement | null): void => {
-    if (element) itemsRef.current.set(index, element);
-    else itemsRef.current.delete(index);
-  }, []);
+  const registerItem = useCallback(
+    (index: number, element: HTMLElement | null) => {
+      if (element) {
+        itemsRef.current.set(index, element);
+      } else {
+        itemsRef.current.delete(index);
+      }
+    },
+    [],
+  );
 
-  const measureItems = useCallback((): void => {
+  const measureItems = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
-    const containerRect = container.getBoundingClientRect();
-    const sortedKeys = Array.from(itemsRef.current.keys()).sort((a, b) => a - b);
-    const max = sortedKeys.length === 0 ? 0 : (sortedKeys[sortedKeys.length - 1] ?? 0) + 1;
-    const rects: Array<ProximityRect | undefined> = new Array(max);
-    for (const k of sortedKeys) {
-      const el = itemsRef.current.get(k);
-      if (!el) continue;
-      const r = el.getBoundingClientRect();
-      rects[k] = {
-        top: r.top - containerRect.top,
-        left: r.left - containerRect.left,
-        width: r.width,
-        height: r.height,
+    const rects: ItemRect[] = [];
+    itemsRef.current.forEach((element, index) => {
+      // Use offset* instead of getBoundingClientRect so measurements are
+      // unaffected by CSS transforms (e.g. scaleY animation on the parent
+      // motion.div). offsetTop/offsetLeft are layout values relative to the
+      // offsetParent (the scroll container), matching the coordinate space
+      // used by `position: absolute` children.
+      rects[index] = {
+        top: element.offsetTop,
+        height: element.offsetHeight,
+        left: element.offsetLeft,
+        width: element.offsetWidth,
       };
-    }
+    });
+    itemRectsRef.current = rects;
     setItemRects(rects);
   }, [containerRef]);
 
-  const onMouseEnter = useCallback((): void => {
-    sessionRef.current += 1;
-    measureItems();
-  }, [measureItems]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
 
-  const onMouseMove = useCallback(
-    (e: ReactMouseEvent<HTMLElement>): void => {
-      const container = containerRef.current;
-      if (!container) return;
-      const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      let bestIndex: number | null = null;
-      let bestDist = Infinity;
-      for (let i = 0; i < itemRects.length; i++) {
-        const ir = itemRects[i];
-        if (!ir) continue;
-        const cx = ir.left + ir.width / 2;
-        const cy = ir.top + ir.height / 2;
-        const dx = x - cx;
-        const dy = y - cy;
-        const d = dx * dx + dy * dy;
-        if (d < bestDist) {
-          bestDist = d;
-          bestIndex = i;
-        }
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
       }
-      setActiveIndex(bestIndex);
+
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        const container = containerRef.current;
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const mousePos = axis === "x" ? mouseX : mouseY;
+
+        let closestIndex: number | null = null;
+        let closestDistance = Infinity;
+        let containingIndex: number | null = null;
+
+        const rects = itemRectsRef.current;
+        // Convert content-relative rects to viewport coords using live scroll
+        const scrollOffset = axis === "x" ? container.scrollLeft : container.scrollTop;
+        const borderOffset = axis === "x" ? container.clientLeft : container.clientTop;
+        const containerEdge = axis === "x" ? containerRect.left : containerRect.top;
+        // Item rects are layout values (offset*); the container's bounding rect
+        // reflects any cumulative ancestor transform: scale. Compute the scale
+        // factor so we can map layout coords into the same visual viewport
+        // space the mouse cursor lives in.
+        const layoutSize = axis === "x" ? container.offsetWidth : container.offsetHeight;
+        const visualSize = axis === "x" ? containerRect.width : containerRect.height;
+        const scale = layoutSize > 0 ? visualSize / layoutSize : 1;
+
+        for (let index = 0; index < rects.length; index++) {
+          const r = rects[index];
+          if (!r) continue;
+
+          const contentPos = axis === "x" ? r.left : r.top;
+          const itemStart = containerEdge + (borderOffset + contentPos - scrollOffset) * scale;
+          const itemSize = (axis === "x" ? r.width : r.height) * scale;
+          const itemEnd = itemStart + itemSize;
+
+          if (mousePos >= itemStart && mousePos <= itemEnd) {
+            containingIndex = index;
+          }
+
+          const itemCenter = itemStart + itemSize / 2;
+          const distance = Math.abs(mousePos - itemCenter);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+          }
+        }
+
+        setActiveIndex(containingIndex ?? closestIndex);
+      });
     },
-    [containerRef, itemRects],
+    [axis, containerRef],
   );
 
-  const onMouseLeave = useCallback((): void => {
+  const handleMouseEnter = useCallback(() => {
+    sessionRef.current += 1;
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
     setActiveIndex(null);
+  }, []);
+
+  // Clean up rAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
   }, []);
 
   return {
@@ -115,8 +171,27 @@ export function useProximityHover(
     setActiveIndex,
     itemRects,
     sessionRef,
-    handlers: { onMouseEnter, onMouseMove, onMouseLeave },
+    handlers: {
+      onMouseMove: handleMouseMove,
+      onMouseEnter: handleMouseEnter,
+      onMouseLeave: handleMouseLeave,
+    },
     registerItem,
     measureItems,
   };
+}
+
+/**
+ * Hook for child items to register themselves with the proximity hover system.
+ * Call in useEffect with the item's ref and index.
+ */
+export function useRegisterProximityItem(
+  registerItem: (index: number, element: HTMLElement | null) => void,
+  index: number,
+  ref: RefObject<HTMLElement | null>,
+): void {
+  useEffect(() => {
+    registerItem(index, ref.current);
+    return () => registerItem(index, null);
+  }, [index, registerItem, ref]);
 }

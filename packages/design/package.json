@@ -40,7 +40,17 @@
   },
   "peerDependencies": {
     "react": "^18.3.0 || ^19.0.0",
-    "react-dom": "^18.3.0 || ^19.0.0"
+    "react-dom": "^18.3.0 || ^19.0.0",
+    "@tabler/icons-react": "^3.0.0",
+    "@phosphor-icons/react": "^2.0.0",
+    "@hugeicons/react": "^1.0.0",
+    "@hugeicons/core-free-icons": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@tabler/icons-react": { "optional": true },
+    "@phosphor-icons/react": { "optional": true },
+    "@hugeicons/react": { "optional": true },
+    "@hugeicons/core-free-icons": { "optional": true }
   },
   "devDependencies": {
     "@testing-library/react": "^16.0.0",

@@ -1,0 +1,17 @@
+{
+  "symbol": "ShapeProvider",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/main.tsx",
+      "line": 41,
+      "props": [
+        "defaultShape"
+      ]
+    }
+  ],
+  "propUsage": {
+    "defaultShape": 1
+  },
+  "totalUsages": 1
+}

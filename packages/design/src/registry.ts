@@ -2,6 +2,48 @@
 // Consumers (e.g. apps/docs) need Tailwind v4 configured with @source pointing
 // at this package's src directory.
 
+// Foundations: shape + icon context, springs, proximity-hover hook.
+export {
+  ShapeProvider,
+  useShape,
+  useShapeContext,
+  shapeMap,
+  transitionShape,
+} from "./lib/shape-context";
+export type { ShapeVariant, ShapeMode, ShapeClasses } from "./lib/shape-context";
+
+export {
+  IconProvider,
+  useIcon,
+  useIcons,
+  useIconLibrary,
+  iconLibraryOrder,
+  iconLibraryLabels,
+  registerIconLibrary,
+} from "./lib/icon-context";
+export type {
+  IconComponent,
+  IconComponentProps,
+  IconLibrary,
+  IconName,
+  AnyIconName,
+} from "./lib/icon-context";
+
+export { springs } from "./lib/springs";
+export type { SpringName } from "./lib/springs";
+
+export {
+  useProximityHover,
+  useRegisterProximityItem,
+} from "./hooks/use-proximity-hover";
+export type {
+  ItemRect,
+  ProximityHandlers,
+  ProximityHoverApi,
+  ProximityRect,
+  UseProximityHoverReturn,
+} from "./hooks/use-proximity-hover";
+
 export {
   Accordion,
   AccordionContent,

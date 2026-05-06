@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/ui/button.tsx",
-      "line": 95,
+      "line": 103,
       "props": [
         "ref",
         "variant",

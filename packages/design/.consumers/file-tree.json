@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/editor/project-file-tree.tsx",
-      "line": 346,
+      "line": 384,
       "props": [
         "model",
         "renderContextMenu",

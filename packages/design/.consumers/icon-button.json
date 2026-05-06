@@ -3,6 +3,26 @@
   "tier": "core",
   "consumers": [
     {
+      "file": "src/components/editor/project-editor-pane.tsx",
+      "line": 557,
+      "props": [
+        "icon",
+        "label",
+        "size",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/components/editor/project-editor-pane.tsx",
+      "line": 563,
+      "props": [
+        "icon",
+        "label",
+        "size",
+        "onClick"
+      ]
+    },
+    {
       "file": "src/dev/docs/views/pages/button.tsx",
       "line": 56,
       "props": [
@@ -12,8 +32,10 @@
     }
   ],
   "propUsage": {
-    "icon": 1,
-    "label": 1
+    "icon": 3,
+    "label": 3,
+    "onClick": 2,
+    "size": 2
   },
-  "totalUsages": 1
+  "totalUsages": 3
 }
