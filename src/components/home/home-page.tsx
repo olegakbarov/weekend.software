@@ -136,7 +136,7 @@ export function HomePage({
             ref={textareaRef}
             value={value}
             variant="ghost"
-            className="min-h-[88px] max-h-[240px] px-4 pt-3 pb-2 font-code text-base leading-relaxed"
+            className="min-h-[88px] max-h-[240px] px-4 pt-3 pb-2 font-code text-sm leading-relaxed"
           />
 
           <div className="flex items-center justify-between gap-2 px-4 pt-1 pb-3">
