@@ -1,7 +1,13 @@
 {
   "symbol": "InputGroup",
   "tier": "registry",
-  "consumers": [],
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/input-group.tsx",
+      "line": 29,
+      "props": []
+    }
+  ],
   "propUsage": {},
-  "totalUsages": 0
+  "totalUsages": 1
 }

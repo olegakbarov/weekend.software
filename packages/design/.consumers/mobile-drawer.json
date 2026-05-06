@@ -1,7 +1,19 @@
 {
   "symbol": "MobileDrawer",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/mobile-drawer.tsx",
+      "line": 35,
+      "props": [
+        "open",
+        "onClose"
+      ]
+    }
+  ],
+  "propUsage": {
+    "onClose": 1,
+    "open": 1
+  },
+  "totalUsages": 1
 }

@@ -1,7 +1,40 @@
 {
   "symbol": "ThinkingStep",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/thinking-steps.tsx",
+      "line": 33,
+      "props": [
+        "label",
+        "description",
+        "status"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/thinking-steps.tsx",
+      "line": 38,
+      "props": [
+        "label",
+        "description",
+        "status"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/thinking-steps.tsx",
+      "line": 49,
+      "props": [
+        "label",
+        "status",
+        "isLast"
+      ]
+    }
+  ],
+  "propUsage": {
+    "description": 2,
+    "isLast": 1,
+    "label": 3,
+    "status": 3
+  },
+  "totalUsages": 3
 }

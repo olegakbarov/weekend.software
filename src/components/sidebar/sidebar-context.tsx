@@ -34,6 +34,7 @@ export type SidebarActions = {
   onOpenSettings: () => void;
   onOpenShared: () => void;
   onOpenLogs: () => void;
+  onOpenDesignSystem: () => void;
   onToggleShowArchived: () => void;
   onUnarchiveProject: (project: string) => Promise<void>;
   onToggleSidebar?: () => void;

@@ -3,8 +3,8 @@
   "tier": "core",
   "consumers": [
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 102,
+      "file": "src/dev/docs/views/pages/introduction.tsx",
+      "line": 58,
       "props": [
         "checked",
         "onChange",
@@ -12,8 +12,8 @@
       ]
     },
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 103,
+      "file": "src/dev/docs/views/pages/introduction.tsx",
+      "line": 59,
       "props": [
         "checked",
         "onChange",
@@ -21,8 +21,26 @@
       ]
     },
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 104,
+      "file": "src/dev/docs/views/pages/switch.tsx",
+      "line": 24,
+      "props": [
+        "checked",
+        "onChange",
+        "ariaLabel"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/switch.tsx",
+      "line": 25,
+      "props": [
+        "checked",
+        "onChange",
+        "ariaLabel"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/switch.tsx",
+      "line": 26,
       "props": [
         "checked",
         "onChange",
@@ -32,10 +50,10 @@
     }
   ],
   "propUsage": {
-    "ariaLabel": 3,
-    "checked": 3,
+    "ariaLabel": 5,
+    "checked": 5,
     "disabled": 1,
-    "onChange": 3
+    "onChange": 5
   },
-  "totalUsages": 3
+  "totalUsages": 5
 }

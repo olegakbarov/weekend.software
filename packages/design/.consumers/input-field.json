@@ -1,7 +1,52 @@
 {
   "symbol": "InputField",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/input-group.tsx",
+      "line": 30,
+      "props": [
+        "index",
+        "label",
+        "value",
+        "onChange",
+        "icon",
+        "placeholder"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/input-group.tsx",
+      "line": 38,
+      "props": [
+        "index",
+        "label",
+        "value",
+        "onChange",
+        "icon",
+        "placeholder"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/input-group.tsx",
+      "line": 46,
+      "props": [
+        "index",
+        "label",
+        "value",
+        "onChange",
+        "icon",
+        "type"
+      ]
+    }
+  ],
+  "propUsage": {
+    "icon": 3,
+    "index": 3,
+    "label": 3,
+    "onChange": 3,
+    "placeholder": 2,
+    "type": 1,
+    "value": 3
+  },
+  "totalUsages": 3
 }

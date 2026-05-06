@@ -1,5 +1,6 @@
 import { SidebarHeader } from "@/components/sidebar/sidebar-header";
 import { SidebarFooter } from "@/components/sidebar/sidebar-footer";
+import { SidebarDevLink } from "@/components/sidebar/sidebar-dev-link";
 import { SidebarProjectList } from "@/components/sidebar/sidebar-project-list";
 import { SIDEBAR_WIDTH_PX } from "@/components/sidebar/sidebar-constants";
 
@@ -10,6 +11,7 @@ export function Sidebar() {
       style={{ width: `${SIDEBAR_WIDTH_PX}px` }}
     >
       <SidebarHeader />
+      <SidebarDevLink />
       <div className="flex min-h-0 flex-1 flex-col [mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)]">
         <SidebarProjectList />
       </div>

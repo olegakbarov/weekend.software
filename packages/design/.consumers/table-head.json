@@ -1,7 +1,28 @@
 {
   "symbol": "TableHead",
   "tier": "registry",
-  "consumers": [],
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/table.tsx",
+      "line": 48,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/table.tsx",
+      "line": 49,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/table.tsx",
+      "line": 50,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/table.tsx",
+      "line": 51,
+      "props": []
+    }
+  ],
   "propUsage": {},
-  "totalUsages": 0
+  "totalUsages": 4
 }

@@ -1,7 +1,34 @@
 {
   "symbol": "AccordionItem",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/accordion.tsx",
+      "line": 29,
+      "props": [
+        "value"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/accordion.tsx",
+      "line": 36,
+      "props": [
+        "value",
+        "style"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/accordion.tsx",
+      "line": 43,
+      "props": [
+        "value",
+        "style"
+      ]
+    }
+  ],
+  "propUsage": {
+    "style": 2,
+    "value": 3
+  },
+  "totalUsages": 3
 }

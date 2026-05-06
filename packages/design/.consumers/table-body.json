@@ -1,7 +1,13 @@
 {
   "symbol": "TableBody",
   "tier": "registry",
-  "consumers": [],
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/table.tsx",
+      "line": 54,
+      "props": []
+    }
+  ],
   "propUsage": {},
-  "totalUsages": 0
+  "totalUsages": 1
 }

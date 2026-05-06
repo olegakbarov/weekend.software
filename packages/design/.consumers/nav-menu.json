@@ -1,7 +1,31 @@
 {
   "symbol": "NavMenu",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/nav-menu.tsx",
+      "line": 27,
+      "props": [
+        "activeSlug"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/sidebar.tsx",
+      "line": 48,
+      "props": [
+        "activeSlug"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/sidebar.tsx",
+      "line": 82,
+      "props": [
+        "activeSlug"
+      ]
+    }
+  ],
+  "propUsage": {
+    "activeSlug": 3
+  },
+  "totalUsages": 3
 }

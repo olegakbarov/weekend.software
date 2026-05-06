@@ -3,87 +3,78 @@
   "tier": "core",
   "consumers": [
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 78,
+      "file": "src/dev/docs/views/pages/button.tsx",
+      "line": 24,
       "props": [
-        "variant",
-        "onClick"
+        "variant"
       ]
     },
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 84,
+      "file": "src/dev/docs/views/pages/button.tsx",
+      "line": 25,
       "props": [
-        "variant",
-        "onClick"
+        "variant"
       ]
     },
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 85,
+      "file": "src/dev/docs/views/pages/button.tsx",
+      "line": 26,
       "props": [
-        "variant",
-        "onClick"
+        "variant"
       ]
     },
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 86,
+      "file": "src/dev/docs/views/pages/button.tsx",
+      "line": 37,
       "props": [
-        "variant",
-        "onClick"
+        "size"
       ]
     },
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 87,
+      "file": "src/dev/docs/views/pages/button.tsx",
+      "line": 38,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/button.tsx",
+      "line": 39,
       "props": [
-        "size",
-        "onClick"
+        "size"
       ]
     },
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 88,
+      "file": "src/dev/docs/views/pages/button.tsx",
+      "line": 50,
       "props": [
-        "size",
-        "onClick"
-      ]
-    },
-    {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 89,
-      "props": [
-        "size",
-        "onClick"
-      ]
-    },
-    {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 90,
-      "props": [
-        "variant",
         "icon",
-        "onClick"
+        "variant"
       ]
     },
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 115,
+      "file": "src/dev/docs/views/pages/button.tsx",
+      "line": 53,
+      "props": [
+        "trailingIcon",
+        "variant"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/introduction.tsx",
+      "line": 51,
       "props": [
         "variant"
       ]
     },
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 122,
+      "file": "src/dev/docs/views/pages/introduction.tsx",
+      "line": 52,
       "props": [
         "variant"
       ]
     },
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 133,
+      "file": "src/dev/docs/views/pages/introduction.tsx",
+      "line": 53,
       "props": [
         "variant"
       ]
@@ -91,8 +82,8 @@
   ],
   "propUsage": {
     "icon": 1,
-    "onClick": 8,
-    "size": 3,
+    "size": 2,
+    "trailingIcon": 1,
     "variant": 8
   },
   "totalUsages": 11

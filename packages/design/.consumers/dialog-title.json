@@ -3,8 +3,8 @@
   "tier": "registry",
   "consumers": [
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 126,
+      "file": "src/dev/docs/views/pages/dialog.tsx",
+      "line": 47,
       "props": []
     }
   ],

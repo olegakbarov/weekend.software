@@ -37,7 +37,8 @@ type CurrentRouteInfo = {
     | "logs"
     | "workspace"
     | "index"
-    | "shared-drop";
+    | "shared-drop"
+    | "dev-ds";
   project: string | null;
   view: string | null;
   terminalId: string | null;
@@ -66,6 +67,7 @@ function useCurrentRouteInfo(): CurrentRouteInfo {
       else if (routeId === "/shared") route = "shared";
       else if (routeId === "/logs") route = "logs";
       else if (routeId === "/shared-drop") route = "shared-drop";
+      else if (routeId === "/dev/ds") route = "dev-ds";
 
       return {
         route,
@@ -154,6 +156,7 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
       onOpenLogs: () => void navigate({ to: "/logs" }),
       onOpenSettings: () => void navigate({ to: "/settings" }),
       onOpenShared: () => void navigate({ to: "/shared" }),
+      onOpenDesignSystem: () => void navigate({ to: "/dev/ds" }),
       onRenameTerminal: appActions.renameTerminal,
       onPlay: appActions.play,
       onStop: appActions.stop,

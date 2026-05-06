@@ -3,17 +3,96 @@
   "tier": "registry",
   "consumers": [
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 142,
+      "file": "src/dev/docs/views/pages/badge.tsx",
+      "line": 26,
       "props": [
         "key",
         "color"
       ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/badge.tsx",
+      "line": 40,
+      "props": [
+        "color"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/badge.tsx",
+      "line": 41,
+      "props": [
+        "color",
+        "variant"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/badge.tsx",
+      "line": 54,
+      "props": [
+        "color",
+        "size"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/badge.tsx",
+      "line": 57,
+      "props": [
+        "color",
+        "size"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/badge.tsx",
+      "line": 60,
+      "props": [
+        "color",
+        "size"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/introduction.tsx",
+      "line": 23,
+      "props": [
+        "color",
+        "variant"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/introduction.tsx",
+      "line": 26,
+      "props": [
+        "color"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/introduction.tsx",
+      "line": 27,
+      "props": [
+        "color"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/introduction.tsx",
+      "line": 28,
+      "props": [
+        "color"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/introduction.tsx",
+      "line": 73,
+      "props": [
+        "key",
+        "color",
+        "size"
+      ]
     }
   ],
   "propUsage": {
-    "color": 1,
-    "key": 1
+    "color": 11,
+    "key": 2,
+    "size": 4,
+    "variant": 2
   },
-  "totalUsages": 1
+  "totalUsages": 11
 }

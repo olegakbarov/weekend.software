@@ -1,7 +1,18 @@
 {
   "symbol": "SelectContent",
   "tier": "registry",
-  "consumers": [],
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 27,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/select.tsx",
+      "line": 27,
+      "props": []
+    }
+  ],
   "propUsage": {},
-  "totalUsages": 0
+  "totalUsages": 2
 }

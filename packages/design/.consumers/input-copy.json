@@ -1,7 +1,29 @@
 {
   "symbol": "InputCopy",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/input-copy.tsx",
+      "line": 24,
+      "props": [
+        "value",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/input-copy.tsx",
+      "line": 40,
+      "props": [
+        "value",
+        "label",
+        "variant"
+      ]
+    }
+  ],
+  "propUsage": {
+    "label": 2,
+    "value": 2,
+    "variant": 1
+  },
+  "totalUsages": 2
 }

@@ -44,6 +44,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "codemirror": "^6.0.2",
+    "framer-motion": "^11.18.2",
     "lucide-react": "^0.562.0",
     "portless": "0.5.2",
     "react": "^19.1.0",

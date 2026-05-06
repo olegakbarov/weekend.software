@@ -1,7 +1,19 @@
 {
   "symbol": "ColorPicker",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/color-picker.tsx",
+      "line": 25,
+      "props": [
+        "value",
+        "onChange"
+      ]
+    }
+  ],
+  "propUsage": {
+    "onChange": 1,
+    "value": 1
+  },
+  "totalUsages": 1
 }

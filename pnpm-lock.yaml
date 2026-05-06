@@ -89,6 +89,9 @@ importers:
       codemirror:
         specifier: ^6.0.2
         version: 6.0.2
+      framer-motion:
+        specifier: ^11.18.2
+        version: 11.18.2(react-dom@19.2.4)(react@19.2.4)
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.2.4)

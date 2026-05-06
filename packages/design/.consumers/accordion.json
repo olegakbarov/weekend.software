@@ -1,7 +1,21 @@
 {
   "symbol": "Accordion",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/accordion.tsx",
+      "line": 28,
+      "props": [
+        "type",
+        "collapsible",
+        "defaultValue"
+      ]
+    }
+  ],
+  "propUsage": {
+    "collapsible": 1,
+    "defaultValue": 1,
+    "type": 1
+  },
+  "totalUsages": 1
 }

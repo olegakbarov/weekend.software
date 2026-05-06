@@ -1,7 +1,24 @@
 {
   "symbol": "SelectTrigger",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 26,
+      "props": [
+        "placeholder"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/select.tsx",
+      "line": 26,
+      "props": [
+        "placeholder"
+      ]
+    }
+  ],
+  "propUsage": {
+    "placeholder": 2
+  },
+  "totalUsages": 2
 }

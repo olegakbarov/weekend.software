@@ -3,21 +3,36 @@
   "tier": "core",
   "consumers": [
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 109,
+      "file": "src/dev/docs/views/pages/slider.tsx",
+      "line": 27,
       "props": [
         "min",
         "max",
         "value",
-        "onChange"
+        "onChange",
+        "format"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/slider.tsx",
+      "line": 30,
+      "props": [
+        "min",
+        "max",
+        "step",
+        "value",
+        "onChange",
+        "format"
       ]
     }
   ],
   "propUsage": {
-    "max": 1,
-    "min": 1,
-    "onChange": 1,
-    "value": 1
+    "format": 2,
+    "max": 2,
+    "min": 2,
+    "onChange": 2,
+    "step": 1,
+    "value": 2
   },
-  "totalUsages": 1
+  "totalUsages": 2
 }

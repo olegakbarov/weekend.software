@@ -1,17 +1,7 @@
 {
   "symbol": "DialogClose",
   "tier": "registry",
-  "consumers": [
-    {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 132,
-      "props": [
-        "asChild"
-      ]
-    }
-  ],
-  "propUsage": {
-    "asChild": 1
-  },
-  "totalUsages": 1
+  "consumers": [],
+  "propUsage": {},
+  "totalUsages": 0
 }

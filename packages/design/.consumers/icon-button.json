@@ -3,37 +3,17 @@
   "tier": "core",
   "consumers": [
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 96,
+      "file": "src/dev/docs/views/pages/button.tsx",
+      "line": 56,
       "props": [
         "icon",
-        "label",
-        "onClick"
-      ]
-    },
-    {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 97,
-      "props": [
-        "icon",
-        "label",
-        "onClick"
-      ]
-    },
-    {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 98,
-      "props": [
-        "icon",
-        "label",
-        "onClick"
+        "label"
       ]
     }
   ],
   "propUsage": {
-    "icon": 3,
-    "label": 3,
-    "onClick": 3
+    "icon": 1,
+    "label": 1
   },
-  "totalUsages": 3
+  "totalUsages": 1
 }

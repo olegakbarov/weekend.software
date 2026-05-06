@@ -1,7 +1,31 @@
 {
   "symbol": "ThinkingStepSource",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/thinking-steps.tsx",
+      "line": 44,
+      "props": [
+        "color"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/thinking-steps.tsx",
+      "line": 45,
+      "props": [
+        "color"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/thinking-steps.tsx",
+      "line": 46,
+      "props": [
+        "color"
+      ]
+    }
+  ],
+  "propUsage": {
+    "color": 3
+  },
+  "totalUsages": 3
 }

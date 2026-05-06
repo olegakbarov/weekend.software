@@ -3,15 +3,24 @@
   "tier": "registry",
   "consumers": [
     {
-      "file": "src/routes/dev.ds.tsx",
-      "line": 114,
+      "file": "src/dev/docs/views/pages/tooltip.tsx",
+      "line": 23,
       "props": [
         "content"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tooltip.tsx",
+      "line": 33,
+      "props": [
+        "content",
+        "side"
       ]
     }
   ],
   "propUsage": {
-    "content": 1
+    "content": 2,
+    "side": 1
   },
-  "totalUsages": 1
+  "totalUsages": 2
 }

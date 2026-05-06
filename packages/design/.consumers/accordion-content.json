@@ -1,7 +1,23 @@
 {
   "symbol": "AccordionContent",
   "tier": "registry",
-  "consumers": [],
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/accordion.tsx",
+      "line": 31,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/accordion.tsx",
+      "line": 38,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/accordion.tsx",
+      "line": 45,
+      "props": []
+    }
+  ],
   "propUsage": {},
-  "totalUsages": 0
+  "totalUsages": 3
 }

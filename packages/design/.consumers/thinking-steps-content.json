@@ -1,7 +1,13 @@
 {
   "symbol": "ThinkingStepsContent",
   "tier": "registry",
-  "consumers": [],
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/thinking-steps.tsx",
+      "line": 32,
+      "props": []
+    }
+  ],
   "propUsage": {},
-  "totalUsages": 0
+  "totalUsages": 1
 }

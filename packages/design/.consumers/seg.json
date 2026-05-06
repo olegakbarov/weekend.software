@@ -1,7 +1,32 @@
 {
   "symbol": "Seg",
   "tier": "core",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 39,
+      "props": [
+        "items",
+        "value",
+        "onChange"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 51,
+      "props": [
+        "items",
+        "value",
+        "onChange",
+        "variant"
+      ]
+    }
+  ],
+  "propUsage": {
+    "items": 2,
+    "onChange": 2,
+    "value": 2,
+    "variant": 1
+  },
+  "totalUsages": 2
 }

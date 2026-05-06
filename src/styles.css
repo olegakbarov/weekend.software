@@ -3,6 +3,7 @@
 @source "../node_modules/streamdown/dist/*.js";
 @import "@weekend/design/tokens.css";
 @source "../packages/design/src/registry/**/*.{ts,tsx}";
+@source "./dev/docs/**/*.{ts,tsx}";
 
 @variant dark 
 (
