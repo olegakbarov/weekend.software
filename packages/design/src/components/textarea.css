@@ -1,46 +1,48 @@
-.ds-textarea {
-  display: block;
-  width: 100%;
-  min-height: 80px;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--foreground);
-  font: inherit;
-  font-size: var(--text-sm);
-  line-height: 1.5;
-  resize: none;
-  outline: none;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  transition:
-    border-color var(--spring-fast-ms),
-    box-shadow var(--spring-fast-ms);
-}
+@layer components {
+  .ds-textarea {
+    display: block;
+    width: 100%;
+    min-height: 80px;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--foreground);
+    font: inherit;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    resize: none;
+    outline: none;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    transition:
+      border-color var(--spring-fast-ms),
+      box-shadow var(--spring-fast-ms);
+  }
 
-.ds-textarea::placeholder {
-  color: var(--muted-foreground);
-  opacity: 0.5;
-}
+  .ds-textarea::placeholder {
+    color: var(--muted-foreground);
+    opacity: 0.5;
+  }
 
-.ds-textarea:focus-visible {
-  border-color: var(--focus-ring);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus-ring), transparent 80%);
-}
+  .ds-textarea:focus-visible {
+    border-color: var(--focus-ring);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus-ring), transparent 80%);
+  }
 
-.ds-textarea:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+  .ds-textarea:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
-.ds-textarea-ghost {
-  border-color: transparent;
-  background: transparent;
-  padding: var(--space-1_5) var(--space-2);
-}
+  .ds-textarea-ghost {
+    border-color: transparent;
+    background: transparent;
+    padding: 0;
+  }
 
-.ds-textarea-ghost:focus-visible {
-  border-color: transparent;
-  box-shadow: none;
+  .ds-textarea-ghost:focus-visible {
+    border-color: transparent;
+    box-shadow: none;
+  }
 }
