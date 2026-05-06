@@ -1,3 +1,7 @@
+import {
+  THEME_NAMES,
+  type ThemeName,
+} from "@/components/theme/theme-provider";
 import { useTheme } from "@/components/theme/use-theme";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -85,7 +89,12 @@ export type SettingsPageProps = {
   onRefreshLogs: () => void;
 };
 
-const THEME_MODES = ["light", "dark", "system"] as const;
+const THEME_LABELS: Record<ThemeName, string> = {
+  fluid: "Fluid · light",
+  "fluid-dark": "Fluid · dark",
+  "weekend-dark": "Weekend · dark",
+  "weekend-paper": "Weekend · paper",
+};
 
 export function SettingsPage({
   snapshot,
@@ -102,7 +111,7 @@ export function SettingsPage({
   isLogsRefreshing,
   onRefreshLogs,
 }: SettingsPageProps) {
-  const { mode, setMode } = useTheme();
+  const { activeTheme, setActiveTheme } = useTheme();
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden p-6">
@@ -123,21 +132,21 @@ export function SettingsPage({
               <div>
                 <p className="font-code text-xs text-foreground">Theme</p>
                 <p className="font-code text-[11px] text-muted-foreground">
-                  Switch between light, dark, or system theme.
+                  Pick the active theme. Applies across all windows.
                 </p>
               </div>
-              <div className="flex gap-1">
-                {THEME_MODES.map((m) => (
+              <div className="flex flex-wrap justify-end gap-1">
+                {THEME_NAMES.map((t) => (
                   <button
-                    key={m}
-                    onClick={() => setMode(m)}
+                    key={t}
+                    onClick={() => setActiveTheme(t)}
                     className={`rounded px-2.5 py-1 font-code text-xs transition-colors ${
-                      mode === m
+                      activeTheme === t
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     }`}
                   >
-                    {m}
+                    {THEME_LABELS[t]}
                   </button>
                 ))}
               </div>

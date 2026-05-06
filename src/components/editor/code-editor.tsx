@@ -71,7 +71,7 @@ export function CodeEditor({
   onSave: () => void;
   onVimModeChange?: (mode: VimMode, subMode?: string) => void;
 }) {
-  const { resolvedMode } = useTheme();
+  const { isDark } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
@@ -134,7 +134,7 @@ export function CodeEditor({
             ...historyKeymap,
           ])
         ),
-        ...(resolvedMode === "dark" ? [oneDark] : []),
+        ...(isDark ? [oneDark] : []),
         Prec.highest(
           EditorView.theme(
             {
@@ -161,7 +161,7 @@ export function CodeEditor({
                 borderLeftColor: "var(--foreground)",
               },
             },
-            { dark: resolvedMode === "dark" }
+            { dark: isDark }
           )
         ),
         EditorView.baseTheme({
@@ -206,7 +206,7 @@ export function CodeEditor({
     };
     // Re-create editor when file or vim mode changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filePath, content, isVimModeEnabled, resolvedMode]);
+  }, [filePath, content, isVimModeEnabled, isDark]);
 
   return <div ref={containerRef} className="h-full w-full overflow-hidden" />;
 }

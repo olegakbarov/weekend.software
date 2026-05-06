@@ -1,12 +1,21 @@
 /**
- * ThemeProvider - Theme context and provider
+ * ThemeProvider - Single source of truth for the active theme.
+ *
+ * The active theme is one of four named themes. <html data-theme="..."> is the
+ * authoritative attribute; CSS in @weekend/design's tokens.css and src/styles.css
+ * scopes design tokens to that attribute. ThemeProvider does NOT write inline
+ * `--*` token overrides anymore.
+ *
+ * Persistence and cross-window sync run through Tauri:
+ *   - `invoke("get_active_theme")` reads ~/.weekend/theme.json on mount.
+ *   - `invoke("set_active_theme", { theme })` persists + emits `theme-changed`.
+ *   - `listen("theme-changed", ...)` keeps every webview in lockstep.
+ *
+ * `localStorage["weekend.theme"]` is a fast-path mirror used by the no-FOUC
+ * script in index.html so the first paint already has the correct data-theme.
  */
-import {
-  darkStatusBadges,
-  getColors,
-  lightStatusBadges,
-  withOpacity,
-} from "@/lib/design-colors";
+import { invoke } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
   createContext,
   type ReactNode,
@@ -15,88 +24,63 @@ import {
   useState,
 } from "react";
 import { getCurrentWindow } from "@/lib/tauri-mock";
-import { applyThemePreset, type ThemePreset } from "@/lib/theme-presets";
 import {
   safeLocalStorageGetItem,
   safeLocalStorageSetItem,
 } from "@/lib/utils/safe-local-storage";
 
-type ThemeMode = "light" | "dark" | "system";
+export type ThemeName =
+  | "fluid"
+  | "fluid-dark"
+  | "weekend-dark"
+  | "weekend-paper";
+
+export const THEME_NAMES: readonly ThemeName[] = [
+  "fluid",
+  "fluid-dark",
+  "weekend-dark",
+  "weekend-paper",
+] as const;
+
+const DEFAULT_THEME: ThemeName = "fluid";
+const STORAGE_KEY = "weekend.theme";
+
+const DARK_THEMES: ReadonlySet<ThemeName> = new Set([
+  "fluid-dark",
+  "weekend-dark",
+]);
+
+/**
+ * Canonical background colors per theme. Mirrors the `--background` value in
+ * packages/design/src/tokens.css; used to set the native Tauri window
+ * background to match the painted CSS background (avoids flicker on resize).
+ */
+const THEME_BACKGROUND_HEX: Record<ThemeName, string> = {
+  fluid: "#fafafa",
+  "fluid-dark": "#0a0a0a",
+  "weekend-dark": "#000000",
+  "weekend-paper": "#F5F0EB",
+};
 
 interface ThemeContextValue {
-  // Mode (light/dark/system)
-  mode: ThemeMode;
-  setMode: (mode: ThemeMode) => void;
-  resolvedMode: "light" | "dark";
-
-  // Preset (color theme)
-  preset: ThemePreset;
-  setPreset: (preset: ThemePreset) => void;
-
-  // Custom hue (when preset is 'custom')
-  customHue: number;
-  setCustomHue: (hue: number) => void;
+  activeTheme: ThemeName;
+  setActiveTheme: (theme: ThemeName) => void;
+  isDark: boolean;
 }
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY_MODE = "ispo-theme-mode";
-const STORAGE_KEY_PRESET = "ispo-theme-preset";
-const STORAGE_KEY_HUE = "ispo-theme-hue";
+function isThemeName(value: unknown): value is ThemeName {
+  return (
+    typeof value === "string" &&
+    (THEME_NAMES as readonly string[]).includes(value)
+  );
+}
 
-function applyDesignTokens(theme: "dark" | "light") {
-  const colors = getColors(theme);
-  const root = document.documentElement;
-
-  const tokens: Record<string, string> = {
-    "--background": colors.background,
-    "--foreground": colors.foreground,
-    "--card": colors.card,
-    "--card-foreground": colors.cardForeground,
-    "--popover": colors.card,
-    "--popover-foreground": colors.cardForeground,
-    "--secondary": colors.secondary,
-    "--secondary-foreground": colors.secondaryForeground,
-    "--muted": colors.muted,
-    "--muted-foreground": colors.mutedForeground,
-    "--border": colors.border,
-    "--input": colors.input,
-    "--primary": colors.primary,
-    "--primary-foreground": colors.primaryForeground,
-    "--destructive": colors.destructive,
-    "--destructive-foreground": colors.destructiveForeground,
-    "--success": colors.success,
-    "--success-foreground": colors.successForeground,
-    "--warning": colors.warning,
-    "--warning-foreground": colors.warningForeground,
-    "--text-highlight": colors.textHighlight,
-    "--text-highlight-selection": withOpacity(
-      colors.textHighlight,
-      theme === "dark" ? 0.4 : 0.25
-    ),
-    "--text-highlight-selection-strong": withOpacity(
-      colors.textHighlight,
-      theme === "dark" ? 0.5 : 0.25
-    ),
-    "--ring": colors.textHighlight,
-    "--status-running": colors.statusRunning,
-    "--status-completed": colors.statusCompleted,
-    "--status-failed": colors.statusFailed,
-    "--status-pending": colors.statusPending,
-    "--status-cancelled": colors.statusCancelled,
-  };
-
-  for (const [key, value] of Object.entries(tokens)) {
-    root.style.setProperty(key, value);
-  }
-
-  const badges = theme === "dark" ? darkStatusBadges : lightStatusBadges;
-  root.style.setProperty("--badge-running", badges.running);
-  root.style.setProperty("--badge-completed", badges.completed);
-  root.style.setProperty("--badge-failed", badges.failed);
-  root.style.setProperty("--badge-pending", badges.pending);
-
-  return colors.background;
+function readStoredTheme(): ThemeName {
+  if (typeof window === "undefined") return DEFAULT_THEME;
+  const stored = safeLocalStorageGetItem(STORAGE_KEY);
+  return isThemeName(stored) ? stored : DEFAULT_THEME;
 }
 
 function hexToRgba(hex: string) {
@@ -126,141 +110,130 @@ function hexToRgba(hex: string) {
 
 interface ThemeProviderProps {
   children: ReactNode;
-  defaultMode?: ThemeMode;
-  defaultPreset?: ThemePreset;
 }
 
-export function ThemeProvider({
-  children,
-  defaultMode = "dark",
-  defaultPreset = "default",
-}: ThemeProviderProps) {
-  // Initialize from localStorage or defaults
-  const [mode, setModeState] = useState<ThemeMode>(() => {
-    if (typeof window === "undefined") return defaultMode;
-    return (
-      (safeLocalStorageGetItem(STORAGE_KEY_MODE) as ThemeMode) || defaultMode
-    );
-  });
+export function ThemeProvider({ children }: ThemeProviderProps) {
+  // Fast-path init from localStorage (already applied to <html> by no-FOUC script).
+  const [activeTheme, setActiveThemeState] =
+    useState<ThemeName>(readStoredTheme);
 
-  const [preset, setPresetState] = useState<ThemePreset>(() => {
-    if (typeof window === "undefined") return defaultPreset;
-    return (
-      (safeLocalStorageGetItem(STORAGE_KEY_PRESET) as ThemePreset) ||
-      defaultPreset
-    );
-  });
-
-  const [customHue, setCustomHueState] = useState<number>(() => {
-    if (typeof window === "undefined") return 250;
-    const stored = safeLocalStorageGetItem(STORAGE_KEY_HUE);
-    return stored ? Number.parseInt(stored, 10) : 250;
-  });
-
-  // Resolve system theme
-  const [systemMode, setSystemMode] = useState<"light" | "dark">("dark");
-
+  // Authoritative sync from disk on mount. The Rust command falls back to
+  // "fluid" on read errors, so we always get a valid ThemeName back.
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    setSystemMode(mediaQuery.matches ? "dark" : "light");
-
-    const handler = (e: MediaQueryListEvent) => {
-      setSystemMode(e.matches ? "dark" : "light");
+    let cancelled = false;
+    void (async () => {
+      try {
+        const persisted = await invoke<string>("get_active_theme");
+        if (cancelled) return;
+        if (isThemeName(persisted)) {
+          setActiveThemeState((current) =>
+            current === persisted ? current : persisted
+          );
+        }
+      } catch (err) {
+        console.warn("[Theme] get_active_theme failed:", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
-  const resolvedMode = mode === "system" ? systemMode : mode;
+  // Listen for cross-window broadcasts. Any window calling set_active_theme
+  // will emit `theme-changed`; we update local state to match.
+  useEffect(() => {
+    let unlisten: UnlistenFn | undefined;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const off = await listen<{ theme: string }>(
+          "theme-changed",
+          (event) => {
+            const next = event.payload?.theme;
+            if (isThemeName(next)) {
+              setActiveThemeState((current) =>
+                current === next ? current : next
+              );
+            }
+          }
+        );
+        if (cancelled) {
+          off();
+        } else {
+          unlisten = off;
+        }
+      } catch (err) {
+        console.warn("[Theme] listen('theme-changed') failed:", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      unlisten?.();
+    };
+  }, []);
 
-  // Apply mode to document
+  // Apply <html data-theme>, mirror to localStorage, sync .dark/.light class
+  // (kept so Tailwind `dark:` utilities + .dark selectors keep working), and
+  // sync the native Tauri window theme + background.
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(resolvedMode);
-  }, [resolvedMode]);
+    root.dataset.theme = activeTheme;
 
-  // Sync design tokens + Tauri window theme and background color with app theme
-  useEffect(() => {
+    const dark = DARK_THEMES.has(activeTheme);
+    root.classList.toggle("dark", dark);
+    root.classList.toggle("light", !dark);
+
+    safeLocalStorageSetItem(STORAGE_KEY, activeTheme);
+
     const win = getCurrentWindow();
-    const theme = resolvedMode === "dark" ? "dark" : "light";
-    const backgroundHex = applyDesignTokens(theme);
-    const bgColor = hexToRgba(backgroundHex);
+    const nativeMode = dark ? "dark" : "light";
+    const bg = hexToRgba(THEME_BACKGROUND_HEX[activeTheme]);
+    Promise.all([win.setTheme(nativeMode), win.setBackgroundColor(bg)]).catch(
+      (err) => {
+        console.warn("[Theme] failed to sync native window:", err);
+      }
+    );
+  }, [activeTheme]);
 
-    console.log("[Theme] Setting window theme to:", theme, "bg:", bgColor);
-
-    Promise.all([win.setTheme(theme), win.setBackgroundColor(bgColor)])
-      .then(() =>
-        console.log("[Theme] Window theme and background set successfully")
-      )
-      .catch((err) =>
-        console.error("[Theme] Failed to set window theme:", err)
-      );
-  }, [resolvedMode]);
-
-  // Apply preset/hue to document
-  useEffect(() => {
-    applyThemePreset(preset, customHue);
-  }, [preset, customHue]);
-
-  // Setters with persistence
-  const setMode = useCallback((newMode: ThemeMode) => {
-    setModeState(newMode);
-    safeLocalStorageSetItem(STORAGE_KEY_MODE, newMode);
+  const setActiveTheme = useCallback((next: ThemeName) => {
+    // Optimistic update for snappiness; Rust will broadcast and our listener
+    // will idempotently re-confirm.
+    setActiveThemeState((current) => (current === next ? current : next));
+    void invoke("set_active_theme", { theme: next }).catch((err) => {
+      console.error("[Theme] set_active_theme failed, reverting:", err);
+      // Revert by re-reading from storage (the source we trust on error).
+      setActiveThemeState(readStoredTheme());
+    });
   }, []);
 
-  const setPreset = useCallback((newPreset: ThemePreset) => {
-    setPresetState(newPreset);
-    safeLocalStorageSetItem(STORAGE_KEY_PRESET, newPreset);
-  }, []);
-
-  const setCustomHue = useCallback((hue: number) => {
-    setCustomHueState(hue);
-    safeLocalStorageSetItem(STORAGE_KEY_HUE, String(hue));
-  }, []);
+  const isDark = DARK_THEMES.has(activeTheme);
 
   return (
-    <ThemeContext.Provider
-      value={{
-        mode,
-        setMode,
-        resolvedMode,
-        preset,
-        setPreset,
-        customHue,
-        setCustomHue,
-      }}
-    >
+    <ThemeContext.Provider value={{ activeTheme, setActiveTheme, isDark }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
-// Re-export useTheme for backwards compatibility
+// Re-export useTheme for consumers that import directly from the provider.
 export { useTheme } from "./use-theme";
 
 /**
- * Script to prevent flash of unstyled content
- * Include this in index.html before the app
+ * No-FOUC script — inlined into index.html so the first paint already has
+ * <html data-theme="..."> set, before the JS bundle parses. Keep in sync with
+ * ThemeProvider's storage key, valid theme list, and default.
  */
 export const themeScript = `
 (function() {
   try {
-    var mode = localStorage.getItem('${STORAGE_KEY_MODE}') || 'dark';
-    var preset = localStorage.getItem('${STORAGE_KEY_PRESET}') || 'default';
-    var hue = localStorage.getItem('${STORAGE_KEY_HUE}') || '250';
-
-    // Apply mode
-    if (mode === 'system') {
-      mode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    document.documentElement.classList.add(mode);
-
-    // Apply preset hue
-    var presets = { default: 250, blue: 220, green: 145, orange: 35, pink: 330 };
-    var brandHue = preset === 'custom' ? parseInt(hue, 10) : (presets[preset] || 250);
-    document.documentElement.style.setProperty('--brand-hue', brandHue);
+    var t = localStorage.getItem('weekend.theme') || 'fluid';
+    var valid = ['fluid','fluid-dark','weekend-dark','weekend-paper'];
+    if (valid.indexOf(t) === -1) t = 'fluid';
+    var root = document.documentElement;
+    root.dataset.theme = t;
+    var dark = t === 'fluid-dark' || t === 'weekend-dark';
+    root.classList.toggle('dark', dark);
+    root.classList.toggle('light', !dark);
   } catch (e) {}
 })();
 `;

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="weekend-dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,17 +7,14 @@
     <script>
       (function() {
         try {
-          var mode = localStorage.getItem('ispo-theme-mode') || 'dark';
-          var preset = localStorage.getItem('ispo-theme-preset') || 'default';
-          var hue = localStorage.getItem('ispo-theme-hue') || '250';
-          var resolvedMode = mode;
-          if (mode === 'system') {
-            resolvedMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          }
-          document.documentElement.classList.add(resolvedMode);
-          var presets = { default: 250, blue: 220, green: 145, orange: 35, pink: 330 };
-          var brandHue = preset === 'custom' ? parseInt(hue, 10) : (presets[preset] || 250);
-          document.documentElement.style.setProperty('--brand-hue', brandHue);
+          var t = localStorage.getItem('weekend.theme') || 'fluid';
+          var valid = ['fluid','fluid-dark','weekend-dark','weekend-paper'];
+          if (valid.indexOf(t) === -1) t = 'fluid';
+          var root = document.documentElement;
+          root.dataset.theme = t;
+          var dark = t === 'fluid-dark' || t === 'weekend-dark';
+          root.classList.toggle('dark', dark);
+          root.classList.toggle('light', !dark);
         } catch (e) {}
       })();
     </script>

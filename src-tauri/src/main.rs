@@ -317,6 +317,13 @@ const SHARED_DROP_WINDOW_HEIGHT: f64 = 312.0;
 const SHARED_DROP_WINDOW_MARGIN: f64 = 10.0;
 const SHARED_DROP_WINDOW_OFFSET_Y: f64 = 8.0;
 const MAX_PREVIEW_FILE_BYTES: u64 = 20 * 1024 * 1024;
+const VALID_THEMES: &[&str] = &["fluid", "fluid-dark", "weekend-dark", "weekend-paper"];
+const DEFAULT_THEME: &str = "fluid";
+const THEME_CONFIG_FILE_NAME: &str = "theme.json";
+
+fn theme_config_path() -> Result<PathBuf, String> {
+    Ok(weekend_root()?.join(THEME_CONFIG_FILE_NAME))
+}
 
 fn sanitize_project_name_for_runtime_url(project_name: &str) -> String {
     let mut out = String::new();
@@ -6175,6 +6182,51 @@ fn set_traffic_lights_visible<R: Runtime>(app: AppHandle<R>, visible: bool) -> R
 }
 
 #[tauri::command]
+fn get_active_theme() -> Result<String, String> {
+    let path = match theme_config_path() {
+        Ok(value) => value,
+        Err(_) => return Ok(DEFAULT_THEME.to_string()),
+    };
+    let raw = match std::fs::read_to_string(&path) {
+        Ok(value) => value,
+        Err(_) => return Ok(DEFAULT_THEME.to_string()),
+    };
+    let parsed: serde_json::Value = match serde_json::from_str(&raw) {
+        Ok(value) => value,
+        Err(_) => return Ok(DEFAULT_THEME.to_string()),
+    };
+    let theme = parsed
+        .get("theme")
+        .and_then(|value| value.as_str())
+        .unwrap_or(DEFAULT_THEME);
+    if !VALID_THEMES.contains(&theme) {
+        return Ok(DEFAULT_THEME.to_string());
+    }
+    Ok(theme.to_string())
+}
+
+#[tauri::command]
+fn set_active_theme<R: Runtime>(app_handle: AppHandle<R>, theme: String) -> Result<(), String> {
+    if !VALID_THEMES.contains(&theme.as_str()) {
+        return Err(format!("invalid theme: {theme}"));
+    }
+    let root = weekend_root()?;
+    std::fs::create_dir_all(&root)
+        .map_err(|error| format!("failed to create ~/.weekend: {error}"))?;
+    let path = theme_config_path()?;
+    let payload = serde_json::json!({ "theme": &theme });
+    let serialized = serde_json::to_string_pretty(&payload)
+        .map_err(|error| format!("failed to serialize theme config: {error}"))?;
+    std::fs::write(&path, serialized)
+        .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
+    app_handle
+        .emit("theme-changed", serde_json::json!({ "theme": &theme }))
+        .map_err(|error| format!("emit failed: {error}"))?;
+    log_backend("INFO", format!("active theme set to {theme}"));
+    Ok(())
+}
+
+#[tauri::command]
 fn browser_push_event<R: Runtime>(
     webview: tauri::Webview<R>,
     app: AppHandle<R>,
@@ -6733,7 +6785,9 @@ fn main() {
             shell_name,
             set_traffic_lights_visible,
             find_available_port,
-            probe_runtime_url
+            probe_runtime_url,
+            get_active_theme,
+            set_active_theme
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
