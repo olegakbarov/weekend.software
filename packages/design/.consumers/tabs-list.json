@@ -1,0 +1,18 @@
+{
+  "symbol": "TabsList",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 121,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 45,
+      "props": []
+    }
+  ],
+  "propUsage": {},
+  "totalUsages": 2
+}

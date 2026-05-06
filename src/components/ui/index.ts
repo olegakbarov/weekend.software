@@ -33,5 +33,4 @@ export {
   ResizablePanelGroup,
 } from "./resizable";
 export { Spinner } from "./spinner";
-export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 export { Textarea } from "./textarea";

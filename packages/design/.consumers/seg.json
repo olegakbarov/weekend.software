@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/dev/docs/views/pages/tabs.tsx",
-      "line": 39,
+      "line": 124,
       "props": [
         "items",
         "value",
@@ -13,7 +13,7 @@
     },
     {
       "file": "src/dev/docs/views/pages/tabs.tsx",
-      "line": 51,
+      "line": 134,
       "props": [
         "items",
         "value",

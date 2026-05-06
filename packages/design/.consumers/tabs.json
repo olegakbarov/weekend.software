@@ -1,0 +1,26 @@
+{
+  "symbol": "Tabs",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 120,
+      "props": [
+        "className",
+        "defaultValue"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 44,
+      "props": [
+        "defaultValue"
+      ]
+    }
+  ],
+  "propUsage": {
+    "className": 1,
+    "defaultValue": 2
+  },
+  "totalUsages": 2
+}

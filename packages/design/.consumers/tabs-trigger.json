@@ -1,0 +1,56 @@
+{
+  "symbol": "TabsTrigger",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 122,
+      "props": [
+        "className",
+        "value"
+      ]
+    },
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 123,
+      "props": [
+        "className",
+        "value"
+      ]
+    },
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 124,
+      "props": [
+        "className",
+        "value"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 46,
+      "props": [
+        "value"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 47,
+      "props": [
+        "value"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 48,
+      "props": [
+        "value"
+      ]
+    }
+  ],
+  "propUsage": {
+    "className": 3,
+    "value": 6
+  },
+  "totalUsages": 6
+}

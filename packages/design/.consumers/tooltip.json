@@ -3,13 +3,6 @@
   "tier": "registry",
   "consumers": [
     {
-      "file": "src/components/theme/theme-toggle.tsx",
-      "line": 25,
-      "props": [
-        "content"
-      ]
-    },
-    {
       "file": "src/components/ui/copy-button.tsx",
       "line": 74,
       "props": [
@@ -50,8 +43,8 @@
     }
   ],
   "propUsage": {
-    "content": 6,
+    "content": 5,
     "side": 4
   },
-  "totalUsages": 6
+  "totalUsages": 5
 }

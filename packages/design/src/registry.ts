@@ -59,6 +59,8 @@ export {
 } from "./registry/table";
 export type { TableProps, TableRowProps } from "./registry/table";
 
+export { Tabs, TabsContent, TabsList, TabsTrigger } from "./registry/tabs";
+
 export {
   ThinkingStep,
   ThinkingStepSource,

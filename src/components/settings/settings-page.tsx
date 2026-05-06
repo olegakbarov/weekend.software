@@ -5,7 +5,7 @@ import {
 import { useTheme } from "@/components/theme/use-theme";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@weekend/design";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@weekend/design/registry";
 import {
   type RuntimeDebugSnapshot,
   type RuntimeTelemetryEvent,
