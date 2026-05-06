@@ -37,6 +37,7 @@ export type EmbeddedBrowserWebviewHandle = {
   label: string;
   hide: () => Promise<void>;
   show: () => Promise<void>;
+  captureScreenshot: () => Promise<string | null>;
   close: () => Promise<void>;
   goBack: () => Promise<void>;
   goForward: () => Promise<void>;
@@ -314,6 +315,14 @@ export async function createEmbeddedBrowserWebview({
     },
     show: async () => {
       await setVisible(true);
+    },
+    captureScreenshot: async (): Promise<string | null> => {
+      if (closed) return null;
+      try {
+        return await invoke<string>("browser_capture_screenshot", { label });
+      } catch {
+        return null;
+      }
     },
     close: async () => {
       if (closed) return;

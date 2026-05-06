@@ -4321,8 +4321,12 @@ name = "weekend"
 version = "0.2.0"
 dependencies = [
  "base64 0.22.1",
+ "block2",
  "notify",
+ "objc2",
  "objc2-app-kit",
+ "objc2-foundation",
+ "objc2-web-kit",
  "portable-pty",
  "serde",
  "serde_json",

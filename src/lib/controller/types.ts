@@ -84,6 +84,7 @@ export type CreateProjectInput = {
   name?: string;
   defaultAgentCommand?: string;
   githubRepoUrl?: string;
+  initialPrompt?: string;
 };
 
 export type SharedAssetUploadInput = {

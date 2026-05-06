@@ -204,6 +204,8 @@
   --feature-input-body-bg: #1A1A1A;
   --markdown-code-block-bg: #121212;
   --markdown-code-block-header-bg: #0D0D0D;
+  --prompt-input-surface: #0C0C0C;
+  --prompt-input-inner-shadow: rgba(0, 0, 0, 0.25);
 
   /* Primary - Neutral (not colored) */
   --primary: #DEDEDE;
@@ -261,6 +263,8 @@
   --feature-input-body-bg: #F5F0EB;
   --markdown-code-block-bg: #E4DDD6;
   --markdown-code-block-header-bg: #DBD4CC;
+  --prompt-input-surface: #FAF6F1;
+  --prompt-input-inner-shadow: rgba(44, 36, 32, 0.04);
 
   /* Primary - Warm dark brown */
   --primary: #2C2420;

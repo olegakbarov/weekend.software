@@ -18,7 +18,7 @@ export function SidebarHeader() {
           />
         ) : null}
         <div
-          className="min-w-0 flex-1 px-2"
+          className="h-full min-w-0 flex-1 px-2"
           data-tauri-drag-region={!data.isFullscreen || undefined}
         />
         {actions.onToggleSidebar && (

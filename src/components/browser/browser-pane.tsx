@@ -43,6 +43,8 @@ export function BrowserPane({
   workspaceMode,
   onWorkspaceModeChange,
   onPlayProject,
+  onStopProject,
+  onRestartApp,
   playState,
   editorContent,
   settingsContent,
@@ -67,6 +69,8 @@ export function BrowserPane({
     mode: "browser" | "editor" | "agent" | "settings" | "skills"
   ) => void;
   onPlayProject: () => void;
+  onStopProject: () => void;
+  onRestartApp: () => void;
   playState: PlayState;
   editorContent?: ReactNode;
   settingsContent?: ReactNode;
@@ -427,7 +431,7 @@ export function BrowserPane({
     browserTarget.status === "ready" || startupProbeErrorMessage !== null;
   const retryBrowserLoad = () => {
     if (startupProbeErrorMessage) {
-      onPlayProject();
+      onRestartApp();
       return;
     }
     reloadCurrentPage();
@@ -456,6 +460,8 @@ export function BrowserPane({
         onRemoveTerminal={onRemoveTerminal}
         playState={playState}
         onPlay={onPlayProject}
+        onStop={onStopProject}
+        hasHealthyRuntimeProcess={hasHealthyRuntimeProcess}
         browserSource={browserSource}
         onBrowserSourceChange={setBrowserSource}
         hasDeployUrl={hasDeployUrl}
@@ -481,6 +487,7 @@ export function BrowserPane({
             />
           </div>
         ) : null}
+
 
         {workspaceMode === "editor" ? (
           editorContent ?? (

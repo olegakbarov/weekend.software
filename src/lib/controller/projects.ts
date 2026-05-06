@@ -257,16 +257,23 @@ export async function createProject(
   ctx: ControllerContext,
   projectInternals: ProjectInternals,
   runtimeInternals: RuntimeInternals,
-  input: { name?: string; defaultAgentCommand?: string; githubRepoUrl?: string } = {}
+  input: {
+    name?: string;
+    defaultAgentCommand?: string;
+    githubRepoUrl?: string;
+    initialPrompt?: string;
+  } = {}
 ): Promise<string> {
   const normalizedName = input.name?.trim();
   const normalizedAgentCommand = input.defaultAgentCommand?.trim();
   const normalizedGithubRepoUrl = input.githubRepoUrl?.trim();
+  const normalizedInitialPrompt = input.initialPrompt?.trim();
 
   const createdPath = await invoke<string>("create_new_project", {
     name: normalizedName || undefined,
     defaultAgentCommand: normalizedAgentCommand || undefined,
     githubRepoUrl: normalizedGithubRepoUrl || undefined,
+    initialPrompt: normalizedInitialPrompt || undefined,
   });
   const createdName = extractProjectName(createdPath);
 

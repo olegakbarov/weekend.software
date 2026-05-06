@@ -4583,6 +4583,7 @@ fn create_new_project(
     name: Option<String>,
     default_agent_command: Option<String>,
     github_repo_url: Option<String>,
+    initial_prompt: Option<String>,
 ) -> Result<String, String> {
     let weekend_root = weekend_root()?;
 
@@ -4645,6 +4646,11 @@ fn create_new_project(
     let shared_root = ensure_shared_assets_root()?;
     sync_shared_assets_into_project(&candidate, &shared_root)?;
     seed_agent_runtime_guidance_files(&candidate)?;
+    if let Some(prompt) = normalize_optional_string(initial_prompt) {
+        let prompt_path = candidate.join("PROMPT.md");
+        std::fs::write(&prompt_path, prompt)
+            .map_err(|error| format!("failed to write {}: {error}", prompt_path.display()))?;
+    }
     if resolved_github_repo_url.is_none() {
         init_git_repo(&candidate)?;
     }
@@ -6309,6 +6315,111 @@ fn browser_eval_result<R: Runtime>(
         .map_err(|_| "eval receiver dropped".to_string())
 }
 
+/// Capture a screenshot of a browser webview as a base64-encoded PNG data URL.
+#[tauri::command]
+async fn browser_capture_screenshot<R: Runtime>(
+    app: AppHandle<R>,
+    label: String,
+) -> Result<String, String> {
+    #[cfg(target_os = "macos")]
+    {
+        use block2::RcBlock;
+        use objc2_app_kit::{NSBitmapImageFileType, NSBitmapImageRep, NSImage};
+        use objc2_foundation::{NSDictionary, NSError};
+        use objc2_web_kit::{WKSnapshotConfiguration, WKWebView};
+
+        let webview = app
+            .get_webview(&label)
+            .ok_or_else(|| format!("webview not found: {label}"))?;
+
+        let (tx, rx) = tokio::sync::oneshot::channel::<Result<Vec<u8>, String>>();
+
+        webview
+            .with_webview(move |platform_webview| {
+                // Safety: platform_webview.inner() returns the underlying WKWebView pointer on macOS.
+                let wk: *mut std::ffi::c_void = platform_webview.inner().cast();
+                let wk_webview: &WKWebView = unsafe { &*(wk as *const WKWebView) };
+
+                // We're on the main thread inside with_webview, so MainThreadMarker is safe.
+                let mtm = unsafe { objc2::MainThreadMarker::new_unchecked() };
+                let config = unsafe { WKSnapshotConfiguration::new(mtm) };
+
+                let tx = std::sync::Mutex::new(Some(tx));
+                let block = RcBlock::new(
+                    move |image: *mut NSImage, error: *mut NSError| {
+                        let result = if image.is_null() {
+                            let msg = if !error.is_null() {
+                                "snapshot returned an error".to_string()
+                            } else {
+                                "snapshot returned nil image".to_string()
+                            };
+                            Err(msg)
+                        } else {
+                            unsafe {
+                                let ns_image: &NSImage = &*image;
+                                let tiff_data = ns_image.TIFFRepresentation();
+                                match tiff_data {
+                                    Some(tiff) => {
+                                        let bitmap = NSBitmapImageRep::imageRepWithData(&tiff);
+                                        match bitmap {
+                                            Some(rep) => {
+                                                let png_data =
+                                                    rep.representationUsingType_properties(
+                                                        NSBitmapImageFileType::PNG,
+                                                        &NSDictionary::new(),
+                                                    );
+                                                match png_data {
+                                                    Some(data) => {
+                                                        let slice =
+                                                            data.as_bytes_unchecked();
+                                                        Ok(slice.to_vec())
+                                                    }
+                                                    None => {
+                                                        Err("PNG conversion failed".to_string())
+                                                    }
+                                                }
+                                            }
+                                            None => {
+                                                Err("bitmap rep creation failed".to_string())
+                                            }
+                                        }
+                                    }
+                                    None => Err("TIFF conversion failed".to_string()),
+                                }
+                            }
+                        };
+                        if let Some(sender) = tx.lock().ok().and_then(|mut g| g.take()) {
+                            let _ = sender.send(result);
+                        }
+                    },
+                );
+
+                // RcBlock derefs to Block, so &*block gives &Block which is what the API expects.
+                unsafe {
+                    wk_webview.takeSnapshotWithConfiguration_completionHandler(
+                        Some(&config),
+                        &block,
+                    );
+                }
+            })
+            .map_err(|e| format!("with_webview failed: {e}"))?;
+
+        let png_bytes = rx
+            .await
+            .map_err(|_| "screenshot channel closed".to_string())?
+            .map_err(|e| format!("screenshot capture failed: {e}"))?;
+
+        let b64 = BASE64_STANDARD.encode(&png_bytes);
+        Ok(format!("data:image/png;base64,{b64}"))
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (app, label);
+        Err("screenshot capture is only supported on macOS".to_string())
+    }
+}
+
 fn spawn_terminal_process_watcher<R: Runtime + 'static>(
     app: AppHandle<R>,
     terminal_state: TerminalState,
@@ -6614,6 +6725,7 @@ fn main() {
             browser_start_element_grab,
             browser_stop_element_grab,
             browser_eval_result,
+            browser_capture_screenshot,
             runtime_debug_dump,
             ui_log_batch,
             logs_read_weekend,

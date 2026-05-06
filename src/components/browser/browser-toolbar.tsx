@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef } from "react";
 import {
   Blocks,
   ChevronLeft,
@@ -11,6 +11,7 @@ import {
   Plus,
   RefreshCw,
   Settings,
+  Square,
   Terminal,
   X,
 } from "lucide-react";
@@ -57,6 +58,8 @@ export function BrowserToolbar({
   // Play
   playState,
   onPlay,
+  onStop,
+  hasHealthyRuntimeProcess,
   // Browser source
   browserSource,
   onBrowserSourceChange,
@@ -90,154 +93,93 @@ export function BrowserToolbar({
   // Play
   playState: PlayState;
   onPlay: () => void;
+  onStop: () => void;
+  hasHealthyRuntimeProcess: boolean;
   // Browser source
   browserSource: BrowserSource;
   onBrowserSourceChange: (source: BrowserSource) => void;
   hasDeployUrl: boolean;
   onOpenConfigFile: () => void;
 }) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
   const isAppIdle = playState === "idle" || playState === "failed";
-
-  // Tab index: terminal sessions only (no Local tab)
-  const activeTabIndex = activeTerminalId
-    ? terminalSessions.findIndex(
-        (s) => s.terminalId === activeTerminalId
-      )
-    : null;
-
-  const TAB_WIDTH = 132;
-  // Offset by one tab when the Play tab is present before terminal tabs
-  const playTabOffset = isAppIdle ? 1 : 0;
-  const tabPlateTranslateX =
-    activeTabIndex !== null && activeTabIndex >= 0
-      ? (activeTabIndex + playTabOffset) * TAB_WIDTH
-      : null;
-
-  // Scroll active terminal tab into view
-  useEffect(() => {
-    if (activeTabIndex === null || activeTabIndex < 0) return;
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    const tabLeft = activeTabIndex * TAB_WIDTH;
-    const tabRight = tabLeft + TAB_WIDTH;
-    if (tabLeft < container.scrollLeft) {
-      container.scrollLeft = tabLeft;
-    } else if (tabRight > container.scrollLeft + container.clientWidth) {
-      container.scrollLeft = tabRight - container.clientWidth;
-    }
-  }, [activeTabIndex]);
-
-  const activeTabClass =
-    "relative z-10 mx-[5px] my-[6px] inline-flex h-full w-[122px] items-center justify-center gap-1.5 rounded-md px-2.5 font-medium text-foreground transition-colors";
-  const inactiveTabClass =
-    "relative z-10 mx-[5px] my-[6px] inline-flex h-full w-[122px] items-center justify-center gap-1.5 rounded-md px-2.5 text-foreground/70 transition-colors hover:text-foreground/90";
-
-  const handleTerminalMiddleClick = useCallback(
-    (e: React.MouseEvent, terminalId: string) => {
-      if (e.button === 1) {
-        e.preventDefault();
-        onRemoveTerminal(terminalId);
-      }
-    },
-    [onRemoveTerminal]
-  );
+  const isAppRunning = playState === "running";
+  const isAppStarting = playState === "starting";
 
   const isBrowserActive = workspaceMode === "browser";
+  const isTerminalActive = workspaceMode === "terminal";
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Health indicator dot color
+  const healthDotColor = isAppRunning
+    ? hasHealthyRuntimeProcess
+      ? "bg-emerald-400"
+      : "bg-amber-400 animate-pulse"
+    : isAppStarting
+      ? "bg-amber-400 animate-pulse"
+      : "";
+
+  const handleBrowserBarClick = () => {
+    if (!isBrowserActive) {
+      onWorkspaceModeChange("browser");
+    }
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  const segBtnBase =
+    "inline-flex h-8 items-center justify-center transition-colors";
+  const segBtnActive = `${segBtnBase} bg-secondary/60 text-foreground`;
+  const segBtnInactive = `${segBtnBase} text-muted-foreground hover:text-foreground`;
 
   return (
     <div className="relative flex h-12 shrink-0 items-center gap-2 border-border border-b px-3">
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        {/* Terminal tab bar */}
-        <div
-          ref={scrollContainerRef}
-          className="neumorph-plate relative inline-flex items-stretch overflow-x-auto rounded-lg p-[3px] scrollbar-none"
-        >
-          {tabPlateTranslateX !== null ? (
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-y-[3px] left-[3px] w-[132px] rounded-md border border-border/80 bg-background transition-transform duration-200 ease-out"
-              style={{ transform: `translateX(${tabPlateTranslateX}px)` }}
-            />
-          ) : null}
-
-          {/* Play tab (when app not running) */}
-          {isAppIdle && (
+        {/* Segmented bar: Play/Stop, Local, Web, Terminals, + */}
+        <div className="flex shrink-0 items-center overflow-x-auto rounded-md border border-border/80 bg-background scrollbar-none">
+          {/* Play / Stop */}
+          {isAppIdle ? (
             <button
-              className={terminalSessions.length === 0 ? activeTabClass : inactiveTabClass}
+              className={`${segBtnInactive} px-2.5 disabled:opacity-50`}
               disabled={!projectId}
               onClick={onPlay}
               title="Start app"
               type="button"
             >
-              <Play className="size-3.5 shrink-0" />
-              <span className="max-w-[80px] truncate font-vcr text-[13px] uppercase tracking-wide">
-                Start
+              <Play className="size-3.5" />
+            </button>
+          ) : (
+            <button
+              className={`${segBtnInactive} px-2.5`}
+              onClick={onStop}
+              title={
+                isAppRunning && hasHealthyRuntimeProcess
+                  ? "Running (200 OK) — click to stop"
+                  : isAppStarting
+                    ? "Starting..."
+                    : "Running — click to stop"
+              }
+              type="button"
+            >
+              <span className="relative">
+                <Square className="size-3" />
+                {healthDotColor && (
+                  <span
+                    className={`absolute -right-1 -top-1 size-2 rounded-full ${healthDotColor}`}
+                  />
+                )}
               </span>
             </button>
           )}
 
-          {/* Dynamic terminal tabs */}
-          {terminalSessions.map((session) => {
-            const isActive = activeTerminalId === session.terminalId;
-            const label = terminalDisplayLabel(session);
-            return (
-              <button
-                key={session.terminalId}
-                aria-pressed={isActive}
-                className={isActive ? activeTabClass : inactiveTabClass}
-                onClick={() => onSelectTerminal(session.terminalId)}
-                onMouseDown={(e) =>
-                  handleTerminalMiddleClick(e, session.terminalId)
-                }
-                title={label}
-                type="button"
-              >
-                <Terminal className="size-3.5 shrink-0" />
-                <span className="max-w-[80px] truncate font-vcr text-[13px] uppercase tracking-wide">
-                  {label}
-                </span>
-                {isActive ? (
-                  <span
-                    className="z-20 ml-auto shrink-0 rounded p-0.5 text-muted-foreground/40 transition-colors hover:text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRemoveTerminal(session.terminalId);
-                    }}
-                    onKeyDown={() => {}}
-                    role="button"
-                    tabIndex={-1}
-                  >
-                    <X className="size-2.5" />
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
+          <span className="h-4 w-px bg-border/60" />
 
-          {/* New terminal button (only when app is running) */}
-          {!isAppIdle && (
-            <button
-              className="relative z-10 mx-[3px] inline-flex w-7 shrink-0 items-center justify-center self-center rounded-md text-muted-foreground/40 transition-colors hover:text-foreground/70"
-              disabled={!projectId}
-              onClick={onCreateTerminal}
-              title="New terminal"
-              type="button"
-            >
-              <Plus className="size-3.5" />
-            </button>
-          )}
-        </div>
-
-        {/* Local / Web tabs */}
-        <div className="flex shrink-0 items-center rounded-md border border-border/80 bg-background">
+          {/* Local */}
           <button
-            className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-l-md transition-colors ${
+            className={`${
               isBrowserActive && browserSource === "local"
-                ? "bg-secondary/60 text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+                ? segBtnActive
+                : segBtnInactive
+            } w-8`}
             onClick={() => {
               onBrowserSourceChange("local");
               if (!isBrowserActive) onWorkspaceModeChange("browser");
@@ -247,12 +189,14 @@ export function BrowserToolbar({
           >
             <Monitor className="size-3.5" />
           </button>
+
+          {/* Web */}
           <button
-            className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-r-md transition-colors ${
+            className={`${
               isBrowserActive && browserSource === "web"
-                ? "bg-secondary/60 text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+                ? segBtnActive
+                : segBtnInactive
+            } w-8`}
             onClick={() => {
               if (hasDeployUrl) {
                 onBrowserSourceChange("web");
@@ -270,33 +214,90 @@ export function BrowserToolbar({
           >
             <Globe className="size-3.5" />
           </button>
+
+          {/* Terminal sessions */}
+          {terminalSessions.length > 0 && (
+            <span className="h-4 w-px bg-border/60" />
+          )}
+          {terminalSessions.map((session) => {
+            const isActive = activeTerminalId === session.terminalId;
+            const label = terminalDisplayLabel(session);
+            return (
+              <button
+                key={session.terminalId}
+                className={`group ${
+                  isActive && isTerminalActive ? segBtnActive : segBtnInactive
+                } gap-1 px-2`}
+                onClick={() => onSelectTerminal(session.terminalId)}
+                onMouseDown={(e) => {
+                  if (e.button === 1) {
+                    e.preventDefault();
+                    onRemoveTerminal(session.terminalId);
+                  }
+                }}
+                title={label}
+                type="button"
+              >
+                <Terminal className="size-3 shrink-0" />
+                <span className="max-w-[60px] truncate font-vcr text-[11px] uppercase tracking-wide">
+                  {label}
+                </span>
+                {isActive && isTerminalActive ? (
+                  <span
+                    className="shrink-0 rounded p-0.5 text-muted-foreground/30 hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveTerminal(session.terminalId);
+                    }}
+                    onKeyDown={() => {}}
+                    role="button"
+                    tabIndex={-1}
+                  >
+                    <X className="size-2.5" />
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+
+          {/* New terminal */}
+          {!isAppIdle && (
+            <>
+              <button
+                className={`${segBtnInactive} w-7`}
+                disabled={!projectId}
+                onClick={onCreateTerminal}
+                title="New terminal"
+                type="button"
+              >
+                <Plus className="size-3" />
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Browser bar — always visible */}
+        {/* Browser bar */}
         <div
           className={`flex min-w-0 flex-1 items-center rounded-md border bg-background transition-opacity ${
             addressBarError
               ? "border-destructive/70"
               : "border-border/80 focus-within:border-foreground/30"
           } ${!isBrowserActive ? "cursor-pointer opacity-50 hover:opacity-70" : ""}`}
-          onClick={
-            !isBrowserActive
-              ? () => onWorkspaceModeChange("browser")
-              : undefined
-          }
+          onClick={!isBrowserActive ? handleBrowserBarClick : undefined}
           onKeyDown={undefined}
           role={!isBrowserActive ? "button" : undefined}
           tabIndex={!isBrowserActive ? 0 : undefined}
         >
-          {/* Address bar */}
           <form
             className="flex min-w-0 flex-1 items-center"
             onSubmit={onNavigateFromAddressBar}
           >
             <input
+              ref={inputRef}
               aria-invalid={addressBarError ? true : undefined}
               className="h-8 min-w-0 flex-1 bg-transparent px-2 font-code text-xs text-foreground outline-none placeholder:text-muted-foreground/60"
               onChange={(event) => onAddressBarDraftChange(event.target.value)}
+              onClick={!isBrowserActive ? handleBrowserBarClick : undefined}
               placeholder={
                 browserSource === "web"
                   ? "Deployed URL"

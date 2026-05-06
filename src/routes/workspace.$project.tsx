@@ -237,6 +237,8 @@ function WorkspaceRoute() {
         onElementGrabbed={projectActions.elementGrabbed}
         onWorkspaceModeChange={projectActions.workspaceModeChange}
         onPlayProject={projectActions.playFromBrowser}
+        onStopProject={handleStopFromSettings}
+        onRestartApp={projectActions.restartAppFromBrowser}
         playState={playState}
         projectConfigError={projectConfigError}
         projectConfigSnapshot={projectConfigSnapshot}

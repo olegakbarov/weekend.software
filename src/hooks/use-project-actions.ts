@@ -124,6 +124,10 @@ export function useProjectActions(
     void controller.playProject(project).catch(() => undefined);
   }, [controller, project]);
 
+  const restartAppFromBrowser = useCallback(() => {
+    void controller.restartAppProcesses(project).catch(() => undefined);
+  }, [controller, project]);
+
   const playFromSettings = useCallback(async () => {
     try {
       await controller.playProject(project);
@@ -177,6 +181,7 @@ export function useProjectActions(
     isDeletingProject,
     playFromBrowser,
     playFromSettings,
+    restartAppFromBrowser,
     removeTerminal,
     selectTerminal,
     stop,

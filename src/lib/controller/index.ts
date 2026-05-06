@@ -316,6 +316,77 @@ export function createWorkspaceController() {
     }
   };
 
+  const restartAppProcesses = async (project: string): Promise<void> => {
+    const projectName = project.trim();
+    if (!projectName) return;
+    clearPlayStartTimeout(runtimeInternals, projectName);
+    resetRuntimeUrlReadiness(runtimeInternals, projectName);
+    setProjectPlayState(ctx, projectName, "starting", null);
+    schedulePlayStartTimeout(ctx, runtimeInternals, projectName);
+    runtimeInternals.playStartTimestampByProject.set(projectName, Date.now());
+
+    try {
+      const sessions = state.terminalSessionsByProject[projectName] ?? [];
+      const appSessions = sessions.filter(
+        (s) => s.playSpawned && s.processRole !== "agent"
+      );
+      for (const session of appSessions) {
+        removeTerminalSessionImpl(ctx, runtimeInternals, session.terminalId);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      await refreshProjectConfigImpl(ctx, projectInternals, runtimeInternals, projectName);
+
+      const configSnapshot = state.projectConfigSnapshotByProject[projectName];
+      const processes = configSnapshot?.processes ?? {};
+      const entries = Object.entries(processes).filter(
+        ([, entry]) => (entry.role as ProcessRole) !== "agent"
+      );
+
+      for (const [label, entry] of entries) {
+        const role = entry.role as ProcessRole;
+        const descriptor = createTerminalSessionImpl(ctx, projectName, label, {
+          playSpawned: true,
+          processRole: role,
+        });
+        await terminalRegistry.acquire(descriptor.terminalId, projectName, {
+          playSpawned: true,
+          processRole: role,
+        });
+        await terminalRegistry.openPty(descriptor.terminalId);
+        const launchPlan =
+          role === "dev-server"
+            ? await resolvePortlessLaunchPlan(projectName, entry.command)
+            : null;
+        const commandForLaunch = launchPlan?.command ?? entry.command;
+        const explicitAppPort = launchPlan?.appPort ?? null;
+        const commandToRun =
+          role === "dev-server" &&
+          !isAlreadyPortlessWrapped(entry.command)
+            ? buildPortlessCommand(
+                commandForLaunch,
+                projectName,
+                explicitAppPort
+              )
+            : entry.command;
+        terminalRegistry.sendCommand(descriptor.terminalId, commandToRun);
+      }
+
+      reconcileProjectRuntimeState(ctx, runtimeInternals, projectName);
+    } catch (error) {
+      clearPlayStartTimeout(runtimeInternals, projectName);
+      resetRuntimeUrlReadiness(runtimeInternals, projectName);
+      setProjectPlayState(
+        ctx,
+        projectName,
+        "failed",
+        `Failed to restart app processes: ${toErrorMessage(error)}`
+      );
+      reconcileProjectRuntimeState(ctx, runtimeInternals, projectName);
+    }
+  };
+
   const init = async (preferredProject?: string): Promise<void> => {
     if (initPromise) {
       return initPromise;
@@ -500,6 +571,7 @@ export function createWorkspaceController() {
     renameTerminalSession: (terminalId: string, newLabel: string) =>
       renameTerminalSessionImpl(ctx, terminalId, newLabel),
     playProject,
+    restartAppProcesses,
     stopProject,
     getAgentTerminalId: (project: string) =>
       getAgentTerminalIdImpl(ctx, project),
