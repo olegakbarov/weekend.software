@@ -25,6 +25,7 @@ export default defineConfig({
         "react",
         "react-dom",
         "react/jsx-runtime",
+        /^@pierre\//,
         /^@radix-ui\//,
         "framer-motion",
         "lucide-react",

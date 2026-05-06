@@ -9,6 +9,7 @@ import { PageColors } from "./pages/colors";
 import { PageCombobox } from "./pages/combobox";
 import { PageDialog } from "./pages/dialog";
 import { PageDropdown } from "./pages/dropdown";
+import { PageFileTree } from "./pages/file-tree";
 import { PageIcons } from "./pages/icons";
 import { PageInput } from "./pages/input";
 import { PageInputCopy } from "./pages/input-copy";
@@ -54,6 +55,7 @@ export const PAGE_REGISTRY: Record<string, ComponentType> = {
   combobox: PageCombobox,
   dialog: PageDialog,
   dropdown: PageDropdown,
+  "file-tree": PageFileTree,
   input: PageInput,
   "input-copy": PageInputCopy,
   "input-group": PageInputGroup,

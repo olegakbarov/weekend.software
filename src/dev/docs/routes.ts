@@ -42,6 +42,7 @@ export const ROUTES: ReadonlyArray<RouteGroup> = [
       { id: "combobox", name: "Combobox", icon: "chevronDown" },
       { id: "dialog", name: "Dialog", icon: "layout" },
       { id: "dropdown", name: "Dropdown", icon: "chevronDown" },
+      { id: "file-tree", name: "File Tree", icon: "list" },
       { id: "input", name: "Input", icon: "edit" },
       { id: "input-copy", name: "Input Copy", icon: "copy" },
       { id: "input-group", name: "Input Group", icon: "edit" },

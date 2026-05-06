@@ -1,0 +1,19 @@
+{
+  "symbol": "FileTree",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/file-tree.tsx",
+      "line": 34,
+      "props": [
+        "model",
+        "style"
+      ]
+    }
+  ],
+  "propUsage": {
+    "model": 1,
+    "style": 1
+  },
+  "totalUsages": 1
+}

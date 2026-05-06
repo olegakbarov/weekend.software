@@ -83,3 +83,26 @@ export type {
 } from "./registry/thinking-steps";
 
 export { Tooltip } from "./registry/tooltip";
+
+// File tree primitive — React API from @pierre/trees.
+// The `<FileTree>` component renders inside a shadow root, so no CSS import is
+// required by consumers. `prepareFileTreeInput` and `preparePresortedFileTreeInput`
+// live on the root entry of `@pierre/trees`; the React hooks/component live on
+// the `/react` subpath.
+export {
+  FileTree,
+  useFileTree,
+  useFileTreeSearch,
+  useFileTreeSelection,
+  useFileTreeSelector,
+} from "@pierre/trees/react";
+export type {
+  FileTreePreloadedData,
+  FileTreeProps,
+  FileTreeSearchState,
+  FileTreeSelector,
+  FileTreeSelectorEquality,
+  UseFileTreeResult,
+} from "@pierre/trees/react";
+export { prepareFileTreeInput, preparePresortedFileTreeInput } from "@pierre/trees";
+export type { FileTreePreparedInput } from "@pierre/trees";
