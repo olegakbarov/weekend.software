@@ -4,7 +4,7 @@ import {
 } from "@/components/theme/theme-provider";
 import { useTheme } from "@/components/theme/use-theme";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@weekend/design";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   type RuntimeDebugSnapshot,
@@ -162,10 +162,8 @@ export function SettingsPage({
               </div>
               <Switch
                 checked={isVimModeEnabled}
-                onChange={(event) =>
-                  onVimModeEnabledChange(event.currentTarget.checked)
-                }
-                size="md"
+                onChange={onVimModeEnabledChange}
+                ariaLabel="Vim Mode"
               />
             </div>
 
@@ -179,10 +177,8 @@ export function SettingsPage({
               </div>
               <Switch
                 checked={showArchivedApps}
-                onChange={(event) =>
-                  onShowArchivedAppsChange(event.currentTarget.checked)
-                }
-                size="md"
+                onChange={onShowArchivedAppsChange}
+                ariaLabel="Show Archived Apps"
               />
             </div>
           </div>

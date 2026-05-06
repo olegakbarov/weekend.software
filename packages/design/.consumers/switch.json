@@ -3,6 +3,24 @@
   "tier": "core",
   "consumers": [
     {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 163,
+      "props": [
+        "checked",
+        "onChange",
+        "ariaLabel"
+      ]
+    },
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 178,
+      "props": [
+        "checked",
+        "onChange",
+        "ariaLabel"
+      ]
+    },
+    {
       "file": "src/dev/docs/views/pages/introduction.tsx",
       "line": 58,
       "props": [
@@ -50,10 +68,10 @@
     }
   ],
   "propUsage": {
-    "ariaLabel": 5,
-    "checked": 5,
+    "ariaLabel": 7,
+    "checked": 7,
     "disabled": 1,
-    "onChange": 5
+    "onChange": 7
   },
-  "totalUsages": 5
+  "totalUsages": 7
 }

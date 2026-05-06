@@ -40,8 +40,6 @@ export {
   SelectTrigger,
   SelectValue,
 } from "./select";
-export { Slider } from "./slider";
 export { Spinner } from "./spinner";
-export { Switch } from "./switch";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 export { Textarea } from "./textarea";
