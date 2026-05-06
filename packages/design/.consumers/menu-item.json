@@ -1,0 +1,81 @@
+{
+  "symbol": "MenuItem",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 58,
+      "props": [
+        "key",
+        "index",
+        "icon",
+        "label",
+        "checked",
+        "onSelect"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 87,
+      "props": [
+        "index",
+        "icon",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 88,
+      "props": [
+        "index",
+        "icon",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 89,
+      "props": [
+        "index",
+        "icon",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 92,
+      "props": [
+        "index",
+        "icon",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 93,
+      "props": [
+        "index",
+        "icon",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 94,
+      "props": [
+        "index",
+        "icon",
+        "label"
+      ]
+    }
+  ],
+  "propUsage": {
+    "checked": 1,
+    "icon": 7,
+    "index": 7,
+    "key": 1,
+    "label": 7,
+    "onSelect": 1
+  },
+  "totalUsages": 7
+}

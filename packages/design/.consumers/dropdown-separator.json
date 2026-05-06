@@ -1,10 +1,10 @@
 {
-  "symbol": "SelectContent",
+  "symbol": "DropdownSeparator",
   "tier": "registry",
   "consumers": [
     {
-      "file": "src/dev/docs/views/pages/select.tsx",
-      "line": 27,
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 90,
       "props": []
     }
   ],

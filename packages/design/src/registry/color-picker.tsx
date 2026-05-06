@@ -20,6 +20,9 @@ import { springs } from "../lib/springs";
 import { fontWeights } from "../lib/font-weight";
 import { useShape } from "../lib/shape-context";
 import { useIcon } from "../lib/icon-context";
+import type { IconComponent } from "../lib/icon-context";
+import { Dropdown } from "./dropdown";
+import { MenuItem } from "./menu-item";
 import { Tooltip } from "./tooltip";
 
 // ---------------------------------------------------------------------------
@@ -757,7 +760,7 @@ function AlphaSlider({
 }
 
 // ---------------------------------------------------------------------------
-// FormatDropdown — small custom popover-menu (we don't ship Dropdown yet).
+// FormatDropdown — popover trigger that opens the shared Dropdown + MenuItem.
 // ---------------------------------------------------------------------------
 
 const FORMAT_LABELS: Record<ColorFormat, string> = {
@@ -766,6 +769,11 @@ const FORMAT_LABELS: Record<ColorFormat, string> = {
   hsl: "HSL",
   oklch: "OKLCH",
 };
+
+// MenuItem requires an icon. The format options are text-only (HEX/RGB/...),
+// so we render an empty zero-width spacer that occupies no horizontal space
+// but satisfies the `icon` contract.
+const NoOpIcon: IconComponent = () => null;
 
 function FormatDropdown({
   value,
@@ -833,7 +841,8 @@ function FormatDropdown({
     };
   }, [open]);
 
-  const formats = ["hex", "rgb", "hsl", "oklch"] as const;
+  const formats: ReadonlyArray<ColorFormat> = ["hex", "rgb", "hsl", "oklch"];
+  const checkedIdx = formats.indexOf(value);
 
   return (
     <>
@@ -870,47 +879,22 @@ function FormatDropdown({
               animate={{ opacity: 1, y: 0, scaleY: 1 }}
               transition={springs.fast}
               style={{ transformOrigin: "top center", minWidth: pos.width }}
-              className={cn(
-                "py-1 bg-card border border-border/60 shadow-lg",
-                shape.container,
-              )}
-              role="menu"
             >
-              {formats.map((fmt) => {
-                const checked = value === fmt;
-                return (
-                  <div
+              <Dropdown checkedIndex={checkedIdx} className="w-auto min-w-full">
+                {formats.map((fmt, i) => (
+                  <MenuItem
                     key={fmt}
-                    role="menuitemradio"
-                    aria-checked={checked}
-                    aria-label={FORMAT_LABELS[fmt]}
-                    tabIndex={0}
-                    onClick={() => {
+                    index={i}
+                    icon={NoOpIcon}
+                    label={FORMAT_LABELS[fmt]}
+                    checked={value === fmt}
+                    onSelect={() => {
                       onChange(fmt);
                       setOpen(false);
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === " " || e.key === "Enter") {
-                        e.preventDefault();
-                        onChange(fmt);
-                        setOpen(false);
-                      }
-                    }}
-                    className={cn(
-                      "flex items-center px-3 py-2 mx-1 text-[13px] cursor-pointer outline-none transition-colors duration-80 hover:bg-hover",
-                      shape.item,
-                      checked ? "text-foreground" : "text-muted-foreground",
-                    )}
-                    style={{
-                      fontVariationSettings: checked
-                        ? fontWeights.semibold
-                        : fontWeights.normal,
-                    }}
-                  >
-                    {FORMAT_LABELS[fmt]}
-                  </div>
-                );
-              })}
+                  />
+                ))}
+              </Dropdown>
             </motion.div>
           </div>,
           portalContainer ?? document.body,

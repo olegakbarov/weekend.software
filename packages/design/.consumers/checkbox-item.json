@@ -1,0 +1,25 @@
+{
+  "symbol": "CheckboxItem",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/checkbox-radio.tsx",
+      "line": 53,
+      "props": [
+        "key",
+        "index",
+        "label",
+        "checked",
+        "onToggle"
+      ]
+    }
+  ],
+  "propUsage": {
+    "checked": 1,
+    "index": 1,
+    "key": 1,
+    "label": 1,
+    "onToggle": 1
+  },
+  "totalUsages": 1
+}

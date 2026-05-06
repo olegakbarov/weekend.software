@@ -3,13 +3,6 @@
   "tier": "registry",
   "consumers": [
     {
-      "file": "src/dev/docs/views/pages/dropdown.tsx",
-      "line": 26,
-      "props": [
-        "placeholder"
-      ]
-    },
-    {
       "file": "src/dev/docs/views/pages/select.tsx",
       "line": 26,
       "props": [
@@ -18,7 +11,7 @@
     }
   ],
   "propUsage": {
-    "placeholder": 2
+    "placeholder": 1
   },
-  "totalUsages": 2
+  "totalUsages": 1
 }

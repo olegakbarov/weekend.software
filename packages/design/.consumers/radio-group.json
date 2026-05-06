@@ -1,0 +1,27 @@
+{
+  "symbol": "RadioGroup",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/checkbox-radio.tsx",
+      "line": 126,
+      "props": [
+        "selectedIndex"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/checkbox-radio.tsx",
+      "line": 145,
+      "props": [
+        "value",
+        "onValueChange"
+      ]
+    }
+  ],
+  "propUsage": {
+    "onValueChange": 1,
+    "selectedIndex": 1,
+    "value": 1
+  },
+  "totalUsages": 2
+}

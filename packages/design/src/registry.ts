@@ -55,6 +55,12 @@ export {
 export { Badge, BADGE_HEX, badgeColors, badgeVariants } from "./registry/badge";
 export type { BadgeColor, BadgeProps, BadgeSize, BadgeVariant } from "./registry/badge";
 
+export { CheckboxGroup, CheckboxItem } from "./registry/checkbox-group";
+export type {
+  CheckboxGroupProps,
+  CheckboxItemProps,
+} from "./registry/checkbox-group";
+
 export {
   ColorPicker,
   ColorPickerPopover,
@@ -88,6 +94,17 @@ export {
 } from "./registry/dialog";
 export type { DialogContentProps } from "./registry/dialog";
 
+export {
+  Dropdown,
+  DropdownLabel,
+  DropdownSeparator,
+  useDropdown,
+} from "./registry/dropdown";
+export type { DropdownProps } from "./registry/dropdown";
+
+export { MenuItem } from "./registry/menu-item";
+export type { MenuItemProps } from "./registry/menu-item";
+
 export { InputCopy } from "./registry/input-copy";
 export type { InputCopyProps } from "./registry/input-copy";
 
@@ -101,6 +118,9 @@ export type { NavItemProps } from "./registry/nav-item";
 
 export { NavMenu, useNavMenu } from "./registry/nav-menu";
 export type { NavMenuProps } from "./registry/nav-menu";
+
+export { RadioGroup, RadioItem } from "./registry/radio-group";
+export type { RadioGroupProps, RadioItemProps } from "./registry/radio-group";
 
 export {
   Select,

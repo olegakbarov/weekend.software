@@ -1,0 +1,17 @@
+{
+  "symbol": "CheckboxGroup",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/checkbox-radio.tsx",
+      "line": 51,
+      "props": [
+        "checkedIndices"
+      ]
+    }
+  ],
+  "propUsage": {
+    "checkedIndices": 1
+  },
+  "totalUsages": 1
+}

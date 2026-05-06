@@ -1,0 +1,18 @@
+{
+  "symbol": "Dropdown",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 56,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/dropdown.tsx",
+      "line": 85,
+      "props": []
+    }
+  ],
+  "propUsage": {},
+  "totalUsages": 2
+}

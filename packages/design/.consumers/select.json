@@ -3,14 +3,6 @@
   "tier": "core",
   "consumers": [
     {
-      "file": "src/dev/docs/views/pages/dropdown.tsx",
-      "line": 25,
-      "props": [
-        "value",
-        "onValueChange"
-      ]
-    },
-    {
       "file": "src/dev/docs/views/pages/select.tsx",
       "line": 25,
       "props": [
@@ -20,8 +12,8 @@
     }
   ],
   "propUsage": {
-    "onValueChange": 2,
-    "value": 2
+    "onValueChange": 1,
+    "value": 1
   },
-  "totalUsages": 2
+  "totalUsages": 1
 }

@@ -3,35 +3,6 @@
   "tier": "registry",
   "consumers": [
     {
-      "file": "src/dev/docs/views/pages/dropdown.tsx",
-      "line": 28,
-      "props": [
-        "value"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/dropdown.tsx",
-      "line": 29,
-      "props": [
-        "value"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/dropdown.tsx",
-      "line": 30,
-      "props": [
-        "value"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/dropdown.tsx",
-      "line": 31,
-      "props": [
-        "value",
-        "disabled"
-      ]
-    },
-    {
       "file": "src/dev/docs/views/pages/select.tsx",
       "line": 28,
       "props": [
@@ -75,8 +46,7 @@
     }
   ],
   "propUsage": {
-    "disabled": 1,
-    "value": 10
+    "value": 6
   },
-  "totalUsages": 10
+  "totalUsages": 6
 }

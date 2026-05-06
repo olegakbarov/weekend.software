@@ -1,0 +1,36 @@
+{
+  "symbol": "RadioItem",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/checkbox-radio.tsx",
+      "line": 128,
+      "props": [
+        "key",
+        "index",
+        "label",
+        "selected",
+        "onSelect"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/checkbox-radio.tsx",
+      "line": 147,
+      "props": [
+        "key",
+        "index",
+        "label",
+        "value"
+      ]
+    }
+  ],
+  "propUsage": {
+    "index": 2,
+    "key": 2,
+    "label": 2,
+    "onSelect": 1,
+    "selected": 1,
+    "value": 1
+  },
+  "totalUsages": 2
+}
