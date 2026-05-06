@@ -136,10 +136,10 @@ export function HomePage({
             ref={textareaRef}
             value={value}
             variant="ghost"
-            className="min-h-[88px] max-h-[240px] px-5 pt-4 pb-2 font-code text-base leading-relaxed"
+            className="min-h-[88px] max-h-[240px] px-4 pt-3 pb-2 font-code text-base leading-relaxed"
           />
 
-          <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">
+          <div className="flex items-center justify-between gap-2 px-4 pt-1 pb-3">
             <Combobox
               variant="ghost"
               disabled={isCreatingProject}
@@ -148,7 +148,7 @@ export function HomePage({
               value={agentCommand}
               placeholder="agent command"
               popoverWidth={320}
-              className="font-code text-xs normal-case"
+              className="h-8 font-code text-xs normal-case"
             />
 
             <Button
