@@ -493,6 +493,39 @@ main {
   font-variation-settings: var(--fw-semibold);
 }
 
+.section > ul {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.section > ul > li {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  padding-left: 16px;
+  position: relative;
+}
+.section > ul > li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+.section .note {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  opacity: 0.75;
+  max-width: 680px;
+  margin: 16px 0 0;
+}
+
 .h-anchor {
   position: relative;
 }

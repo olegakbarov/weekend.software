@@ -149,7 +149,10 @@ export function PageTabs(): React.JSX.Element {
           </div>
         </div>
 
-        <H as="h3" id="tabs-api">
+      </div>
+
+      <div className="section">
+        <H as="h2" id="tabs-api">
           API
         </H>
         <ul>
@@ -174,7 +177,7 @@ export function PageTabs(): React.JSX.Element {
             <code>TabItem</code>. Only the active panel renders.
           </li>
         </ul>
-        <p className="lede">
+        <p className="note">
           <code>TabsTrigger</code> and <code>TabsContent</code> remain exported
           as deprecated back-compat aliases. New code should use{" "}
           <code>TabItem</code> and <code>TabPanel</code>.

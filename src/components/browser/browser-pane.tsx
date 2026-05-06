@@ -54,6 +54,7 @@ export function BrowserPane({
   activeTerminalId,
   onSelectTerminal,
   onCreateTerminal,
+  onCreateAgentTerminal,
   onRemoveTerminal,
   onOpenConfigFile,
   onElementGrabbed,
@@ -81,6 +82,7 @@ export function BrowserPane({
   activeTerminalId: string | null;
   onSelectTerminal: (terminalId: string) => void;
   onCreateTerminal: () => void;
+  onCreateAgentTerminal: () => void;
   onRemoveTerminal: (terminalId: string) => void;
   onOpenConfigFile: () => void;
   onElementGrabbed?: (data: {
@@ -457,6 +459,7 @@ export function BrowserPane({
         activeTerminalId={activeTerminalId}
         onSelectTerminal={onSelectTerminal}
         onCreateTerminal={onCreateTerminal}
+        onCreateAgentTerminal={onCreateAgentTerminal}
         onRemoveTerminal={onRemoveTerminal}
         playState={playState}
         onPlay={onPlayProject}

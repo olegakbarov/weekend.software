@@ -240,6 +240,7 @@ function WorkspaceRoute() {
         activeTerminalId={activeTerminalId ?? null}
         onSelectTerminal={projectActions.selectTerminal}
         onCreateTerminal={projectActions.createTerminal}
+        onCreateAgentTerminal={projectActions.createAgentTerminal}
         onRemoveTerminal={projectActions.removeTerminal}
         onOpenConfigFile={handleOpenConfigFile}
         onElementGrabbed={projectActions.elementGrabbed}

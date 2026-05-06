@@ -76,6 +76,16 @@ export function useProjectActions(
     });
   }, [controller, navigateWithinProject, project]);
 
+  const createAgentTerminal = useCallback(() => {
+    const descriptor = controller.createTerminalSession(project, "agent", {
+      processRole: "agent",
+    });
+    navigateWithinProject({
+      view: "terminal",
+      terminalId: descriptor.terminalId,
+    });
+  }, [controller, navigateWithinProject, project]);
+
   const removeTerminal = useCallback(
     (terminalId: string) => {
       controller.removeTerminalSession(terminalId);
@@ -174,6 +184,7 @@ export function useProjectActions(
 
   return {
     archiveProject,
+    createAgentTerminal,
     createTerminal,
     deleteProject,
     elementGrabbed,
