@@ -166,9 +166,10 @@ export function ProjectFileTree({
   ) => Promise<void>;
   isMutating?: boolean;
 }) {
+  const paths = useMemo(() => flattenTreeToPaths(tree), [tree]);
   const preparedInput = useMemo(
-    () => prepareFileTreeInput(flattenTreeToPaths(tree)),
-    [tree]
+    () => prepareFileTreeInput(paths),
+    [paths]
   );
 
   // Stable ref for `onSelectFile` so the model is constructed once without
@@ -193,11 +194,13 @@ export function ProjectFileTree({
 
   // Keep tree paths in sync when the input changes — `useFileTree` only reads
   // `options` once at mount, so we drive subsequent updates imperatively.
+  // resetPaths validates that `paths` and `preparedInput` describe the same
+  // list, so we pass both derived from the same source.
   const initialInputRef = useRef(preparedInput);
   useEffect(() => {
     if (initialInputRef.current === preparedInput) return;
-    model.resetPaths([], { preparedInput });
-  }, [model, preparedInput]);
+    model.resetPaths(paths, { preparedInput });
+  }, [model, paths, preparedInput]);
 
   // Bridge external `selectedPath` → tree selection. Selection state lives
   // inside the model; we drive it imperatively when the host changes.
