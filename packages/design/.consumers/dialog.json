@@ -1,7 +1,19 @@
 {
   "symbol": "Dialog",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 120,
+      "props": [
+        "open",
+        "onOpenChange"
+      ]
+    }
+  ],
+  "propUsage": {
+    "onOpenChange": 1,
+    "open": 1
+  },
+  "totalUsages": 1
 }

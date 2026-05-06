@@ -1,7 +1,99 @@
 {
   "symbol": "Button",
   "tier": "core",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 78,
+      "props": [
+        "variant",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 84,
+      "props": [
+        "variant",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 85,
+      "props": [
+        "variant",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 86,
+      "props": [
+        "variant",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 87,
+      "props": [
+        "size",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 88,
+      "props": [
+        "size",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 89,
+      "props": [
+        "size",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 90,
+      "props": [
+        "variant",
+        "icon",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 115,
+      "props": [
+        "variant"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 122,
+      "props": [
+        "variant"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 133,
+      "props": [
+        "variant"
+      ]
+    }
+  ],
+  "propUsage": {
+    "icon": 1,
+    "onClick": 8,
+    "size": 3,
+    "variant": 8
+  },
+  "totalUsages": 11
 }

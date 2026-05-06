@@ -1,7 +1,41 @@
 {
   "symbol": "Switch",
   "tier": "core",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 102,
+      "props": [
+        "checked",
+        "onChange",
+        "ariaLabel"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 103,
+      "props": [
+        "checked",
+        "onChange",
+        "ariaLabel"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 104,
+      "props": [
+        "checked",
+        "onChange",
+        "disabled",
+        "ariaLabel"
+      ]
+    }
+  ],
+  "propUsage": {
+    "ariaLabel": 3,
+    "checked": 3,
+    "disabled": 1,
+    "onChange": 3
+  },
+  "totalUsages": 3
 }

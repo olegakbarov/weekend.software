@@ -16,6 +16,7 @@ import { Route as LogsRouteImport } from './routes/logs'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WorkspaceProjectRouteImport } from './routes/workspace.$project'
+import { Route as DevDsRouteImport } from './routes/dev.ds'
 
 const SharedDropRoute = SharedDropRouteImport.update({
   id: '/shared-drop',
@@ -52,6 +53,11 @@ const WorkspaceProjectRoute = WorkspaceProjectRouteImport.update({
   path: '/workspace/$project',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevDsRoute = DevDsRouteImport.update({
+  id: '/dev/ds',
+  path: '/dev/ds',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/shared': typeof SharedRoute
   '/shared-drop': typeof SharedDropRoute
+  '/dev/ds': typeof DevDsRoute
   '/workspace/$project': typeof WorkspaceProjectRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/shared': typeof SharedRoute
   '/shared-drop': typeof SharedDropRoute
+  '/dev/ds': typeof DevDsRoute
   '/workspace/$project': typeof WorkspaceProjectRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/shared': typeof SharedRoute
   '/shared-drop': typeof SharedDropRoute
+  '/dev/ds': typeof DevDsRoute
   '/workspace/$project': typeof WorkspaceProjectRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shared'
     | '/shared-drop'
+    | '/dev/ds'
     | '/workspace/$project'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shared'
     | '/shared-drop'
+    | '/dev/ds'
     | '/workspace/$project'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shared'
     | '/shared-drop'
+    | '/dev/ds'
     | '/workspace/$project'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SharedRoute: typeof SharedRoute
   SharedDropRoute: typeof SharedDropRoute
+  DevDsRoute: typeof DevDsRoute
   WorkspaceProjectRoute: typeof WorkspaceProjectRoute
 }
 
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceProjectRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dev/ds': {
+      id: '/dev/ds'
+      path: '/dev/ds'
+      fullPath: '/dev/ds'
+      preLoaderRoute: typeof DevDsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SharedRoute: SharedRoute,
   SharedDropRoute: SharedDropRoute,
+  DevDsRoute: DevDsRoute,
   WorkspaceProjectRoute: WorkspaceProjectRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,7 +1,23 @@
 {
   "symbol": "Slider",
   "tier": "core",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 109,
+      "props": [
+        "min",
+        "max",
+        "value",
+        "onChange"
+      ]
+    }
+  ],
+  "propUsage": {
+    "max": 1,
+    "min": 1,
+    "onChange": 1,
+    "value": 1
+  },
+  "totalUsages": 1
 }

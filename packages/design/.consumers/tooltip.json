@@ -1,7 +1,17 @@
 {
   "symbol": "Tooltip",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 114,
+      "props": [
+        "content"
+      ]
+    }
+  ],
+  "propUsage": {
+    "content": 1
+  },
+  "totalUsages": 1
 }

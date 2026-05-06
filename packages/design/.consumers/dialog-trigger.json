@@ -1,7 +1,17 @@
 {
   "symbol": "DialogTrigger",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 121,
+      "props": [
+        "asChild"
+      ]
+    }
+  ],
+  "propUsage": {
+    "asChild": 1
+  },
+  "totalUsages": 1
 }

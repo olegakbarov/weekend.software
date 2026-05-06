@@ -1,7 +1,39 @@
 {
   "symbol": "IconButton",
   "tier": "core",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 96,
+      "props": [
+        "icon",
+        "label",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 97,
+      "props": [
+        "icon",
+        "label",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 98,
+      "props": [
+        "icon",
+        "label",
+        "onClick"
+      ]
+    }
+  ],
+  "propUsage": {
+    "icon": 3,
+    "label": 3,
+    "onClick": 3
+  },
+  "totalUsages": 3
 }

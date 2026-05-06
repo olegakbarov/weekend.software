@@ -1,7 +1,13 @@
 {
   "symbol": "DialogFooter",
   "tier": "registry",
-  "consumers": [],
+  "consumers": [
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 131,
+      "props": []
+    }
+  ],
   "propUsage": {},
-  "totalUsages": 0
+  "totalUsages": 1
 }

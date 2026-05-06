@@ -1,7 +1,13 @@
 {
   "symbol": "DialogContent",
   "tier": "registry",
-  "consumers": [],
+  "consumers": [
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 124,
+      "props": []
+    }
+  ],
   "propUsage": {},
-  "totalUsages": 0
+  "totalUsages": 1
 }

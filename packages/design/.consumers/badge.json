@@ -1,7 +1,19 @@
 {
   "symbol": "Badge",
   "tier": "registry",
-  "consumers": [],
-  "propUsage": {},
-  "totalUsages": 0
+  "consumers": [
+    {
+      "file": "src/routes/dev.ds.tsx",
+      "line": 142,
+      "props": [
+        "key",
+        "color"
+      ]
+    }
+  ],
+  "propUsage": {
+    "color": 1,
+    "key": 1
+  },
+  "totalUsages": 1
 }
