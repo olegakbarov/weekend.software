@@ -303,6 +303,8 @@ const PROJECT_CONFIG_FILE_NAME: &str = "weekend.config.json";
 const LEGACY_PROJECT_CONFIG_FILE_NAME: &str = "aios.config.json";
 const PROJECT_CLAUDE_FILE_NAME: &str = "CLAUDE.md";
 const PROJECT_AGENTS_FILE_NAME: &str = "AGENTS.md";
+const PROJECT_WEEKEND_DIR_NAME: &str = ".weekend";
+const PROJECT_AGENT_RUNTIME_GUIDANCE_FILE_NAME: &str = "agent-runtime.md";
 const PROJECT_CODEX_DIR_NAME: &str = ".codex";
 const PROJECT_CODEX_CONFIG_FILE_NAME: &str = "config.toml";
 const PROJECT_GITIGNORE_FILE_NAME: &str = ".gitignore";
@@ -322,6 +324,12 @@ const MAX_PREVIEW_FILE_BYTES: u64 = 20 * 1024 * 1024;
 const VALID_THEMES: &[&str] = &["fluid", "fluid-dark", "weekend-dark", "weekend-paper"];
 const DEFAULT_THEME: &str = "fluid";
 const THEME_CONFIG_FILE_NAME: &str = "theme.json";
+
+const PROJECT_AGENT_GUIDANCE_POINTER: &str = r#"# Weekend Runtime
+
+This project is managed by Weekend.
+Read `.weekend/agent-runtime.md` for runtime, browser MCP, shared assets, and design system guidance.
+"#;
 
 fn theme_config_path() -> Result<PathBuf, String> {
     Ok(weekend_root()?.join(THEME_CONFIG_FILE_NAME))
@@ -1616,6 +1624,10 @@ fn read_project_config_from_path(config_path: &Path) -> ProjectConfigLookup {
         Err(error) => return ProjectConfigLookup::Invalid(error),
     };
 
+    let deploy_url = match normalize_deploy_url(parsed.runtime.deploy_url.as_deref()) {
+        Ok(value) => value,
+        Err(error) => return ProjectConfigLookup::Invalid(error),
+    };
     let startup_commands = normalize_startup_commands(&parsed.startup.commands);
     let processes = resolve_processes(parsed.processes.as_ref(), &startup_commands);
 
@@ -1623,7 +1635,7 @@ fn read_project_config_from_path(config_path: &Path) -> ProjectConfigLookup {
         runtime: ProjectRuntimeConfig {
             mode: Some(runtime_mode.as_str().to_string()),
             url: Some(runtime_url),
-            deploy_url: parsed.runtime.deploy_url,
+            deploy_url,
         },
         startup_commands,
         processes,
@@ -1830,6 +1842,37 @@ fn normalize_runtime_url(value: Option<&str>) -> Result<Option<String>, String> 
         parsed
             .set_port(Some(DEFAULT_PORTLESS_PROXY_PORT))
             .map_err(|_| "runtime.url has an invalid port".to_string())?;
+    }
+
+    Ok(Some(parsed.to_string()))
+}
+
+fn normalize_deploy_url(value: Option<&str>) -> Result<Option<String>, String> {
+    let Some(raw) = value else {
+        return Ok(None);
+    };
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Ok(None);
+    }
+
+    let candidate = if trimmed.contains("://") {
+        trimmed.to_string()
+    } else {
+        format!("https://{trimmed}")
+    };
+    let parsed = Url::parse(&candidate)
+        .map_err(|error| format!("runtime.deployUrl must be a valid URL: {error}"))?;
+    match parsed.scheme() {
+        "http" | "https" => {}
+        scheme => {
+            return Err(format!(
+                "runtime.deployUrl must use http or https (received '{scheme}')"
+            ));
+        }
+    }
+    if parsed.host_str().is_none() {
+        return Err("runtime.deployUrl must include a host".to_string());
     }
 
     Ok(Some(parsed.to_string()))

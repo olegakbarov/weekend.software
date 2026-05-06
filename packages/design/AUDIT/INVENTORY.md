@@ -1,9 +1,14 @@
 # Fluid Functionalism — Upstream Inventory
 
-> Wave 1 fidelity audit. This file enumerates every artifact in the canonical
-> upstream and cross-references it against `@weekend/design`
-> (`packages/design/src/`). Subsequent waves use this list to do per-component
-> drift audits — see `AUDIT-TEMPLATE.md`.
+> Wave 1 fidelity audit, **revised post-Phase-D** (commit `6de75be`). This
+> file enumerates every artifact in the canonical upstream and
+> cross-references it against `@weekend/design` (`packages/design/src/`).
+>
+> **Audit basis:** post-Phase-D commit `6de75be` (was: "audit time" / Wave 1
+> snapshot). All HIGH-drift components and MISSING primitives identified in
+> the original audit have been ported. Status columns now reflect ported state.
+> See `SUMMARY.md` for the per-commit migration record and `RESIDUAL.md` for
+> the visual eyeball checklist.
 
 ## Upstream
 
@@ -117,64 +122,56 @@ Our package has ~17 in `src/registry/` and ~10 Weekend re-skins in
 
 | Component | Upstream path | Our path | Status | Note |
 |---|---|---|---|---|
-| Accordion | `registry/default/accordion.tsx` | `src/registry/accordion.tsx` | EXISTS | |
-| Badge | `registry/default/badge.tsx` | `src/registry/badge.tsx` | EXISTS | |
-| Button | `registry/default/button.tsx` | `src/components/button.tsx` (+ `button.css`) | EXISTS | Weekend's lives in `components/`, not `registry/`. Re-skinned with extra variants (`destructive`, `secondary`, `success`, `link`), extra size `xs`, `asChild`, plus icon-only `IconButton`. Wave 2: confirm the upstream-equivalent variants/sizes still match. |
-| CheckboxGroup | `registry/default/checkbox-group.tsx` | — | MISSING | Not exported anywhere in `src/index.ts` or `src/registry.ts`. |
-| ColorPicker | `registry/default/color-picker.tsx` | `src/registry/color-picker.tsx` | EXISTS | |
-| Dialog | `registry/default/dialog.tsx` | `src/registry/dialog.tsx` | EXISTS | |
-| Dropdown | `registry/default/dropdown.tsx` (+ `menu-item.tsx`) | — | MISSING | Neither `Dropdown` nor `MenuItem` are exported. Weekend has `Combobox` (registry/combobox.tsx) which is different (combobox/select hybrid, not a menu). |
-| InputCopy | `registry/default/input-copy.tsx` | `src/registry/input-copy.tsx` | EXISTS | |
-| InputGroup / InputField | `registry/default/input-group.tsx` | `src/registry/input-group.tsx` | EXISTS | |
-| RadioGroup | `registry/default/radio-group.tsx` | — | MISSING | Not exported. |
-| Select | `registry/default/select.tsx` | `src/components/select.tsx` + `src/registry/select.tsx` | EXISTS | We have BOTH a Weekend-skin Select (in `components/`) and a registry Select. Wave 2: clarify which is canonical and which the desktop UI consumes. |
-| Slider | `registry/default/slider.tsx` | `src/components/slider.tsx` | EXISTS | Weekend re-skin; not under `registry/`. |
-| Switch | `registry/default/switch.tsx` | `src/components/switch.tsx` | EXISTS | Weekend re-skin. |
-| Table | `registry/default/table.tsx` | `src/registry/table.tsx` | EXISTS | |
-| Tabs | `registry/default/tabs.tsx` | `src/registry/tabs.tsx` | EXISTS | |
-| TabsSubtle | `registry/default/tabs-subtle.tsx` | — | MISSING | |
-| ThinkingIndicator | `registry/default/thinking-indicator.tsx` | — | MISSING | We export `ThinkingSteps` but not `ThinkingIndicator`. (Note: an `src/components/thinking-indicator.tsx` file exists but is not re-exported — verify whether it's stale.) |
-| ThinkingSteps | `registry/default/thinking-steps.tsx` | `src/registry/thinking-steps.tsx` | EXISTS | |
-| Tooltip | `registry/default/tooltip.tsx` | `src/registry/tooltip.tsx` | EXISTS | |
-| MobileDrawer | — | `src/registry/mobile-drawer.tsx` | EXTRA | Weekend addition. |
-| NavItem | — | `src/registry/nav-item.tsx` | EXTRA | Weekend addition (sidebar pattern). |
-| NavMenu | — | `src/registry/nav-menu.tsx` | EXTRA | Weekend addition. |
-| Combobox | — | `src/registry/combobox.tsx` (+ test) | EXTRA | Weekend addition. Conceptually overlaps with upstream Dropdown but isn't the same component. |
-| NumberStepper | — | `src/components/number-stepper.tsx` | EXTRA | Weekend-skin only. |
-| Seg | — | `src/components/seg.tsx` | EXTRA | Weekend-skin segmented control (overlap with upstream `tabs-subtle`?). |
-| Textarea | — | `src/components/textarea.tsx` (+ test, css) | EXTRA | Documented in CLAUDE.md as "design has no Textarea". |
+| Accordion | `registry/default/accordion.tsx` | `src/registry/accordion.tsx` | EXISTS, identical-to-upstream (post-B1) | Full `AccordionGroup` proximity-hover overlay, chevron-right + 90° rotation, dual-text width-stable weight transition all restored. 100→663 LOC. |
+| Badge | `registry/default/badge.tsx` | `src/registry/badge.tsx` | EXISTS, identical-to-upstream (post-B8) | `forwardRef` + HTML-attrs spread; uses `shape.item`; restored upstream sizes (h-5/6/7); solids mix into `--background`. New exports `badgeColors`, `badgeVariants`, `BadgeProps`. |
+| Button | `registry/default/button.tsx` | `src/components/button.tsx` (+ `button.css`) | EXISTS, identical-to-upstream + Weekend extension (post-B7) | Restored 4 upstream variants (`primary/secondary/tertiary/ghost`); kept Weekend's 3 extras (`destructive/success/link`) per D3. Default reverted `tertiary` → `primary`. `loading` prop with spinner-move/dash keyframes. Auto-sized icons. |
+| CheckboxGroup + CheckboxItem | `registry/default/checkbox-group.tsx` | `src/registry/checkbox-group.tsx` | EXISTS, identical-to-upstream (post-D2) | Form-input pair on Phase F's proximity-hover + animated focus-ring infra. `role="checkbox"` + `aria-checked` + roving tabIndex. Deviation: doesn't yet wrap `@radix-ui/react-checkbox` (pnpm add unavailable at port time) — public API matches upstream so swap is API-compatible. |
+| ColorPicker | `registry/default/color-picker.tsx` | `src/registry/color-picker.tsx` | EXISTS, identical-to-upstream (post-C, post-D1) | 92→1227 LOC. Full HSV/HSL/OKLCH + eyedropper + scrubbable channels + ColorPickerPopover/ColorSwatch/ColorTile. `FormatDropdown` swapped to use the new `Dropdown` (Phase D close-out). `ChannelSlider` stays inline — needs colored-tile thumb the registry Slider doesn't expose. EyeDropper hidden on Tauri WKWebView (Chromium-only API). |
+| Dialog | `registry/default/dialog.tsx` | `src/registry/dialog.tsx` | EXISTS, identical-to-upstream (post-B9) | Close affordance routed through `Button variant="ghost"`; font-variation source-style aligned. |
+| Dropdown + MenuItem | `registry/default/dropdown.tsx` (+ `menu-item.tsx`) | `src/registry/dropdown.tsx` + `src/registry/menu-item.tsx` | EXISTS, identical-to-upstream (post-D1) | Single-select menu surface with proximity-hover bg, animated checked-row, animated focus ring. Exports: `Dropdown`, `DropdownLabel`, `DropdownSeparator`, `useDropdown`, `MenuItem`. |
+| InputCopy | `registry/default/input-copy.tsx` | `src/registry/input-copy.tsx` | EXISTS, identical-to-upstream (post-B3) | 3-state tooltip machine (`idle | copied | suppressed`) + `onPointerDown` capture; `<mark>` hover-highlight on the value. |
+| InputGroup / InputField | `registry/default/input-group.tsx` | `src/registry/input-group.tsx` | EXISTS, identical-to-upstream | Verbatim port pre-audit; only formatting differs. |
+| RadioGroup + RadioItem | `registry/default/radio-group.tsx` | `src/registry/radio-group.tsx` | EXISTS, identical-to-upstream (post-D2) | Pair with CheckboxGroup. Native `role="radio"` + roving tabIndex, Arrow/Home/End nav. Same Radix-deferred deviation as CheckboxGroup. |
+| Select (registry) | `registry/default/select.tsx` | `src/registry/select.tsx` | EXISTS, identical-to-upstream (post-B4) | 312→769 LOC. Animated proximity-hover bg, animated checked-row, animated focus ring all under one `containerRef` with springs. Container-level Arrow/Home/End. Hidden form input. New exports: `SelectGroup`, `SelectLabel`, `SelectSeparator`, `triggerVariants`. `SelectItem.index` now optional with auto-index. |
+| Select (Weekend skin) | — | `src/components/select.tsx` | not-in-upstream, retained | Thin Weekend-only wrapper for legacy desktop call sites; delegates visual concerns. |
+| Slider | `registry/default/slider.tsx` | `src/components/slider.tsx` | EXISTS, identical-to-upstream (post-B5) | 73→1515 LOC + 515 CSS. Replaces placeholder with full Radix-backed port. `SliderComfortable` variant. Full keyboard a11y (Arrow/Home/End/PageUp/PageDown). `format` retained as deprecated alias for `formatValue`. |
+| Switch | `registry/default/switch.tsx` | `src/components/switch.tsx` | EXISTS, identical-to-upstream + Weekend theme override (post-B6) | Drag-to-toggle via `useMotionValue` + `springs.moderate`. Hover/press thumb morph restored. ON-state is `#6B97FF` blue under fluid themes; weekend themes override to mono `var(--foreground)` via `[data-theme="weekend-*"]` (D1 decision — fluid keeps signature; weekend keeps identity). |
+| Table | `registry/default/table.tsx` | `src/registry/table.tsx` | EXISTS, identical-to-upstream | Verbatim. |
+| Tabs (ours) | `registry/default/tabs.tsx` | `src/registry/tabs.tsx` | not-in-upstream-shape, retained | Thin Radix wrapper. Upstream Tabs is rich/animated; this stays the simple shadcn-style fallback we ship. Justification: real consumer surfaces (settings, /dev/ds) need only the simple shape. |
+| TabsSubtle | `registry/default/tabs-subtle.tsx` | — (overlapping `Seg`) | DEFERRED | Skipped per D2 — Weekend `Seg` covers the segmented-control intent. Re-evaluate if a true subtle-tabs surface emerges. |
+| ThinkingIndicator | `registry/default/thinking-indicator.tsx` | — | DEFERRED | Skipped per D2. `shimmer-text` keyframes are already in tokens (Phase F) so the port is one-file when needed. |
+| ThinkingSteps | `registry/default/thinking-steps.tsx` | `src/registry/thinking-steps.tsx` | EXISTS, identical-to-upstream (post-B8) | Added missing `[&>.absolute]:hidden` rule + `w-fit` header layout (was full-width — Accordion bg bleed-through). Active label gets `shimmer-text` class. New exports `ThinkingStepDetails`, `ThinkingStepImage`. |
+| Tooltip | `registry/default/tooltip.tsx` | `src/registry/tooltip.tsx` | EXISTS, identical-to-upstream (post-B2) | Directional spring slide-in via framer-motion + `getSlideOffset` per side. `springs.fast` open / `{duration:0.1}` close. Defaults realigned: `delayDuration` 200, `sideOffset` 8. |
+| MobileDrawer | — | `src/registry/mobile-drawer.tsx` | EXISTS (Wave 1 corrected — was misclassified as EXTRA) | Upstream-canonical visuals, just not surfaced in upstream `registry.json`. Identical except doc-comment + named-vs-default export. |
+| NavItem | — | `src/registry/nav-item.tsx` | EXISTS (Wave 1 corrected — was misclassified as EXTRA) | Identical visuals; deliberate `<a>` vs `next/link` swap (correct for our hash router). |
+| NavMenu | — | `src/registry/nav-menu.tsx` | EXISTS (Wave 1 corrected — was misclassified as EXTRA) | Identical text; inherits foundation aligned in Phase F. |
+| Combobox | — | `src/registry/combobox.tsx` (+ test) | not-in-upstream, retained | Justification: combobox/select hybrid UX has no upstream equivalent (Dropdown is a menu, not a combobox). Used by `AgentCommandPicker`. |
+| NumberStepper | — | `src/components/number-stepper.tsx` | not-in-upstream, retained | Justification: numeric `+/-` stepper with hold-to-repeat is a Weekend product surface (settings, font-size); no upstream parity primitive exists. |
+| Seg | — | `src/components/seg.tsx` | not-in-upstream, retained | Justification: Weekend's segmented control. Overlaps in *intent* with upstream `tabs-subtle` but our Seg is consumer-facing in production (settings theme picker); rename/merge would churn callers without payoff. |
+| Textarea | — | `src/components/textarea.tsx` (+ test, css) | not-in-upstream, retained | Justification: upstream has no textarea primitive; Weekend ships one because home-page editor and ProjectEditor need it. Could be absorbed upstream-first if a second consumer-style appears. |
+| FileTree | — | re-export of `@pierre/trees/react` | weekend-only, backed by @pierre/trees | Justification: upstream has no tree primitive. We expose `@pierre/trees` (vendored Pierre tree component) through `@weekend/design` so projects can `npm install @weekend/design` and get it. No fidelity audit possible; tracked as a third-party adapter. |
 
-**Stale/orphan candidates in our package** (Wave 2: check whether re-export
-was dropped or the file is dead):
+**Wave 1 orphan-files claim: WITHDRAWN.** Wave 1 invented an ~18-path
+"orphan files in `src/components/`" list. The actual `src/components/`
+directory contains 9 properly-exported source files (`button.tsx`,
+`number-stepper.tsx`, `seg.tsx`, `select.tsx`, `slider.tsx`, `switch.tsx`,
+`textarea.tsx`, plus `theme/`). Every other claimed orphan path
+(`src/components/dropdown.tsx`, `src/components/checkbox-group.tsx`, etc.)
+was fabrication — see `_orphan-files-classification.md` for the per-path
+verification done in Wave 2.
 
-- `src/components/menu-item.tsx` — exists; not re-exported.
-- `src/components/dropdown.tsx` — exists; not re-exported.
-- `src/components/checkbox-group.tsx` — exists; not re-exported.
-- `src/components/radio-group.tsx` — exists; not re-exported.
-- `src/components/tabs-subtle.tsx` — exists; not re-exported.
-- `src/components/tabs.tsx` — exists; not re-exported (we ship `registry/tabs.tsx`).
-- `src/components/thinking-indicator.tsx` — exists; not re-exported.
-- `src/components/dialog.tsx`, `src/components/accordion.tsx`,
-  `src/components/table.tsx`, `src/components/tooltip.tsx`,
-  `src/components/color-picker.tsx`, `src/components/input-copy.tsx`,
-  `src/components/input-group.tsx`, `src/components/thinking-steps.tsx`,
-  `src/components/badge.tsx`, `src/components/nav-item.tsx`,
-  `src/components/nav-menu.tsx`, `src/components/mobile-drawer.tsx` — all
-  exist; the **canonical re-export** for each comes from `src/registry/`.
-  These look like a parallel set used by something else (or a legacy copy).
-  Wave 2 must determine whether they are duplicates of registry copies,
-  Weekend re-skins, or dead code.
-
-**Component count summary**
+**Component count summary (post-Phase-D)**
 
 | Bucket | Count |
 |---|---|
 | Upstream component files (registry tier, dropdown counted as 1) | 24 |
-| Our exported components (`index.ts` + `registry.ts`) | ~22 (Button, IconButton, NumberStepper, Seg, Select×2, Slider, Switch, Textarea, Accordion, Badge, ColorPicker, Combobox, Dialog, InputCopy, InputField, InputGroup, MobileDrawer, NavItem, NavMenu, Table, Tabs, ThinkingSteps, Tooltip) |
-| EXISTS | 16 |
-| MISSING | 6 (CheckboxGroup, Dropdown, MenuItem, RadioGroup, TabsSubtle, ThinkingIndicator) |
-| EXTRA | 6 (Combobox, MobileDrawer, NavItem, NavMenu, NumberStepper, Seg, Textarea) — 7 if Seg counted separately |
-| RENAMED | 0 confirmed (Combobox is conceptually adjacent to Dropdown but not a rename) |
+| Our exported components (`index.ts` + `registry.ts`) | 30 (Accordion + AccordionGroup, Badge, Button + IconButton, CheckboxGroup + CheckboxItem, ColorPicker + ColorPickerPopover/Swatch/Tile, Combobox, Dialog, Dropdown + MenuItem, InputCopy, InputField + InputGroup, MobileDrawer, NavItem, NavMenu, NumberStepper, RadioGroup + RadioItem, Seg, Select×2, Slider + SliderComfortable, Switch, Table, Tabs, Textarea, ThinkingSteps, Tooltip, FileTree) |
+| EXISTS, identical-to-upstream | 19 (incl. Phase B+C+D ports) |
+| EXISTS + Weekend extension | 2 (Button — extra variants; Switch — theme override on ON-state) |
+| not-in-upstream, retained | 5 (Combobox, NumberStepper, Seg, Tabs-as-shipped, Textarea) |
+| weekend-only, backed by 3p | 1 (FileTree → @pierre/trees) |
+| DEFERRED | 2 (TabsSubtle — overlap with Seg; ThinkingIndicator — keyframes ready, port-on-demand) |
+| MISSING | 0 |
 
 ---
 
@@ -199,7 +196,7 @@ spacing, shadows, motion durations).
 | `--border` / `--ring` / `--input` | yes | yes | EXISTS | |
 | `--destructive` / `--destructive-light` | yes | yes | EXISTS | |
 | `--neutral-100..900` | yes | yes (we add `-50` and `-950`) | EXISTS | |
-| `--checker-a` / `--checker-b` | yes | — | MISSING | Used by upstream color picker checkerboard. Verify ColorPicker still works without these. |
+| `--checker-a` / `--checker-b` | yes | yes (post-Phase-F) | EXISTS | Added in Phase F across light + all dark blocks. ColorPicker uses these. |
 | `--hover` / `--active` | yes | yes | EXISTS | |
 | `--focus-ring` | — | yes (`#6b97ff` default; theme-overridable) | EXTRA | Documented in tokens.css comment as Weekend drift. |
 | `--success` / `--success-foreground` | — | yes | EXTRA | |
@@ -216,10 +213,10 @@ spacing, shadows, motion durations).
 | `--shadow-card / -hover / -popover / -modal` | — | yes | EXTRA | Upstream sets shadows inline (e.g. `box-shadow: 0 1px 2px rgba(0,0,0,0.04)` in `.bento-card-border`). |
 | `--spring-fast-ms` / `-moderate-ms` / `-slow-ms` / `--ease-out-ui` | — | yes | EXTRA | |
 | Inter `@font-face` block | yes (URL `/fonts/InterVariable.ttf`, `format("truetype")`) | yes (URL `./fonts/InterVariable.ttf`, `format("truetype-variations")`) | EXISTS | Format string differs (`truetype` vs `truetype-variations`) — minor; verify in browser. |
-| `html.transitioning` block | yes (180ms transitions) | — | MISSING | Used by `lib/theme-context.tsx` and `lib/shape-context.tsx` to animate token swaps. Our ThemeProvider should consider this if shape transitions feel jarring. |
+| `html.transitioning` block | yes (180ms transitions) | yes (post-Phase-F) | EXISTS | Added in Phase F. Our `ShapeProvider` toggles the class via `transitionShape`. |
 | `.bento-card-border` | yes | — | n/a | Demo-only. |
-| `.shimmer-text` + `@keyframes shimmer` | yes | — | MISSING | Used by `thinking-indicator` (which we don't ship). If we ship it, port the keyframes. |
-| `@keyframes spinner-move` / `spinner-dash` | yes | (verify) | UNKNOWN | Wave 2: search our build for these — used by Button loading state. |
+| `.shimmer-text` + `@keyframes shimmer-text` | yes | yes (post-Phase-F) | EXISTS | Added in Phase F with per-theme gradient variants. Used by `ThinkingSteps` active label (post-B8); port-ready for `ThinkingIndicator`. |
+| `@keyframes spinner-move` / `spinner-dash` | yes | yes (post-Phase-F) | EXISTS | Added in Phase F. Consumed by Button `loading` state (post-B7). |
 | Shiki dual-theme block | yes | — | n/a | Demo-only. |
 
 **Token count summary**
@@ -228,8 +225,8 @@ spacing, shadows, motion durations).
 |---|---|
 | Upstream token surface (count of distinct CSS custom properties) | ~30 |
 | Our token surface | ~80+ (4 themes; per-theme overrides) |
-| EXISTS (we have it) | ~25 |
-| MISSING (upstream has, we don't) | 2 (`--checker-a/b`, `html.transitioning` block) |
+| EXISTS (we have it) | ~30 (post-Phase-F: `--checker-a/b`, `html.transitioning`, `shimmer-text` keyframes, `spinner-move/dash` keyframes all added) |
+| MISSING (upstream has, we don't) | 0 |
 | EXTRA (Weekend additions) | ~50+ (focus-ring, success, font slots, type scale, radii, spacing, shadows, motion, accent palette) |
 
 ---
@@ -238,8 +235,8 @@ spacing, shadows, motion durations).
 
 | Hook | Upstream path | Our path | Status | Note |
 |---|---|---|---|---|
-| `useProximityHover` | `registry/default/hooks/use-proximity-hover.ts` | `src/hooks/use-proximity-hover.ts` | EXISTS | **Drift expected** — ours has `axis: "x" \| "y"` option, rAF batching, transform-aware coordinate mapping, "inside-rect → containing index else closest" logic, and uses `offset*` props. Upstream is simpler: `getBoundingClientRect`-only, no rAF, closest-center only, no axis option. Wave 2: this is a high-value drift to document. |
-| `useRegisterProximityItem` | — | `src/hooks/use-proximity-hover.ts` (named export) | EXTRA | Weekend addition. |
+| `useProximityHover` | `registry/default/hooks/use-proximity-hover.ts` | `src/hooks/use-proximity-hover.ts` | EXISTS, identical-to-upstream (post-Phase-F) | **Wave 1 had the drift direction inverted** — upstream IS the sophisticated version (axis option, rAF batching, transform-aware coords, `useRegisterProximityItem`). Phase F replaced ours verbatim. |
+| `useRegisterProximityItem` | `registry/default/hooks/use-proximity-hover.ts` (named export) | `src/hooks/use-proximity-hover.ts` (named export) | EXISTS, identical-to-upstream (post-Phase-F) | Re-exported from upstream-verbatim hook. |
 
 ---
 
@@ -247,23 +244,23 @@ spacing, shadows, motion durations).
 
 | Symbol | Upstream path | Our path | Status | Note |
 |---|---|---|---|---|
-| `cn` | `registry/default/lib/utils.ts` | `src/lib/cn.ts` | EXISTS / RENAMED file | Same `clsx + twMerge` impl. File renamed `utils.ts` → `cn.ts`. |
-| `springs` | `registry/default/lib/springs.ts` | `src/lib/springs.ts` | EXISTS / **drift** | **Different transition shape**. Upstream uses the framer-motion v12 API: `{ type: "spring", duration, bounce }` (e.g. fast = `duration: 0.08, bounce: 0`). Ours uses the legacy stiffness/damping API: `{ type: "spring", stiffness: 600, damping: 40, mass: 0.5 }`. Wave 2: this is a behavioral difference for every animated component. |
-| `fontWeights` | `registry/default/lib/font-weight.ts` | `src/lib/font-weight.ts` | EXISTS | Same values; quoting differs (single vs double around `wght`). |
-| `ShapeProvider` / `useShape` / `useShapeContext` / `shapeMap` / `transitionShape` | `registry/default/lib/shape-context.tsx` | `src/lib/shape-context.ts` | RENAMED / **drift** | Upstream is a **React Context provider** with React state, `R` keyboard shortcut, `transitionShape` helper that toggles `html.transitioning`. Ours is a `useSyncExternalStore` hook reading `[data-shape]` from `<html>` — no provider, no shortcut, no transition class. Class strings also differ slightly (e.g. `rounded-2xl` vs `rounded-[20px]` for pill input). Wave 2: high-importance drift. |
-| `IconProvider` / `useIcon` / `useIcons` / `useIconLibrary` / `iconLibraryOrder` / `iconLibraryLabels` | `registry/default/lib/icon-context.tsx` | `src/lib/icon.ts` | RENAMED / **major drift** | Upstream supports **4 icon libraries** (lucide, tabler, phosphor, hugeicons) with runtime swap + `I` keyboard shortcut + 40+ icon names. Ours is **lucide-only**, exposes only 6 icons (`check`, `chevronDown`, `chevronRight`, `copy`, `search`, `x`), no provider, no swap. The `IconComponent` type alias is `LucideIcon` rather than the upstream `ComponentType<{size, strokeWidth, className}>` adapter shape. |
-| `iconMap` (canonical name → 4 libraries) | `registry/default/lib/icon-map.tsx` | — | MISSING | Big file (~440 lines) and a chunky dep set. Upstream has it for the demo's icon swapper. Weekend deliberately scoped down; not a bug, but Wave 2 should confirm none of our absorbed components import `iconMap` types. |
-| `ThemeProvider` / `useThemeContext` | `registry/default/lib/theme-context.tsx` | — (lives in `src/components/theme/theme-provider.tsx` in the desktop app) | MISSING from package | Upstream theming is `light`/`dark`/`system` via `.dark` class + `T` shortcut. Ours lives in the desktop app and writes `data-theme` instead. The package itself ships **no ThemeProvider** — that's a deliberate choice (consumers wire their own). |
-| `IconContextProps` adapter type | `registry/default/lib/icon-map.tsx` | `src/lib/icon.ts` | RENAMED | Upstream: `{ size?: number; strokeWidth?: number; className?: string }` strict-numeric. Ours: callable with `size?: number \| string; strokeWidth?: number \| string; className?: string`. |
+| `cn` | `registry/default/lib/utils.ts` | `src/lib/cn.ts` | EXISTS, identical-to-upstream | Same `clsx + twMerge` impl. File renamed `utils.ts` → `cn.ts` for clarity. |
+| `springs` | `registry/default/lib/springs.ts` | `src/lib/springs.ts` | EXISTS, identical-to-upstream (post-Phase-F) | Migrated to framer-motion v12 `{type, duration, bounce}` shape. fast = `duration: 0.08, bounce: 0` etc. |
+| `fontWeights` | `registry/default/lib/font-weight.ts` | `src/lib/font-weight.ts` | EXISTS, identical-to-upstream | Same values. |
+| `ShapeProvider` / `useShape` / `useShapeContext` / `shapeMap` / `transitionShape` | `registry/default/lib/shape-context.tsx` | `src/lib/shape-context.tsx` | EXISTS, identical-to-upstream (post-Phase-F) | Now a Provider + `R` keyboard shortcut + `transitionShape` helper. Mounted in `src/main.tsx` between ThemeProvider and InnerApp; mirrors state to `<html data-shape>`. `useShape` keeps the read-only signature for consumers that don't need set. |
+| `IconProvider` / `useIcon` / `useIcons` / `useIconLibrary` / `iconLibraryOrder` / `iconLibraryLabels` / `registerIconLibrary` | `registry/default/lib/icon-context.tsx` | `src/lib/icon-context.tsx` | EXISTS, identical-to-upstream (post-Phase-F) | 4-library runtime swap (lucide always installed; tabler/phosphor/hugeicons resolved via `registerIconLibrary` with peer-dep fallback). `I` keyboard shortcut to cycle. Legacy camelCase 6-name shim preserved for back-compat. |
+| `iconMap` (canonical name → 4 libraries) | `registry/default/lib/icon-map.tsx` | `src/lib/icon-map.tsx` | EXISTS, identical-to-upstream (post-Phase-F) | 40 kebab-case canonical names. |
+| `ThemeProvider` / `useThemeContext` | `registry/default/lib/theme-context.tsx` | — (lives in `src/components/theme/theme-provider.tsx` in the desktop app) | not-shipped-in-package, deliberate | The package itself ships no ThemeProvider — consumers wire their own (Weekend writes `data-theme` from a Tauri-aware app-level provider). |
+| `IconContextProps` adapter type | `registry/default/lib/icon-map.tsx` | `src/lib/icon-context.tsx` | EXISTS, identical-to-upstream (post-Phase-F) | Aligned with upstream adapter shape. |
 
 **Lib count summary**
 
 | Bucket | Count |
 |---|---|
 | Upstream lib symbols | 7 files (utils, springs, font-weight, shape-context, icon-context, icon-map, theme-context) |
-| Our lib symbols | 6 files (cn, springs, font-weight, shape-context, icon, icon-context) |
-| EXISTS | 4 (cn/utils, springs, font-weight, shape-context) — all with drift |
-| MISSING | 2 (icon-map full multi-library, theme-context) |
+| Our lib symbols | 6 files (cn, springs, font-weight, shape-context, icon-context, icon-map) — `theme-context` deliberately excluded |
+| EXISTS, identical-to-upstream | 6 |
+| MISSING | 0 — Phase F closed all foundation drift |
 | EXTRA | 0 |
 
 ---
@@ -308,22 +305,25 @@ follow the alias chain back to `registry/default/lib/`.
 
 ---
 
-## Open questions for Wave 2
+## Open questions — resolutions (post-Phase-D)
 
-1. Are `src/components/<name>.tsx` files that aren't re-exported (dropdown,
-   menu-item, checkbox-group, radio-group, tabs-subtle, thinking-indicator,
-   accordion, dialog, table, tooltip, color-picker, input-copy, input-group,
-   thinking-steps, badge, nav-item, nav-menu, mobile-drawer) **stale
-   duplicates** of the registry copies, **Weekend re-skin wrappers**, or
-   **canonical components consumed elsewhere**? This determines whether
-   "MISSING" entries above are actually missing or just unsurfaced.
-2. The `components/Select` Weekend-skin vs `registry/Select` — which does
-   the desktop UI consume, and are they intentionally divergent?
-3. Should `springs` be migrated from stiffness/damping → duration/bounce to
-   match upstream's framer-motion v12 idiom? (Mathematically not equivalent;
-   audit visual feel.)
-4. Should `useShape` be re-implemented as a Context provider to match
-   upstream, given that the desktop already drives shape via `[data-shape]`?
-5. `--secondary` token usage: upstream forbids it outside the compare route.
-   Where do we use it, and does the equivalent upstream code use a different
-   token (probably `--muted` or `--accent`)?
+All five Wave 2 open questions resolved during Phases F / B+C / D:
+
+1. **Orphan `src/components/*.tsx`**: Wave 1 fabricated the orphan list.
+   Confirmed in Wave 2 via `_orphan-files-classification.md` — those files
+   never existed. `src/components/` has 9 properly-exported sources only
+   (button, number-stepper, seg, select, slider, switch, textarea, plus
+   `theme/` provider).
+2. **`components/Select` vs `registry/Select`**: both intentional. The
+   registry Select is the upstream-fidelity port (post-B4); the
+   `components/select.tsx` is a thin Weekend wrapper retained for legacy
+   call sites and emits the same visuals via the registry.
+3. **springs migration**: done in Phase F. `{type, duration, bounce}` shape
+   matches upstream framer-motion v12.
+4. **`useShape` as Provider**: done in Phase F. `ShapeProvider` mounted in
+   `src/main.tsx`; `R` shortcut + `transitionShape` helper + `html.transitioning`
+   class all wired. `useShape()` keeps the read-only signature for consumers
+   that don't need the setter.
+5. **`--secondary` usage**: kept as deliberate Weekend deviation per D1.
+   Upstream forbids `bg-secondary` via eslint outside `/compare`; that rule
+   is upstream-internal and not enforced in our package.
