@@ -244,6 +244,28 @@
 }
 
 /* ============================================================================
+   @pierre/trees theme bridge
+
+   The FileTree component renders inside a shadow root; CSS custom properties
+   inherit through the boundary, so mapping our existing theme tokens to the
+   --trees-theme-* names the lib reads (per dist/utils/themeToTreeStyles.js)
+   makes the tree pick up active-theme colors automatically.
+   ============================================================================ */
+
+:root {
+  --trees-theme-sidebar-bg: var(--background);
+  --trees-theme-sidebar-fg: var(--foreground);
+  --trees-theme-sidebar-header-fg: var(--muted-foreground);
+  --trees-theme-list-active-selection-fg: var(--foreground);
+  --trees-theme-list-hover-bg: var(--secondary);
+  --trees-theme-list-active-selection-bg: var(--secondary);
+  --trees-theme-focus-ring: var(--ring);
+  --trees-theme-input-bg: var(--card);
+  --trees-theme-sidebar-border: var(--border);
+  --trees-theme-scrollbar-thumb: var(--scrollbar-thumb);
+}
+
+/* ============================================================================
    Theme Variables - Light
    ============================================================================ */
 

@@ -552,11 +552,11 @@ export function ProjectEditorPane({
             <Button
               className="w-full justify-start"
               disabled={!selectedFilePath || isSaving || isImageSelected}
+              icon={Save}
               onClick={handleSave}
               size="sm"
               variant="ghost"
             >
-              <Save className="mr-1.5 size-3" />
               {isSaving ? "Saving..." : isImageSelected ? "Image Preview" : "Save"}
             </Button>
           </div>

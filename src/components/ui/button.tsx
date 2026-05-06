@@ -4,6 +4,7 @@ import {
   type ButtonSize as DSButtonSize,
   type ButtonVariant as DSButtonVariant,
 } from "@weekend/design";
+import type { IconComponent } from "@weekend/design";
 import { primeSoundCueEngine, queueSoundCue } from "@/lib/audio/sound-cues";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +57,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: WeekendSize;
   asChild?: boolean;
   soundCue?: "default" | "none";
+  /** Icon rendered before children. Passing as a prop (instead of as a child)
+   * keeps the icon and text as sibling flex items so they align horizontally
+   * — passing the icon as a child stacks it above the text because Tailwind
+   * preflight sets `svg { display: block }`. */
+  icon?: IconComponent;
+  /** Icon rendered after children. Same alignment rationale as `icon`. */
+  trailingIcon?: IconComponent;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
