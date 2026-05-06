@@ -1,18 +1,22 @@
 {
-  "symbol": "ColorPicker",
+  "symbol": "ColorPickerPopover",
   "tier": "registry",
   "consumers": [
     {
       "file": "src/dev/docs/views/pages/color-picker.tsx",
-      "line": 25,
+      "line": 39,
       "props": [
         "value",
-        "onValueChange"
+        "onValueChange",
+        "triggerLabel",
+        "triggerLabelPosition"
       ]
     }
   ],
   "propUsage": {
     "onValueChange": 1,
+    "triggerLabel": 1,
+    "triggerLabelPosition": 1,
     "value": 1
   },
   "totalUsages": 1

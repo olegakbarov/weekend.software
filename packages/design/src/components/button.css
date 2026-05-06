@@ -144,6 +144,48 @@
   box-shadow: 0 0 0 2px var(--background), 0 0 0 3px var(--focus-ring);
 }
 
+/* Auto-sized icons inside Button (upstream parity).
+   Width/height come from the SVG's `size` attr; we only animate stroke-width
+   to match the upstream hover signature. Skipped for `.btn-link` so plain
+   text links don't pick up the icon styling when no icon is present. */
+.btn:not(.btn-link) > svg {
+  transition: stroke-width var(--spring-fast-ms);
+}
+
+.btn:not(.btn-link):hover > svg {
+  stroke-width: 2;
+}
+
+/* Loading state — keeps original content as an invisible ghost so the
+   button's intrinsic width does not collapse, and overlays a spinner. */
+.btn-loading-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  visibility: hidden;
+}
+
+.btn-spinner {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-spinner svg {
+  width: 1em;
+  height: 1em;
+  /* Sized relative to the button's font-size so it scales with `size`. */
+}
+
+.btn-spinner svg path {
+  stroke-dasharray: 15 85;
+  animation:
+    spinner-move 2s linear infinite,
+    spinner-dash 4s ease-in-out infinite;
+}
+
 /* Icon button — round, icon-only.
    Size is driven by `.btn-icon-{xs,sm,md,lg}` modifier classes.
    Default size (md) is 30x30 with a 14px svg. */

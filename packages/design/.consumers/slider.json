@@ -15,7 +15,7 @@
     },
     {
       "file": "src/dev/docs/views/pages/slider.tsx",
-      "line": 30,
+      "line": 36,
       "props": [
         "min",
         "max",

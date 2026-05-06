@@ -24,7 +24,13 @@ export function PageSlider(): React.JSX.Element {
         <div className="example">
           <div className="example-stage" style={{ flexDirection: "column", gap: 24, width: "100%" }}>
             <div style={{ width: "100%", maxWidth: 360 }}>
-              <Slider min={0} max={100} value={pct} onChange={setPct} format={(v) => `${v}%`} />
+              <Slider
+                min={0}
+                max={100}
+                value={pct}
+                onChange={(v) => setPct(v as number)}
+                format={(v) => `${v}%`}
+              />
             </div>
             <div style={{ width: "100%", maxWidth: 360 }}>
               <Slider
@@ -32,7 +38,7 @@ export function PageSlider(): React.JSX.Element {
                 max={240}
                 step={10}
                 value={cpm}
-                onChange={setCpm}
+                onChange={(v) => setCpm(v as number)}
                 format={(v) => `${v}/min`}
               />
             </div>

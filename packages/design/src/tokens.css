@@ -307,6 +307,10 @@ html.transitioning *::after {
 :root[data-theme="weekend-dark"] {
   color-scheme: dark;
 
+  /* Switch ON-state (Weekend = monochrome, not fluid blue) */
+  --switch-on: var(--foreground);
+  --switch-on-hover: var(--foreground);
+
   /* Surfaces */
   --background: #000000;
   --foreground: #A7A7A7;
@@ -360,6 +364,10 @@ html.transitioning *::after {
    ===================================================================== */
 :root[data-theme="weekend-paper"] {
   color-scheme: light;
+
+  /* Switch ON-state (Weekend = monochrome, not fluid blue) */
+  --switch-on: var(--foreground);
+  --switch-on-hover: var(--foreground);
 
   /* Surfaces */
   --background: #F5F0EB;

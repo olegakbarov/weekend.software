@@ -18,8 +18,13 @@ export type { SegItem, SegProps, SegVariant } from "./components/seg";
 export { Select } from "./components/select";
 export type { SelectItem, SelectProps } from "./components/select";
 
-export { Slider } from "./components/slider";
-export type { SliderProps } from "./components/slider";
+export { Slider, SliderComfortable } from "./components/slider";
+export type {
+  SliderProps,
+  SliderComfortableProps,
+  SliderValue,
+  SliderValuePosition,
+} from "./components/slider";
 
 export { Switch } from "./components/switch";
 export type { SwitchProps } from "./components/switch";

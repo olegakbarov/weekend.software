@@ -1,36 +1,38 @@
+/* =====================================================================
+   Switch — upstream-parity tactile toggle.
+   ON-state color is themed via --switch-on (defaults to fluid signature
+   blue #6B97FF). Weekend themes override to var(--foreground).
+   ===================================================================== */
+
 .ds-switch {
-  width: 36px;
-  height: 20px;
-  background: var(--neutral-300);
-  border-radius: var(--radius-pill);
+  --switch-on: #6b97ff;
+  --switch-on-hover: #5c89f2;
+
   position: relative;
-  cursor: pointer;
-  transition: background-color var(--spring-fast-ms);
+  width: 34px;
+  height: 20px;
   flex-shrink: 0;
+  background: var(--accent);
   border: 0;
+  border-radius: var(--radius-pill);
   padding: 0;
   outline: none;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  transition: background-color var(--spring-fast-ms) var(--ease-out-ui);
 }
 
-.ds-switch::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  background: white;
-  border-radius: var(--radius-pill);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  transition: transform var(--spring-moderate-ms) var(--ease-out-ui);
+.ds-switch[data-hover="true"]:not([data-on="true"]) {
+  background: color-mix(in oklab, var(--accent), var(--foreground) 10%);
 }
 
 .ds-switch[data-on="true"] {
-  background: var(--foreground);
+  background: var(--switch-on);
 }
 
-.ds-switch[data-on="true"]::after {
-  transform: translateX(16px);
+.ds-switch[data-on="true"][data-hover="true"] {
+  background: var(--switch-on-hover);
 }
 
 .ds-switch:disabled {
@@ -39,5 +41,20 @@
 }
 
 .ds-switch:focus-visible {
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 3px var(--focus-ring);
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 3px var(--focus-ring);
+}
+
+.ds-switch-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: #ffffff;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  pointer-events: none;
 }

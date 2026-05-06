@@ -47,15 +47,31 @@ export type {
 export {
   Accordion,
   AccordionContent,
+  AccordionGroup,
   AccordionItem,
   AccordionTrigger,
 } from "./registry/accordion";
 
-export { Badge, BADGE_HEX } from "./registry/badge";
-export type { BadgeColor, BadgeSize, BadgeVariant } from "./registry/badge";
+export { Badge, BADGE_HEX, badgeColors, badgeVariants } from "./registry/badge";
+export type { BadgeColor, BadgeProps, BadgeSize, BadgeVariant } from "./registry/badge";
 
-export { ColorPicker } from "./registry/color-picker";
-export type { ColorPickerProps } from "./registry/color-picker";
+export {
+  ColorPicker,
+  ColorPickerPopover,
+  ColorPickerPortalContainer,
+  ColorSwatch,
+  ColorTile,
+  parseColor,
+  buildParsed,
+} from "./registry/color-picker";
+export type {
+  ColorFormat,
+  ColorPickerPopoverProps,
+  ColorPickerProps,
+  ColorSwatchProps,
+  ColorTileProps,
+  ParsedColor,
+} from "./registry/color-picker";
 
 export { Combobox } from "./registry/combobox";
 export type { ComboboxItem, ComboboxProps } from "./registry/combobox";
@@ -86,7 +102,16 @@ export type { NavItemProps } from "./registry/nav-item";
 export { NavMenu, useNavMenu } from "./registry/nav-menu";
 export type { NavMenuProps } from "./registry/nav-menu";
 
-export { Select, SelectContent, SelectItem, SelectTrigger } from "./registry/select";
+export {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+  SelectTrigger,
+  triggerVariants,
+} from "./registry/select";
 export type {
   SelectContentProps,
   SelectItemProps,
@@ -108,6 +133,8 @@ export { Tabs, TabsContent, TabsList, TabsTrigger } from "./registry/tabs";
 
 export {
   ThinkingStep,
+  ThinkingStepDetails,
+  ThinkingStepImage,
   ThinkingStepSource,
   ThinkingStepSources,
   ThinkingSteps,
@@ -116,6 +143,8 @@ export {
 } from "./registry/thinking-steps";
 export type {
   StepStatus,
+  ThinkingStepDetailsProps,
+  ThinkingStepImageProps,
   ThinkingStepProps,
   ThinkingStepSourceProps,
   ThinkingStepSourcesProps,
@@ -124,7 +153,8 @@ export type {
   ThinkingStepsProps,
 } from "./registry/thinking-steps";
 
-export { Tooltip } from "./registry/tooltip";
+export { Tooltip, TooltipPortalContainer } from "./registry/tooltip";
+export type { TooltipProps, TooltipSide } from "./registry/tooltip";
 
 // File tree primitive — React API from @pierre/trees.
 // The `<FileTree>` component renders inside a shadow root, so no CSS import is

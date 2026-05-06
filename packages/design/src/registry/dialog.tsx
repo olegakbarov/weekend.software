@@ -15,6 +15,7 @@ import { cn } from "../lib/cn";
 import { useIcon } from "../lib/icon-context";
 import { springs } from "../lib/springs";
 import { useShape } from "../lib/shape-context";
+import { Button } from "../components/button";
 
 const DialogOpenContext = createContext(false);
 
@@ -95,16 +96,16 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
             onAnimationComplete={handleExitComplete}
           >
             {children}
-            <DialogPrimitive.Close
-              className={cn(
-                "absolute right-3 top-3 inline-grid place-items-center w-7 h-7",
-                "rounded-full text-muted-foreground hover:text-foreground hover:bg-hover",
-                "transition-colors duration-80",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6B97FF]",
-              )}
-              aria-label="Close"
-            >
-              <XIcon size={14} strokeWidth={1.5} />
+            <DialogPrimitive.Close asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Close"
+                className="absolute right-3 top-3 w-7 h-7 px-0"
+              >
+                <XIcon size={14} strokeWidth={1.5} />
+                <span className="sr-only">Close</span>
+              </Button>
             </DialogPrimitive.Close>
           </motion.div>
         </DialogPrimitive.Content>
@@ -135,7 +136,7 @@ const DialogTitle = forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn("text-[16px] text-foreground leading-tight", className)}
-    style={{ fontVariationSettings: '"wght" 700' }}
+    style={{ fontVariationSettings: "'wght' 700" }}
     {...props}
   />
 ));

@@ -20,10 +20,10 @@ describe("Button", () => {
     expect(btn?.className).toContain("btn-lg");
   });
 
-  it("default variant is tertiary, default size omits btn-md", () => {
+  it("default variant is primary (upstream parity), default size omits btn-md", () => {
     const { container } = render(<Button>Default</Button>);
     const btn = container.querySelector("button");
-    expect(btn?.className).toContain("btn-tertiary");
+    expect(btn?.className).toContain("btn-primary");
     expect(btn?.className).not.toContain("btn-md");
   });
 
@@ -57,6 +57,31 @@ describe("Button", () => {
     expect(screen.getByTestId("trail")).toBeTruthy();
   });
 
+  it("auto-sizes leading/trailing icons via the size prop", () => {
+    const sizes: { size: "sm" | "md" | "lg"; expected: number }[] = [
+      { size: "sm", expected: 14 },
+      { size: "md", expected: 16 },
+      { size: "lg", expected: 20 },
+    ];
+    for (const { size, expected } of sizes) {
+      const Lead = vi.fn((props: { size?: number }) => <svg data-size={props.size} />);
+      const Trail = vi.fn((props: { size?: number }) => <svg data-size={props.size} />);
+      render(
+        <Button size={size} icon={Lead} trailingIcon={Trail}>
+          {size}
+        </Button>,
+      );
+      expect(Lead).toHaveBeenCalledWith(
+        expect.objectContaining({ size: expected, strokeWidth: 1.5 }),
+        undefined,
+      );
+      expect(Trail).toHaveBeenCalledWith(
+        expect.objectContaining({ size: expected, strokeWidth: 1.5 }),
+        undefined,
+      );
+    }
+  });
+
   it.each([
     ["secondary", "btn-secondary"],
     ["destructive", "btn-destructive"],
@@ -86,6 +111,50 @@ describe("Button", () => {
     expect(anchor.tagName).toBe("A");
     expect(anchor.getAttribute("href")).toBe("/foo");
     expect(anchor.className).toContain("btn-primary");
+  });
+
+  describe("loading state", () => {
+    it("renders a spinner overlay when loading", () => {
+      const { container } = render(<Button loading>Saving</Button>);
+      expect(container.querySelector(".btn-spinner")).not.toBeNull();
+    });
+
+    it("disables the button while loading", () => {
+      const { container } = render(<Button loading>Saving</Button>);
+      const btn = container.querySelector("button");
+      expect(btn?.hasAttribute("disabled")).toBe(true);
+      expect(btn?.getAttribute("aria-busy")).toBe("true");
+    });
+
+    it("does not call onClick while loading", () => {
+      const onClick = vi.fn();
+      render(
+        <Button onClick={onClick} loading>
+          Saving
+        </Button>,
+      );
+      fireEvent.click(screen.getByRole("button"));
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it("keeps original content as an invisible ghost for layout stability", () => {
+      const Lead = (): React.JSX.Element => <svg data-testid="lead" />;
+      const { container } = render(
+        <Button loading icon={Lead}>
+          Saving
+        </Button>,
+      );
+      const ghost = container.querySelector(".btn-loading-ghost");
+      expect(ghost).not.toBeNull();
+      expect(ghost?.textContent).toContain("Saving");
+      // Ghost should be aria-hidden so screen readers ignore it.
+      expect(ghost?.getAttribute("aria-hidden")).toBe("true");
+    });
+
+    it("does not set aria-busy when not loading", () => {
+      const { container } = render(<Button>Idle</Button>);
+      expect(container.querySelector("button")?.hasAttribute("aria-busy")).toBe(false);
+    });
   });
 });
 
