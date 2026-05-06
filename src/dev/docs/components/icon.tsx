@@ -1,10 +1,12 @@
 import {
+  Activity,
   BookOpen,
   Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Circle,
+  ClipboardCheck,
   Copy,
   Edit,
   Github,
@@ -28,6 +30,7 @@ import {
   Table,
   ToggleRight,
   Type,
+  Users,
   Zap,
 } from "lucide-react";
 import type { ComponentType } from "react";
@@ -61,7 +64,10 @@ export type IconName =
   | "moon"
   | "github"
   | "chevronLeft"
-  | "chevronRight";
+  | "chevronRight"
+  | "activity"
+  | "clipboardCheck"
+  | "users";
 
 const REGISTRY: Record<IconName, ComponentType<LucideProps>> = {
   book: BookOpen,
@@ -93,6 +99,9 @@ const REGISTRY: Record<IconName, ComponentType<LucideProps>> = {
   github: Github,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
+  activity: Activity,
+  clipboardCheck: ClipboardCheck,
+  users: Users,
 };
 
 export interface IconProps extends Omit<LucideProps, "ref"> {

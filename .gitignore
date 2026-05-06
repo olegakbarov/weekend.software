@@ -11,3 +11,4 @@ src-tauri/resources/portless/
 *.tsbuildinfo
 
 .DS_Store
+.playwright-mcp/

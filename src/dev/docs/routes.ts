@@ -14,10 +14,11 @@ export interface RouteGroup {
 
 export const ROUTES: ReadonlyArray<RouteGroup> = [
   {
-    group: "Getting started",
+    group: "State",
     items: [
-      { id: "introduction", name: "Introduction", icon: "book" },
-      { id: "installation", name: "Installation", icon: "package" },
+      { id: "status", name: "Status", icon: "activity" },
+      { id: "audit", name: "Audit", icon: "clipboardCheck" },
+      { id: "consumers", name: "Consumers", icon: "users" },
     ],
   },
   {
@@ -77,7 +78,7 @@ export const FLAT_ROUTES: ReadonlyArray<FlatRoute> = ROUTES.flatMap((g) =>
   g.items.map((it) => ({ ...it, group: g.group })),
 );
 
-export const DEFAULT_ROUTE = "introduction";
+export const DEFAULT_ROUTE = "status";
 
 export function findRouteById(id: string): FlatRoute | undefined {
   return FLAT_ROUTES.find((r) => r.id === id);

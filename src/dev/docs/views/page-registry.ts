@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { PageAccordion } from "./pages/accordion";
+import { PageAudit } from "./pages/audit";
 import { PageBadge } from "./pages/badge";
 import { PageButton } from "./pages/button";
 import { PageChangelog } from "./pages/changelog";
@@ -7,6 +8,7 @@ import { PageCheckboxRadio } from "./pages/checkbox-radio";
 import { PageColorPicker } from "./pages/color-picker";
 import { PageColors } from "./pages/colors";
 import { PageCombobox } from "./pages/combobox";
+import { PageConsumers } from "./pages/consumers";
 import { PageDialog } from "./pages/dialog";
 import { PageDropdown } from "./pages/dropdown";
 import { PageFileTree } from "./pages/file-tree";
@@ -14,8 +16,6 @@ import { PageIcons } from "./pages/icons";
 import { PageInput } from "./pages/input";
 import { PageInputCopy } from "./pages/input-copy";
 import { PageInputGroup } from "./pages/input-group";
-import { PageInstallation } from "./pages/installation";
-import { PageIntroduction } from "./pages/introduction";
 import { PageMobileDrawer } from "./pages/mobile-drawer";
 import { PageMotion } from "./pages/motion";
 import { PageNavMenu } from "./pages/nav-menu";
@@ -25,6 +25,7 @@ import { PageShadows } from "./pages/shadows";
 import { PageSidebar } from "./pages/sidebar";
 import { PageSlider } from "./pages/slider";
 import { PageSpacing } from "./pages/spacing";
+import { PageStatus } from "./pages/status";
 import { PageSwitch } from "./pages/switch";
 import { PageTable } from "./pages/table";
 import { PageTabs } from "./pages/tabs";
@@ -36,9 +37,10 @@ import { PageVoice } from "./pages/voice";
 
 /** Maps route ids to their page component. Routes without an entry fall back to the placeholder. */
 export const PAGE_REGISTRY: Record<string, ComponentType> = {
-  // Getting started
-  introduction: PageIntroduction,
-  installation: PageInstallation,
+  // State
+  status: PageStatus,
+  audit: PageAudit,
+  consumers: PageConsumers,
   // Tokens
   colors: PageColors,
   typography: PageTypography,
