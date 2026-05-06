@@ -3,6 +3,15 @@
   "tier": "registry",
   "consumers": [
     {
+      "file": "src/components/editor/project-file-tree.tsx",
+      "line": 346,
+      "props": [
+        "model",
+        "renderContextMenu",
+        "style"
+      ]
+    },
+    {
       "file": "src/dev/docs/views/pages/file-tree.tsx",
       "line": 34,
       "props": [
@@ -12,8 +21,9 @@
     }
   ],
   "propUsage": {
-    "model": 1,
-    "style": 1
+    "model": 2,
+    "renderContextMenu": 1,
+    "style": 2
   },
-  "totalUsages": 1
+  "totalUsages": 2
 }

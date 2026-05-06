@@ -1,20 +1,29 @@
-import { useCallback, useState, type DragEvent } from "react";
 import {
-  ChevronRight,
-  File,
-  Folder,
-  FolderOpen,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type ReactNode,
+} from "react";
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+  FileTree,
+  prepareFileTreeInput,
+  useFileTree,
+} from "@weekend/design/registry";
+import { Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { ProjectTreeNode } from "@/lib/controller";
 
@@ -24,16 +33,6 @@ export type DroppedTreeFile = {
   file: File;
   sourcePath: string | null;
 };
-
-function toDropTargetKey(path: string | null): string {
-  return path ?? ROOT_DROP_TARGET_KEY;
-}
-
-function toParentDirPath(path: string): string | null {
-  const lastSlash = path.lastIndexOf("/");
-  if (lastSlash < 0) return null;
-  return path.slice(0, lastSlash) || null;
-}
 
 function hasFilePayload(event: DragEvent<HTMLElement>): boolean {
   if (event.dataTransfer.files.length > 0) return true;
@@ -116,7 +115,32 @@ function toErrorMessage(error: unknown): string {
   return String(error);
 }
 
-type PendingDeleteTarget = {
+// Append trailing slash to directory paths so the lib treats them as explicit
+// directories — this preserves empty folders (otherwise the lib infers
+// directories from descendant paths only).
+function flattenTreeToPaths(nodes: readonly ProjectTreeNode[]): string[] {
+  const paths: string[] = [];
+  const walk = (list: readonly ProjectTreeNode[]) => {
+    for (const node of list) {
+      if (node.isDir) {
+        paths.push(`${node.path}/`);
+        walk(node.children);
+      } else {
+        paths.push(node.path);
+      }
+    }
+  };
+  walk(nodes);
+  return paths;
+}
+
+// Strip a trailing slash so we round-trip directory paths to the Weekend
+// representation (no trailing slash).
+function normalizeLibPath(path: string): string {
+  return path.endsWith("/") ? path.slice(0, -1) : path;
+}
+
+type PendingTarget = {
   path: string;
   name: string;
   isDir: boolean;
@@ -142,34 +166,75 @@ export function ProjectFileTree({
   ) => Promise<void>;
   isMutating?: boolean;
 }) {
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
-  const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
-  const [pendingDeleteTarget, setPendingDeleteTarget] =
-    useState<PendingDeleteTarget | null>(null);
+  const preparedInput = useMemo(
+    () => prepareFileTreeInput(flattenTreeToPaths(tree)),
+    [tree]
+  );
 
-  const handleDragOverTarget = useCallback(
-    (event: DragEvent<HTMLElement>, targetDirPath: string | null) => {
+  // Stable ref for `onSelectFile` so the model is constructed once without
+  // re-binding the selection listener on each render.
+  const onSelectFileRef = useRef(onSelectFile);
+  useEffect(() => {
+    onSelectFileRef.current = onSelectFile;
+  }, [onSelectFile]);
+
+  const { model } = useFileTree({
+    initialExpansion: "open",
+    preparedInput,
+    onSelectionChange: (paths) => {
+      const head = paths[0];
+      if (!head) return;
+      // The lib emits paths with trailing slash for directories. Only forward
+      // file selection to the host — directory clicks just toggle expansion.
+      if (head.endsWith("/")) return;
+      onSelectFileRef.current(head);
+    },
+  });
+
+  // Keep tree paths in sync when the input changes — `useFileTree` only reads
+  // `options` once at mount, so we drive subsequent updates imperatively.
+  const initialInputRef = useRef(preparedInput);
+  useEffect(() => {
+    if (initialInputRef.current === preparedInput) return;
+    model.resetPaths([], { preparedInput });
+  }, [model, preparedInput]);
+
+  // Bridge external `selectedPath` → tree selection. Selection state lives
+  // inside the model; we drive it imperatively when the host changes.
+  useEffect(() => {
+    if (selectedPath === null) return;
+    const handle = model.getItem(selectedPath);
+    if (!handle || handle.isSelected()) return;
+    handle.select();
+  }, [model, selectedPath]);
+
+  // Drop target tracking for our wrapper-level drop handlers. The lib's tree
+  // renders inside a shadow root, so we cannot resolve per-row drop targets
+  // from drag events — file imports degrade to root-only.
+  const [isDroppingAtRoot, setIsDroppingAtRoot] = useState(false);
+  const handleDragOver = useCallback(
+    (event: DragEvent<HTMLElement>) => {
       if (!onDropFiles || isMutating) return;
       if (!hasFilePayload(event)) return;
       event.preventDefault();
       event.stopPropagation();
-      event.dataTransfer.dropEffect = "move";
-      setDropTargetKey(toDropTargetKey(targetDirPath));
+      event.dataTransfer.dropEffect = "copy";
+      setIsDroppingAtRoot(true);
     },
     [isMutating, onDropFiles]
   );
 
-  const handleDropToTarget = useCallback(
-    async (event: DragEvent<HTMLElement>, targetDirPath: string | null) => {
+  const handleDrop = useCallback(
+    async (event: DragEvent<HTMLElement>) => {
       if (!onDropFiles || isMutating) return;
       if (!hasFilePayload(event)) return;
       event.preventDefault();
       event.stopPropagation();
       const droppedFiles = toDroppedTreeFiles(event.dataTransfer);
-      setDropTargetKey(null);
+      setIsDroppingAtRoot(false);
       if (droppedFiles.length === 0) return;
       try {
-        await onDropFiles(targetDirPath, droppedFiles);
+        await onDropFiles(null, droppedFiles);
       } catch (error) {
         window.alert(toErrorMessage(error));
       }
@@ -177,261 +242,204 @@ export function ProjectFileTree({
     [isMutating, onDropFiles]
   );
 
-  const toggleDir = useCallback((path: string) => {
-    setExpandedPaths((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) {
-        next.delete(path);
-      } else {
-        next.add(path);
-      }
-      return next;
-    });
-  }, []);
+  // Confirm dialog state for rename + delete.
+  const [pendingDelete, setPendingDelete] = useState<PendingTarget | null>(null);
+  const [pendingRename, setPendingRename] = useState<PendingTarget | null>(null);
 
-  const confirmDeleteTarget = useCallback(() => {
-    const target = pendingDeleteTarget;
+  const confirmDelete = useCallback(() => {
+    const target = pendingDelete;
     if (!target) return;
-
     void onDeletePath(target.path).catch((error) => {
       window.alert(toErrorMessage(error));
     });
-  }, [onDeletePath, pendingDeleteTarget]);
+  }, [onDeletePath, pendingDelete]);
+
+  const submitRename = useCallback(
+    (nextName: string) => {
+      const target = pendingRename;
+      if (!target) return;
+      const trimmed = nextName.trim();
+      if (!trimmed || trimmed === target.name) {
+        setPendingRename(null);
+        return;
+      }
+      if (trimmed.includes("/") || trimmed.includes("\\")) {
+        window.alert("Name cannot include '/' or '\\'.");
+        return;
+      }
+      setPendingRename(null);
+      void onRenamePath(target.path, trimmed).catch((error) => {
+        window.alert(toErrorMessage(error));
+      });
+    },
+    [onRenamePath, pendingRename]
+  );
+
+  // The lib invokes `renderContextMenu` on right-click and portals the
+  // returned ReactNode anchored at the row.
+  const renderContextMenu = useCallback(
+    (
+      item: { path: string; kind: "directory" | "file"; name: string },
+      context: { close: (options?: { restoreFocus?: boolean }) => void }
+    ): ReactNode => {
+      const normalizedPath = normalizeLibPath(item.path);
+      const isDir = item.kind === "directory";
+      const target: PendingTarget = {
+        path: normalizedPath,
+        name: item.name,
+        isDir,
+      };
+      return (
+        <div
+          className="z-50 min-w-[10rem] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
+          data-file-tree-context-menu-root="true"
+        >
+          <button
+            className="flex w-full cursor-default select-none items-center gap-1.5 rounded-sm px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+            disabled={isMutating}
+            onClick={() => {
+              context.close({ restoreFocus: false });
+              setPendingRename(target);
+            }}
+            type="button"
+          >
+            <Pencil className="size-3" />
+            Rename
+          </button>
+          <div className="-mx-1 my-1 h-px bg-border" />
+          <button
+            className="flex w-full cursor-default select-none items-center gap-1.5 rounded-sm px-2 py-1.5 text-left text-sm text-destructive outline-none hover:bg-destructive/10 hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
+            disabled={isMutating}
+            onClick={() => {
+              context.close({ restoreFocus: false });
+              setPendingDelete(target);
+            }}
+            type="button"
+          >
+            <Trash2 className="size-3" />
+            Delete
+          </button>
+        </div>
+      );
+    },
+    [isMutating]
+  );
 
   return (
     <>
       <div
         className={cn(
-          "h-full overflow-y-auto overflow-x-hidden py-1.5 font-code text-[15px] leading-relaxed",
-          dropTargetKey === ROOT_DROP_TARGET_KEY && "bg-primary/5"
+          "h-full overflow-hidden",
+          isDroppingAtRoot && "bg-primary/5"
         )}
         onDragLeave={(event) => {
           if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
             return;
           }
-          setDropTargetKey(null);
+          setIsDroppingAtRoot(false);
         }}
-        onDragOver={(event) => handleDragOverTarget(event, null)}
+        onDragOver={handleDragOver}
         onDrop={(event) => {
-          void handleDropToTarget(event, null);
+          void handleDrop(event);
         }}
       >
-        <TreeNodes
-          nodes={tree}
-          depth={0}
-          dropTargetKey={dropTargetKey}
-          expandedPaths={expandedPaths}
-          isMutating={isMutating}
-          onDeletePath={onDeletePath}
-          onDragOverTarget={handleDragOverTarget}
-          onDropToTarget={handleDropToTarget}
-          onRenamePath={onRenamePath}
-          onRequestDelete={setPendingDeleteTarget}
-          onSelectFile={onSelectFile}
-          onToggleDir={toggleDir}
-          selectedPath={selectedPath}
+        <FileTree
+          model={model}
+          renderContextMenu={renderContextMenu}
+          style={{ height: "100%" }}
         />
       </div>
       <ConfirmDialog
         cancelText="Cancel"
         confirmText="Delete"
         message={
-          pendingDeleteTarget
-            ? pendingDeleteTarget.isDir
-              ? `Delete folder "${pendingDeleteTarget.name}" and all its contents?`
-              : `Delete file "${pendingDeleteTarget.name}"?`
+          pendingDelete
+            ? pendingDelete.isDir
+              ? `Delete folder "${pendingDelete.name}" and all its contents?`
+              : `Delete file "${pendingDelete.name}"?`
             : ""
         }
-        onConfirm={confirmDeleteTarget}
+        onConfirm={confirmDelete}
         onOpenChange={(open) => {
-          if (!open) {
-            setPendingDeleteTarget(null);
-          }
+          if (!open) setPendingDelete(null);
         }}
-        open={pendingDeleteTarget !== null}
-        title={pendingDeleteTarget?.isDir ? "Delete folder?" : "Delete file?"}
+        open={pendingDelete !== null}
+        title={pendingDelete?.isDir ? "Delete folder?" : "Delete file?"}
         variant="danger"
+      />
+      <RenameDialog
+        onCancel={() => setPendingRename(null)}
+        onSubmit={submitRename}
+        target={pendingRename}
       />
     </>
   );
 }
 
-function TreeNodes({
-  nodes,
-  depth,
-  dropTargetKey,
-  expandedPaths,
-  selectedPath,
-  onToggleDir,
-  onSelectFile,
-  onRenamePath,
-  onDeletePath,
-  onRequestDelete,
-  onDragOverTarget,
-  onDropToTarget,
-  isMutating,
+function RenameDialog({
+  target,
+  onSubmit,
+  onCancel,
 }: {
-  nodes: ProjectTreeNode[];
-  depth: number;
-  dropTargetKey: string | null;
-  expandedPaths: Set<string>;
-  selectedPath: string | null;
-  onToggleDir: (path: string) => void;
-  onSelectFile: (path: string) => void;
-  onRenamePath: (path: string, newName: string) => Promise<void>;
-  onDeletePath: (path: string) => Promise<void>;
-  onRequestDelete: (target: PendingDeleteTarget) => void;
-  onDragOverTarget: (
-    event: DragEvent<HTMLElement>,
-    targetDirPath: string | null
-  ) => void;
-  onDropToTarget: (
-    event: DragEvent<HTMLElement>,
-    targetDirPath: string | null
-  ) => Promise<void>;
-  isMutating: boolean;
+  target: PendingTarget | null;
+  onSubmit: (nextName: string) => void;
+  onCancel: () => void;
 }) {
+  const [value, setValue] = useState("");
+
+  // Reset the input each time the dialog opens for a different target.
+  useEffect(() => {
+    if (target) setValue(target.name);
+  }, [target]);
+
+  const isOpen = target !== null;
+
   return (
-    <>
-      {nodes.map((node) => {
-        const isExpanded = expandedPaths.has(node.path);
-        const isSelected = node.path === selectedPath;
-        const itemType = node.isDir ? "folder" : "file";
-        const dropTargetDirPath = node.isDir ? node.path : toParentDirPath(node.path);
-        const isDropTarget = dropTargetKey === toDropTargetKey(dropTargetDirPath);
-
-        const handleRename = async () => {
-          const nextName = window.prompt(`Rename ${itemType}`, node.name);
-          if (nextName === null) return;
-
-          const trimmedName = nextName.trim();
-          if (!trimmedName || trimmedName === node.name) return;
-          if (trimmedName.includes("/") || trimmedName.includes("\\")) {
-            window.alert("Name cannot include '/' or '\\'.");
-            return;
-          }
-
-          try {
-            await onRenamePath(node.path, trimmedName);
-          } catch (error) {
-            window.alert(toErrorMessage(error));
-          }
-        };
-
-        const handleDelete = () => {
-          onRequestDelete({
-            path: node.path,
-            name: node.name,
-            isDir: node.isDir,
-          });
-        };
-
-        const contextMenu = (
-          <ContextMenuContent>
-            <ContextMenuItem
-              disabled={isMutating}
-              onSelect={() => {
-                void handleRename();
-              }}
-            >
-              <Pencil className="mr-1.5 size-3" />
+    <Dialog
+      onOpenChange={(open) => {
+        if (!open) onCancel();
+      }}
+      open={isOpen}
+    >
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>
+            {target?.isDir ? "Rename folder" : "Rename file"}
+          </DialogTitle>
+          <DialogDescription>
+            {target
+              ? `Enter a new name for ${target.isDir ? "folder" : "file"} "${target.name}".`
+              : ""}
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSubmit(value);
+          }}
+        >
+          <Input
+            autoFocus
+            onChange={(event) => setValue(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                onCancel();
+              }
+            }}
+            placeholder="New name"
+            value={value}
+          />
+          <DialogFooter className="mt-4">
+            <Button onClick={onCancel} size="sm" type="button" variant="outline">
+              Cancel
+            </Button>
+            <Button size="sm" type="submit">
               Rename
-            </ContextMenuItem>
-            <ContextMenuSeparator />
-            <ContextMenuItem
-              className="text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive"
-              disabled={isMutating}
-              onSelect={() => {
-                void handleDelete();
-              }}
-            >
-              <Trash2 className="mr-1.5 size-3" />
-              Delete
-            </ContextMenuItem>
-          </ContextMenuContent>
-        );
-
-        if (node.isDir) {
-          return (
-            <div key={node.path}>
-              <ContextMenu>
-                <ContextMenuTrigger asChild>
-                  <button
-                    className={cn(
-                      "flex w-full items-center gap-1.5 py-[3px] pr-2 text-left text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground disabled:pointer-events-none disabled:opacity-60",
-                      isDropTarget && "bg-primary/15 text-foreground"
-                    )}
-                    disabled={isMutating}
-                    onDragOver={(event) => onDragOverTarget(event, node.path)}
-                    onDrop={(event) => {
-                      void onDropToTarget(event, node.path);
-                    }}
-                    onClick={() => onToggleDir(node.path)}
-                    style={{ paddingLeft: `${depth * 14 + 8}px` }}
-                    type="button"
-                  >
-                    <ChevronRight
-                      className={`size-3 shrink-0 text-muted-foreground/60 transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
-                    />
-                    {isExpanded ? (
-                      <FolderOpen className="size-3.5 shrink-0 text-muted-foreground/75" />
-                    ) : (
-                      <Folder className="size-3.5 shrink-0 text-muted-foreground/75" />
-                    )}
-                    <span className="truncate">{node.name}</span>
-                  </button>
-                </ContextMenuTrigger>
-                {contextMenu}
-              </ContextMenu>
-              {isExpanded && node.children.length > 0 ? (
-                <TreeNodes
-                  nodes={node.children}
-                  depth={depth + 1}
-                  dropTargetKey={dropTargetKey}
-                  expandedPaths={expandedPaths}
-                  onDeletePath={onDeletePath}
-                  onDragOverTarget={onDragOverTarget}
-                  onDropToTarget={onDropToTarget}
-                  onRenamePath={onRenamePath}
-                  onRequestDelete={onRequestDelete}
-                  onSelectFile={onSelectFile}
-                  onToggleDir={onToggleDir}
-                  selectedPath={selectedPath}
-                  isMutating={isMutating}
-                />
-              ) : null}
-            </div>
-          );
-        }
-
-        return (
-          <ContextMenu key={node.path}>
-            <ContextMenuTrigger asChild>
-              <button
-                className={cn(
-                  "flex w-full items-center gap-1.5 py-[3px] pr-2 text-left transition-colors disabled:pointer-events-none disabled:opacity-60",
-                  isSelected
-                    ? "bg-white/[0.08] text-foreground"
-                    : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
-                  isDropTarget && "bg-primary/15 text-foreground"
-                )}
-                disabled={isMutating}
-                onDragOver={(event) => onDragOverTarget(event, dropTargetDirPath)}
-                onDrop={(event) => {
-                  void onDropToTarget(event, dropTargetDirPath);
-                }}
-                onClick={() => onSelectFile(node.path)}
-                style={{ paddingLeft: `${depth * 14 + 22}px` }}
-                type="button"
-              >
-                <File className="size-3.5 shrink-0 text-muted-foreground/50" />
-                <span className="truncate">{node.name}</span>
-              </button>
-            </ContextMenuTrigger>
-            {contextMenu}
-          </ContextMenu>
-        );
-      })}
-    </>
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
