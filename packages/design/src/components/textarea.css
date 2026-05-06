@@ -36,13 +36,16 @@
   }
 
   .ds-textarea-ghost {
-    border-color: transparent;
+    /* Use border: 0 (not just border-color: transparent) because Weekend's
+       global `* { border-color: var(--color-border) }` is unlayered and wins
+       against this layered rule. Removing the border entirely sidesteps that. */
+    border: 0;
     background: transparent;
     padding: 0;
   }
 
   .ds-textarea-ghost:focus-visible {
-    border-color: transparent;
+    border: 0;
     box-shadow: none;
   }
 }
