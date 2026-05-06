@@ -56,6 +56,37 @@ describe("Button", () => {
     expect(screen.getByTestId("lead")).toBeTruthy();
     expect(screen.getByTestId("trail")).toBeTruthy();
   });
+
+  it.each([
+    ["secondary", "btn-secondary"],
+    ["destructive", "btn-destructive"],
+    ["success", "btn-success"],
+    ["link", "btn-link"],
+  ] as const)("renders the %s variant with the right class", (variant, expected) => {
+    const { container } = render(<Button variant={variant}>X</Button>);
+    expect(container.querySelector("button")?.className).toContain(expected);
+  });
+
+  it("applies btn-xs when size is xs", () => {
+    const { container } = render(<Button size="xs">x</Button>);
+    expect(container.querySelector("button")?.className).toContain("btn-xs");
+  });
+
+  it("renders as the child element when asChild is true", () => {
+    const { container } = render(
+      <Button asChild variant="primary">
+        <a href="/foo" data-testid="link-child">
+          Go
+        </a>
+      </Button>,
+    );
+    // No <button> rendered.
+    expect(container.querySelector("button")).toBeNull();
+    const anchor = screen.getByTestId("link-child");
+    expect(anchor.tagName).toBe("A");
+    expect(anchor.getAttribute("href")).toBe("/foo");
+    expect(anchor.className).toContain("btn-primary");
+  });
 });
 
 describe("IconButton", () => {
@@ -65,5 +96,17 @@ describe("IconButton", () => {
     const btn = screen.getByRole("button", { name: "Save" });
     expect(btn.getAttribute("title")).toBe("Save");
     expect(screen.getByTestId("ic")).toBeTruthy();
+  });
+
+  it("defaults to size md (btn-icon-md)", () => {
+    const Icon = (): React.JSX.Element => <svg />;
+    const { container } = render(<IconButton icon={Icon} label="Save" />);
+    expect(container.querySelector("button")?.className).toContain("btn-icon-md");
+  });
+
+  it.each(["xs", "sm", "md", "lg"] as const)("applies btn-icon-%s for size=%s", (size) => {
+    const Icon = (): React.JSX.Element => <svg />;
+    const { container } = render(<IconButton icon={Icon} label="Save" size={size} />);
+    expect(container.querySelector("button")?.className).toContain(`btn-icon-${size}`);
   });
 });

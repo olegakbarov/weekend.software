@@ -3,6 +3,19 @@
   "tier": "core",
   "consumers": [
     {
+      "file": "src/components/ui/button.tsx",
+      "line": 95,
+      "props": [
+        "ref",
+        "variant",
+        "size",
+        "asChild",
+        "className",
+        "onClick",
+        "onPointerDown"
+      ]
+    },
+    {
       "file": "src/dev/docs/views/pages/button.tsx",
       "line": 24,
       "props": [
@@ -81,10 +94,15 @@
     }
   ],
   "propUsage": {
+    "asChild": 1,
+    "className": 1,
     "icon": 1,
-    "size": 2,
+    "onClick": 1,
+    "onPointerDown": 1,
+    "ref": 1,
+    "size": 3,
     "trailingIcon": 1,
-    "variant": 8
+    "variant": 9
   },
-  "totalUsages": 11
+  "totalUsages": 12
 }

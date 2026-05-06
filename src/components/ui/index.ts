@@ -1,7 +1,7 @@
 // Core components
 
 export { Badge, badgeVariants } from "./badge";
-export { Button, buttonVariants } from "./button";
+export { Button } from "./button";
 export { ConfirmDialog } from "./confirm-dialog";
 export { CopyButton } from "./copy-button";
 // Phase 1: Design System Foundation

@@ -40,6 +40,13 @@
   /* ── Status / destructive ─────────────────────────────────────── */
   --destructive: #ef4444;
   --destructive-light: #fef2f2;
+  --destructive-foreground: #ffffff;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+
+  /* ── Secondary surface ────────────────────────────────────────── */
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
 
   /* ── Neutral ramp ─────────────────────────────────────────────── */
   --neutral-50: #fafafa;
@@ -169,6 +176,12 @@
 
   --destructive: #f87171;
   --destructive-light: #450a0a;
+  --destructive-foreground: #450a0a;
+  --success: #22c55e;
+  --success-foreground: #052e16;
+
+  --secondary: #1f1f1f;
+  --secondary-foreground: #f5f5f5;
 
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.5);
@@ -210,8 +223,15 @@
   --input: #181818;
   --focus-ring: #00BE83;
 
-  /* Status / destructive */
+  /* Status / destructive / success */
   --destructive: #F14D4C;
+  --destructive-foreground: #F8F8F8;
+  --success: #31AA40;
+  --success-foreground: #F8F8F8;
+
+  /* Secondary surface (matches Weekend's --secondary) */
+  --secondary: #1A1A1A;
+  --secondary-foreground: #DEDEDE;
 
   /* Type scale (+2px Weekend identity) */
   --text-xs: 14px;
@@ -257,8 +277,15 @@
   --input: #EDE7E1;
   --focus-ring: #E84B8A;
 
-  /* Status / destructive */
+  /* Status / destructive / success */
   --destructive: #D40924;
+  --destructive-foreground: #F8F8F8;
+  --success: #008D00;
+  --success-foreground: #F8F8F8;
+
+  /* Secondary surface (matches Weekend's --secondary) */
+  --secondary: #E8E2DB;
+  --secondary-foreground: #2C2420;
 
   /* Type scale (+2px Weekend identity, same as dark) */
   --text-xs: 14px;
@@ -301,6 +328,11 @@
   --focus-ring: #6b97ff;
   --destructive: #ef4444;
   --destructive-light: #fef2f2;
+  --destructive-foreground: #ffffff;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
   /* Fluid type scale (smaller than weekend) */
   --text-xs: 12px;
   --text-sm: 13px;
@@ -340,6 +372,11 @@
   --focus-ring: #6b97ff;
   --destructive: #f87171;
   --destructive-light: #450a0a;
+  --destructive-foreground: #450a0a;
+  --success: #22c55e;
+  --success-foreground: #052e16;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #f5f5f5;
   /* Fluid type scale */
   --text-xs: 12px;
   --text-sm: 13px;

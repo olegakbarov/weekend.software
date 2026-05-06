@@ -1,7 +1,13 @@
 // @weekend/design — Weekend Design system.
 
 export { Button, IconButton } from "./components/button";
-export type { ButtonProps, ButtonSize, ButtonVariant, IconButtonProps } from "./components/button";
+export type {
+  ButtonProps,
+  ButtonSize,
+  ButtonVariant,
+  IconButtonProps,
+  IconButtonSize,
+} from "./components/button";
 
 export { NumberStepper } from "./components/number-stepper";
 export type { NumberStepperProps } from "./components/number-stepper";

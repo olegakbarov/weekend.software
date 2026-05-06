@@ -69,6 +69,60 @@
   background: var(--hover);
 }
 
+.btn-secondary {
+  color: var(--secondary-foreground);
+}
+
+.btn-secondary .btn-bg {
+  background: var(--secondary);
+}
+
+.btn-secondary:hover .btn-bg {
+  background: color-mix(in oklab, var(--secondary), var(--foreground) 6%);
+}
+
+.btn-destructive {
+  color: var(--destructive-foreground);
+}
+
+.btn-destructive .btn-bg {
+  background: var(--destructive);
+}
+
+.btn-destructive:hover .btn-bg {
+  background: color-mix(in oklab, var(--destructive), transparent 12%);
+}
+
+.btn-success {
+  color: var(--success-foreground);
+}
+
+.btn-success .btn-bg {
+  background: var(--success);
+}
+
+.btn-success:hover .btn-bg {
+  background: color-mix(in oklab, var(--success), transparent 12%);
+}
+
+.btn-link {
+  color: var(--foreground);
+  padding: 0;
+  height: auto;
+  text-decoration: none;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.btn-xs {
+  height: 22px;
+  font-size: var(--text-xxs);
+  padding: 0 var(--space-2);
+}
+
 .btn-sm {
   height: 26px;
   font-size: var(--text-xs);
@@ -90,10 +144,10 @@
   box-shadow: 0 0 0 2px var(--background), 0 0 0 3px var(--focus-ring);
 }
 
-/* Icon button — round, icon-only */
+/* Icon button — round, icon-only.
+   Size is driven by `.btn-icon-{xs,sm,md,lg}` modifier classes.
+   Default size (md) is 30x30 with a 14px svg. */
 .btn-icon {
-  width: 30px;
-  height: 30px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -109,15 +163,53 @@
     background-color var(--spring-fast-ms);
 }
 
+.btn-icon-xs {
+  width: 22px;
+  height: 22px;
+}
+
+.btn-icon-sm {
+  width: 26px;
+  height: 26px;
+}
+
+.btn-icon-md {
+  width: 30px;
+  height: 30px;
+}
+
+.btn-icon-lg {
+  width: 36px;
+  height: 36px;
+}
+
 .btn-icon:hover {
   color: var(--foreground);
   background: var(--hover);
 }
 
 .btn-icon svg {
+  transition: stroke-width var(--spring-fast-ms);
+}
+
+.btn-icon-xs svg {
+  width: 12px;
+  height: 12px;
+}
+
+.btn-icon-sm svg {
+  width: 13px;
+  height: 13px;
+}
+
+.btn-icon-md svg {
   width: 14px;
   height: 14px;
-  transition: stroke-width var(--spring-fast-ms);
+}
+
+.btn-icon-lg svg {
+  width: 16px;
+  height: 16px;
 }
 
 .btn-icon:hover svg {
