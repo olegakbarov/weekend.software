@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Save } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, Save } from "lucide-react";
+import { IconButton } from "@weekend/design";
 import { Button } from "@/components/ui/button";
 import {
   ProjectFileTree,
   type DroppedTreeFile,
+  type ProjectFileTreeHandle,
 } from "@/components/editor/project-file-tree";
 import { CodeEditor, type VimMode } from "@/components/editor/code-editor";
 import {
@@ -147,6 +149,7 @@ export function ProjectEditorPane({
   const saveTimerRef = useRef<number | null>(null);
   const pendingContentRef = useRef<string | null>(null);
   const currentPathRef = useRef<string | null>(null);
+  const fileTreeRef = useRef<ProjectFileTreeHandle>(null);
 
   // Reset vim mode when vim is toggled or file changes
   useEffect(() => {
@@ -539,6 +542,7 @@ export function ProjectEditorPane({
         >
           <div className="min-h-0 flex-1 overflow-hidden">
             <ProjectFileTree
+              ref={fileTreeRef}
               tree={projectTree}
               selectedPath={selectedFilePath}
               onSelectFile={handleSelectFile}
@@ -548,16 +552,30 @@ export function ProjectEditorPane({
               isMutating={isMutatingTree}
             />
           </div>
-          <div className="space-y-1 border-border border-t p-2">
+          <div className="flex h-6 items-center justify-between border-t border-border/70 px-2">
+            <div className="flex items-center gap-0.5">
+              <IconButton
+                icon={ChevronsUpDown}
+                label="Expand all folders"
+                size="xs"
+                onClick={() => fileTreeRef.current?.expandAll()}
+              />
+              <IconButton
+                icon={ChevronsDownUp}
+                label="Collapse all folders"
+                size="xs"
+                onClick={() => fileTreeRef.current?.collapseAll()}
+              />
+            </div>
             <Button
-              className="w-full justify-start"
               disabled={!selectedFilePath || isSaving || isImageSelected}
               icon={Save}
               onClick={handleSave}
-              size="sm"
+              size="xs"
               variant="ghost"
+              className="font-code text-[12px]"
             >
-              {isSaving ? "Saving..." : isImageSelected ? "Image Preview" : "Save"}
+              {isSaving ? "Saving..." : isImageSelected ? "Image" : "Save"}
             </Button>
           </div>
         </ResizablePanel>

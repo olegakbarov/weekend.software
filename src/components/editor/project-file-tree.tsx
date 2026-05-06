@@ -1,6 +1,8 @@
 import {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -146,15 +148,12 @@ type PendingTarget = {
   isDir: boolean;
 };
 
-export function ProjectFileTree({
-  tree,
-  selectedPath,
-  onSelectFile,
-  onRenamePath,
-  onDeletePath,
-  onDropFiles,
-  isMutating = false,
-}: {
+export interface ProjectFileTreeHandle {
+  expandAll(): void;
+  collapseAll(): void;
+}
+
+interface ProjectFileTreeProps {
   tree: ProjectTreeNode[];
   selectedPath: string | null;
   onSelectFile: (path: string) => void;
@@ -165,7 +164,21 @@ export function ProjectFileTree({
     files: DroppedTreeFile[]
   ) => Promise<void>;
   isMutating?: boolean;
-}) {
+}
+
+export const ProjectFileTree = forwardRef<ProjectFileTreeHandle, ProjectFileTreeProps>(
+  function ProjectFileTree(
+    {
+      tree,
+      selectedPath,
+      onSelectFile,
+      onRenamePath,
+      onDeletePath,
+      onDropFiles,
+      isMutating = false,
+    },
+    forwardedRef,
+  ) {
   const paths = useMemo(() => flattenTreeToPaths(tree), [tree]);
   const preparedInput = useMemo(
     () => prepareFileTreeInput(paths),
@@ -201,6 +214,28 @@ export function ProjectFileTree({
     if (initialInputRef.current === preparedInput) return;
     model.resetPaths(paths, { preparedInput });
   }, [model, paths, preparedInput]);
+
+  // Expose tree-wide expand/collapse to the parent via ref. The lib only has
+  // per-directory expand()/collapse() methods so we walk every dir path.
+  const dirPaths = useMemo(() => paths.filter((p) => p.endsWith("/")), [paths]);
+  useImperativeHandle(
+    forwardedRef,
+    () => ({
+      expandAll() {
+        for (const p of dirPaths) {
+          const handle = model.getItem(p);
+          if (handle && "expand" in handle) handle.expand();
+        }
+      },
+      collapseAll() {
+        for (const p of dirPaths) {
+          const handle = model.getItem(p);
+          if (handle && "collapse" in handle) handle.collapse();
+        }
+      },
+    }),
+    [model, dirPaths],
+  );
 
   // Bridge external `selectedPath` → tree selection. Selection state lives
   // inside the model; we drive it imperatively when the host changes.
@@ -377,7 +412,8 @@ export function ProjectFileTree({
       />
     </>
   );
-}
+  },
+);
 
 function RenameDialog({
   target,
