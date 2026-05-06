@@ -14,7 +14,10 @@
     "design:index:check": "tsx scripts/design-index.ts --check",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "design:build": "pnpm --filter @weekend/design build",
+    "pretauri:dev": "pnpm --filter @weekend/design build",
+    "pretauri:build": "pnpm --filter @weekend/design build"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.2",

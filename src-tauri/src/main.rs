@@ -25,6 +25,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+use tauri::path::BaseDirectory;
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{
     AppHandle, Emitter, Manager, PhysicalPosition, Runtime, State, Url, WebviewUrl, WebviewWindow,
@@ -308,6 +309,7 @@ const PROJECT_GITIGNORE_FILE_NAME: &str = ".gitignore";
 const SHARED_ASSETS_ROOT_DIR_NAME: &str = "shared-assets";
 const PROJECT_BRIDGE_PORT_DIR_NAME: &str = "bridge-projects";
 const PROJECT_SHARED_ASSETS_DIR_NAME: &str = "shared-assets";
+const PROJECT_DESIGN_SYSTEM_DIR_NAME: &str = "weekend-design";
 const SHARED_DROP_WINDOW_LABEL: &str = "shared-drop";
 const SHARED_DROP_TRAY_ID: &str = "weekend-tray";
 const SHARED_DROP_TRAY_MENU_OPEN_MAIN_ID: &str = "weekend-tray-open-main";
@@ -414,6 +416,37 @@ when you need to inspect, test, or interact with the running application.
   values back. Example: `return document.title`
 - Chain multiple reads before acting: get the DOM, understand it, then click.
 - Prefer `browser_get_text` for quick content checks over full DOM dumps.
+
+# Design System
+
+The Weekend design system is available at `./shared-assets/weekend-design/`.
+It is a self-contained npm-installable bundle: tokens, base styles, fonts,
+and a small set of React components. Use it instead of hand-rolling visual
+primitives.
+
+## Static HTML
+
+```html
+<link rel="stylesheet" href="./shared-assets/weekend-design/tokens.css">
+<link rel="stylesheet" href="./shared-assets/weekend-design/index.css">
+<button class="btn btn-primary">Click</button>
+```
+
+## React / Vite
+
+After running `npm install ./shared-assets/weekend-design`:
+
+```ts
+import "@weekend/design/tokens.css";
+import "@weekend/design/index.css";
+import { Button } from "@weekend/design";
+```
+
+## Themes
+
+The design system supports four themes selected via the `data-theme`
+attribute on `<html>`: `fluid` (default), `fluid-dark`, `weekend-dark`,
+and `weekend-paper`.
 "#;
 
 const SHARED_ENV_FILE_NAME: &str = "shared.env.json";
@@ -1272,6 +1305,213 @@ fn sync_shared_assets_into_all_projects(
         synced_projects += 1;
     }
 
+    Ok(synced_projects)
+}
+
+fn project_design_system_dir(project_dir: &Path) -> PathBuf {
+    project_shared_assets_dir(project_dir).join(PROJECT_DESIGN_SYSTEM_DIR_NAME)
+}
+
+/// Resolve the directory holding the built `@weekend/design` dist.
+///
+/// In a development build this is `<workspace>/packages/design/dist/`,
+/// resolved via `CARGO_MANIFEST_DIR` (which is the absolute path to
+/// `src-tauri/`). In a release build the dist is bundled as a Tauri
+/// resource via `tauri.conf.json` and resolved through
+/// `BaseDirectory::Resource`.
+fn design_dist_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
+    // Dev: src-tauri/../packages/design/dist
+    let dev_candidate = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("packages")
+        .join("design")
+        .join("dist");
+    if dev_candidate.exists() {
+        return dev_candidate
+            .canonicalize()
+            .map_err(|error| format!("failed to canonicalize design dist path: {error}"))
+            .or(Ok(dev_candidate));
+    }
+
+    // Production: bundled resource.
+    if let Ok(resource_candidate) = app_handle
+        .path()
+        .resolve("packages/design/dist", BaseDirectory::Resource)
+    {
+        if resource_candidate.exists() {
+            return Ok(resource_candidate);
+        }
+    }
+
+    Err(
+        "design dist not found - run `pnpm --filter @weekend/design build` and try again"
+            .to_string(),
+    )
+}
+
+/// Recursively copy `src` into `dst`. Creates `dst` if it does not exist.
+/// Does not preserve modification times. Does not follow symlinks – any
+/// symlink encountered is copied as a regular file via `std::fs::copy`.
+fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<(), String> {
+    std::fs::create_dir_all(dst).map_err(|error| {
+        format!(
+            "failed to create design system directory {}: {error}",
+            dst.display()
+        )
+    })?;
+
+    let entries = std::fs::read_dir(src)
+        .map_err(|error| format!("failed to read {}: {error}", src.display()))?;
+
+    for entry in entries {
+        let entry = entry
+            .map_err(|error| format!("failed to read entry in {}: {error}", src.display()))?;
+        let from = entry.path();
+        let to = dst.join(entry.file_name());
+
+        let file_type = entry.file_type().map_err(|error| {
+            format!("failed to read file type for {}: {error}", from.display())
+        })?;
+
+        if file_type.is_dir() {
+            copy_dir_recursive(&from, &to)?;
+        } else {
+            std::fs::copy(&from, &to).map_err(|error| {
+                format!(
+                    "failed to copy design asset {} -> {}: {error}",
+                    from.display(),
+                    to.display()
+                )
+            })?;
+        }
+    }
+
+    Ok(())
+}
+
+/// Sync the design system dist into a project's
+/// `shared-assets/weekend-design/` directory. Removes top-level entries
+/// in the destination that no longer exist in the source. Does NOT
+/// deep-clean nested directories - if you remove a single file from a
+/// nested directory in `dist/`, that file will linger in projects until
+/// the parent directory itself goes away. Acceptable for v1; the dist is
+/// rebuilt as a unit.
+fn sync_design_system_into_project(
+    project_dir: &Path,
+    design_dist_dir: &Path,
+) -> Result<u32, String> {
+    if !design_dist_dir.exists() {
+        return Err(format!(
+            "design dist {} does not exist",
+            design_dist_dir.display()
+        ));
+    }
+
+    let target_root = project_design_system_dir(project_dir);
+    std::fs::create_dir_all(&target_root).map_err(|error| {
+        format!(
+            "failed to create project design system directory {}: {error}",
+            target_root.display()
+        )
+    })?;
+
+    // Collect top-level source names for stale removal.
+    let mut source_names: HashSet<String> = HashSet::new();
+    let entries = std::fs::read_dir(design_dist_dir).map_err(|error| {
+        format!("failed to read {}: {error}", design_dist_dir.display())
+    })?;
+    let mut sources: Vec<(std::ffi::OsString, PathBuf, bool)> = Vec::new();
+    for entry in entries {
+        let entry = entry.map_err(|error| {
+            format!(
+                "failed to read entry in {}: {error}",
+                design_dist_dir.display()
+            )
+        })?;
+        let file_type = entry.file_type().map_err(|error| {
+            format!(
+                "failed to read file type for {}: {error}",
+                entry.path().display()
+            )
+        })?;
+        if let Some(name) = entry.file_name().to_str() {
+            source_names.insert(name.to_string());
+        }
+        sources.push((entry.file_name(), entry.path(), file_type.is_dir()));
+    }
+
+    // Remove top-level stale entries in the target.
+    let target_entries = std::fs::read_dir(&target_root).map_err(|error| {
+        format!(
+            "failed to read project design system directory {}: {error}",
+            target_root.display()
+        )
+    })?;
+    for entry in target_entries {
+        let Ok(entry) = entry else { continue };
+        let Ok(file_name) = entry.file_name().into_string() else {
+            continue;
+        };
+        if source_names.contains(&file_name) {
+            continue;
+        }
+        let path = entry.path();
+        let Ok(file_type) = entry.file_type() else {
+            continue;
+        };
+        let removal = if file_type.is_dir() {
+            std::fs::remove_dir_all(&path)
+        } else {
+            std::fs::remove_file(&path)
+        };
+        removal.map_err(|error| {
+            format!(
+                "failed to remove stale design asset {}: {error}",
+                path.display()
+            )
+        })?;
+    }
+
+    // Copy each top-level entry.
+    let mut copied = 0u32;
+    for (file_name, source_path, is_dir) in sources {
+        let target_path = target_root.join(&file_name);
+        if is_dir {
+            // Wipe the destination subdir so removed files inside it don't linger.
+            if target_path.exists() {
+                std::fs::remove_dir_all(&target_path).map_err(|error| {
+                    format!(
+                        "failed to refresh design asset directory {}: {error}",
+                        target_path.display()
+                    )
+                })?;
+            }
+            copy_dir_recursive(&source_path, &target_path)?;
+        } else {
+            std::fs::copy(&source_path, &target_path).map_err(|error| {
+                format!(
+                    "failed to copy design asset {} -> {}: {error}",
+                    source_path.display(),
+                    target_path.display()
+                )
+            })?;
+        }
+        copied += 1;
+    }
+
+    Ok(copied)
+}
+
+fn sync_design_system_into_all_projects_inner(
+    weekend_root: &Path,
+    design_dist_dir: &Path,
+) -> Result<u32, String> {
+    let project_dirs = list_user_project_dirs(weekend_root)?;
+    let mut synced_projects = 0u32;
+    for project_dir in project_dirs {
+        sync_design_system_into_project(&project_dir, design_dist_dir)?;
+        synced_projects += 1;
+    }
     Ok(synced_projects)
 }
 
@@ -4289,6 +4529,32 @@ fn backfill_shared_assets_to_projects() -> Result<(), String> {
     Ok(())
 }
 
+fn backfill_design_system_to_projects(app_handle: &AppHandle) -> Result<(), String> {
+    let root = weekend_root()?;
+    std::fs::create_dir_all(&root)
+        .map_err(|error| format!("failed to create ~/.weekend: {error}"))?;
+
+    let dist_dir = design_dist_path(app_handle)?;
+    let synced_projects = sync_design_system_into_all_projects_inner(&root, &dist_dir)?;
+    if synced_projects > 0 {
+        log_backend(
+            "INFO",
+            format!(
+                "synced design system to {synced_projects} project(s) during startup backfill"
+            ),
+        );
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+fn sync_design_system_into_all_projects(app_handle: tauri::AppHandle) -> Result<u32, String> {
+    let root = weekend_root()?;
+    let dist_dir = design_dist_path(&app_handle)?;
+    sync_design_system_into_all_projects_inner(&root, &dist_dir)
+}
+
 fn replace_legacy_node_modules_paths(
     content: &str,
     legacy_root_prefix: &str,
@@ -4587,6 +4853,7 @@ fn clone_github_repo(repo_url: &str, target_dir: &Path) -> Result<(), String> {
 
 #[tauri::command]
 fn create_new_project(
+    app_handle: tauri::AppHandle,
     name: Option<String>,
     default_agent_command: Option<String>,
     github_repo_url: Option<String>,
@@ -4652,6 +4919,25 @@ fn create_new_project(
     )?;
     let shared_root = ensure_shared_assets_root()?;
     sync_shared_assets_into_project(&candidate, &shared_root)?;
+    match design_dist_path(&app_handle) {
+        Ok(dist_dir) => {
+            if let Err(error) = sync_design_system_into_project(&candidate, &dist_dir) {
+                log_backend(
+                    "WARN",
+                    format!(
+                        "failed to sync design system into {}: {error}",
+                        candidate.display()
+                    ),
+                );
+            }
+        }
+        Err(error) => {
+            log_backend(
+                "WARN",
+                format!("design system unavailable for new project: {error}"),
+            );
+        }
+    }
     seed_agent_runtime_guidance_files(&candidate)?;
     if let Some(prompt) = normalize_optional_string(initial_prompt) {
         let prompt_path = candidate.join("PROMPT.md");
@@ -6724,6 +7010,9 @@ fn main() {
             if let Err(error) = backfill_shared_assets_to_projects() {
                 log_backend("WARN", format!("shared assets backfill skipped: {error}"));
             }
+            if let Err(error) = backfill_design_system_to_projects(app.handle()) {
+                log_backend("WARN", format!("design system backfill skipped: {error}"));
+            }
             spawn_project_tree_watcher(app.handle().clone());
             bridge_server::start(app.handle().clone());
 
@@ -6787,7 +7076,8 @@ fn main() {
             find_available_port,
             probe_runtime_url,
             get_active_theme,
-            set_active_theme
+            set_active_theme,
+            sync_design_system_into_all_projects
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

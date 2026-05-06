@@ -47,7 +47,10 @@
     "macOS": {
       "minimumSystemVersion": "10.15"
     },
-    "resources": ["resources/portless/**/*"],
+    "resources": [
+      "resources/portless/**/*",
+      "../packages/design/dist/**/*"
+    ],
     "externalBin": ["binaries/weekend-browser-mcp"]
   }
 }
