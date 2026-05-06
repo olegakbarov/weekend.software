@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { Check, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { CreateProjectInput } from "@/lib/controller";
@@ -92,20 +93,20 @@ function AgentCommandPicker({
 
   return (
     <div className="relative" ref={containerRef}>
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         disabled={disabled}
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
-          "flex h-7 items-center gap-1.5 rounded-md px-2 font-code text-xs normal-case transition-colors",
-          "text-muted-foreground hover:text-foreground",
-          "disabled:opacity-50",
+          "h-7 gap-1.5 px-2 font-code text-xs normal-case",
           open && "text-foreground"
         )}
       >
         <span className="truncate">{value || "agent command"}</span>
         <ChevronDown className="size-3 shrink-0 text-muted-foreground/60" />
-      </button>
+      </Button>
 
       {open ? (
         <div
@@ -249,17 +250,15 @@ export function HomePage({
               value={agentCommand}
             />
 
-            <button
+            <Button
               disabled={!canSubmit}
               type="submit"
-              className={cn(
-                "h-8 rounded-md px-4 font-vcr text-xs uppercase tracking-wider transition-colors",
-                "bg-foreground text-background hover:bg-foreground/90",
-                "disabled:bg-secondary disabled:text-muted-foreground/40"
-              )}
+              variant="default"
+              size="default"
+              className="h-8 px-4 font-vcr text-xs uppercase tracking-wider"
             >
               {isCreatingProject ? "Submitting…" : "Submit"}
-            </button>
+            </Button>
           </div>
         </div>
 
