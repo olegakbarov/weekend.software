@@ -43,7 +43,10 @@ export interface SliderProps
   valuePosition?: SliderValuePosition;
   /** Format the readout. Upstream-aligned name. */
   formatValue?: (v: number) => string;
-  /** Backwards-compatible alias for `formatValue`. Deprecated — prefer `formatValue`. */
+  /**
+   * @deprecated Use `formatValue` instead. Retained for back-compat with the
+   * pre-port Slider API; will be removed in a future major.
+   */
   format?: (v: number) => string;
   label?: string;
   disabled?: boolean;

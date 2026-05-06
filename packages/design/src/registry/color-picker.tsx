@@ -586,9 +586,12 @@ function SaturationSquare({ h, s, v, onChange }: SaturationSquareProps) {
 }
 
 // ---------------------------------------------------------------------------
-// ChannelSlider — local hue/alpha slider (gradient track + draggable thumb)
-// Custom because our package's Slider doesn't support gradient tracks or
-// transparent fills (that's a deliberate design call documented in the audit).
+// ChannelSlider — local hue/alpha slider (gradient track + draggable color-tile thumb)
+// Custom because the picker needs a thumb that displays the *current channel
+// color as a small tile*, plus the alpha slider's checker pattern needs a
+// `transparent` fill that exposes the track behind. @weekend/design's
+// `Slider` (B5) supports gradient tracks via `trackStyle` but its thumb is
+// a fixed shape — replacing this would lose the picker's signature visual.
 // ---------------------------------------------------------------------------
 
 interface ChannelSliderProps {
