@@ -1,0 +1,52 @@
+{
+  "symbol": "Textarea",
+  "tier": "core",
+  "consumers": [
+    {
+      "file": "src/components/home/home-page.tsx",
+      "line": 130,
+      "props": [
+        "autoFocus",
+        "disabled",
+        "onChange",
+        "onKeyDown",
+        "placeholder",
+        "ref",
+        "value",
+        "variant",
+        "className"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/input.tsx",
+      "line": 72,
+      "props": [
+        "placeholder",
+        "value",
+        "onChange"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/input.tsx",
+      "line": 77,
+      "props": [
+        "variant",
+        "placeholder",
+        "value",
+        "onChange"
+      ]
+    }
+  ],
+  "propUsage": {
+    "autoFocus": 1,
+    "className": 1,
+    "disabled": 1,
+    "onChange": 3,
+    "onKeyDown": 1,
+    "placeholder": 3,
+    "ref": 1,
+    "value": 3,
+    "variant": 2
+  },
+  "totalUsages": 3
+}

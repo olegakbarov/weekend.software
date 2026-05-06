@@ -33,4 +33,3 @@ export {
   ResizablePanelGroup,
 } from "./resizable";
 export { Spinner } from "./spinner";
-export { Textarea } from "./textarea";

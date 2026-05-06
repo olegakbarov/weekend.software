@@ -1,0 +1,53 @@
+{
+  "symbol": "Combobox",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/components/home/home-page.tsx",
+      "line": 143,
+      "props": [
+        "variant",
+        "disabled",
+        "items",
+        "onChange",
+        "value",
+        "placeholder",
+        "popoverWidth",
+        "className"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/combobox.tsx",
+      "line": 45,
+      "props": [
+        "value",
+        "onChange",
+        "items",
+        "placeholder"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/combobox.tsx",
+      "line": 65,
+      "props": [
+        "value",
+        "onChange",
+        "items",
+        "allowFreeText",
+        "placeholder"
+      ]
+    }
+  ],
+  "propUsage": {
+    "allowFreeText": 1,
+    "className": 1,
+    "disabled": 1,
+    "items": 3,
+    "onChange": 3,
+    "placeholder": 3,
+    "popoverWidth": 1,
+    "value": 3,
+    "variant": 1
+  },
+  "totalUsages": 3
+}

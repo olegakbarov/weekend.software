@@ -6,6 +6,7 @@ import { PageChangelog } from "./pages/changelog";
 import { PageCheckboxRadio } from "./pages/checkbox-radio";
 import { PageColorPicker } from "./pages/color-picker";
 import { PageColors } from "./pages/colors";
+import { PageCombobox } from "./pages/combobox";
 import { PageDialog } from "./pages/dialog";
 import { PageDropdown } from "./pages/dropdown";
 import { PageIcons } from "./pages/icons";
@@ -50,6 +51,7 @@ export const PAGE_REGISTRY: Record<string, ComponentType> = {
   button: PageButton,
   "checkbox-radio": PageCheckboxRadio,
   "color-picker": PageColorPicker,
+  combobox: PageCombobox,
   dialog: PageDialog,
   dropdown: PageDropdown,
   input: PageInput,

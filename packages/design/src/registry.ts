@@ -15,6 +15,9 @@ export type { BadgeColor, BadgeSize, BadgeVariant } from "./registry/badge";
 export { ColorPicker } from "./registry/color-picker";
 export type { ColorPickerProps } from "./registry/color-picker";
 
+export { Combobox } from "./registry/combobox";
+export type { ComboboxItem, ComboboxProps } from "./registry/combobox";
+
 export {
   Dialog,
   DialogClose,

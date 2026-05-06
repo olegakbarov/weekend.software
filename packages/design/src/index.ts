@@ -24,5 +24,8 @@ export type { SliderProps } from "./components/slider";
 export { Switch } from "./components/switch";
 export type { SwitchProps } from "./components/switch";
 
+export { Textarea } from "./components/textarea";
+export type { TextareaProps, TextareaVariant } from "./components/textarea";
+
 export { cn } from "./lib/cn";
 export type { IconComponent } from "./lib/icon";

@@ -6,21 +6,24 @@ import {
   useRef,
   useState,
 } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Textarea } from "@weekend/design";
+import { Combobox, type ComboboxItem } from "@weekend/design/registry";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { CreateProjectInput } from "@/lib/controller";
 
 const MAX_TEXTAREA_HEIGHT = 240;
 
-const AGENT_COMMAND_OPTIONS = [
-  "claude",
-  "claude --dangerously-skip-permissions",
-  "codex",
-] as const;
+const AGENT_COMMAND_ITEMS: ReadonlyArray<ComboboxItem> = [
+  { value: "claude", label: "claude" },
+  {
+    value: "claude --dangerously-skip-permissions",
+    label: "claude --dangerously-skip-permissions",
+  },
+  { value: "codex", label: "codex" },
+];
 
-const DEFAULT_AGENT_COMMAND = AGENT_COMMAND_OPTIONS[0];
+const DEFAULT_AGENT_COMMAND = AGENT_COMMAND_ITEMS[0]!.value;
 
 function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -58,113 +61,6 @@ function parsePromptInput(raw: string): CreateProjectInput | null {
     name,
     initialPrompt: trimmed,
   };
-}
-
-function AgentCommandPicker({
-  disabled,
-  onChange,
-  value,
-}: {
-  disabled: boolean;
-  onChange: (next: string) => void;
-  value: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handlePointer = (event: MouseEvent) => {
-      if (!containerRef.current) return;
-      if (!containerRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const handleKey = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", handlePointer);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("mousedown", handlePointer);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, [open]);
-
-  return (
-    <div className="relative" ref={containerRef}>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={disabled}
-        onClick={() => setOpen((prev) => !prev)}
-        className={cn(
-          "h-7 gap-1.5 px-2 font-code text-xs normal-case",
-          open && "text-foreground"
-        )}
-      >
-        <span className="truncate">{value || "agent command"}</span>
-        <ChevronDown className="size-3 shrink-0 text-muted-foreground/60" />
-      </Button>
-
-      {open ? (
-        <div
-          className={cn(
-            "absolute left-0 top-full z-20 mt-2 w-80 overflow-hidden rounded-md border border-border bg-card shadow-lg"
-          )}
-        >
-          <input
-            autoFocus
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                setOpen(false);
-              }
-            }}
-            placeholder="Custom command…"
-            spellCheck={false}
-            autoCapitalize="off"
-            autoComplete="off"
-            autoCorrect="off"
-            className="w-full bg-transparent px-3 py-2 font-code text-xs outline-none placeholder:text-muted-foreground/40"
-          />
-          <div className="border-t border-border/60" />
-          <ul className="py-1">
-            {AGENT_COMMAND_OPTIONS.map((option) => {
-              const selected = option === value;
-              return (
-                <li key={option}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onChange(option);
-                      setOpen(false);
-                    }}
-                    className={cn(
-                      "flex w-full items-center gap-2 px-3 py-1.5 text-left font-code text-xs normal-case transition-colors",
-                      "hover:bg-secondary/60",
-                      selected && "bg-secondary/40 text-foreground"
-                    )}
-                  >
-                    <Check
-                      className={cn(
-                        "size-3 shrink-0",
-                        selected ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <span className="truncate">{option}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ) : null}
-    </div>
-  );
 }
 
 export function HomePage({
@@ -244,10 +140,15 @@ export function HomePage({
           />
 
           <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">
-            <AgentCommandPicker
+            <Combobox
+              variant="ghost"
               disabled={isCreatingProject}
+              items={AGENT_COMMAND_ITEMS}
               onChange={setAgentCommand}
               value={agentCommand}
+              placeholder="agent command"
+              popoverWidth={320}
+              className="font-code text-xs normal-case"
             />
 
             <Button
