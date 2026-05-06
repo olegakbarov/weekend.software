@@ -417,6 +417,52 @@ class TerminalRegistry {
     }
   }
 
+  renameProject(oldProject: string, newProject: string): void {
+    const rekeys: Array<{
+      oldTerminalId: string;
+      newTerminalId: string;
+      managed: ManagedTerminal;
+    }> = [];
+
+    for (const [terminalId, managed] of this.terminals) {
+      if (managed.project !== oldProject) continue;
+      const prefix = `${oldProject}:`;
+      const newTerminalId = terminalId.startsWith(prefix)
+        ? `${newProject}:${terminalId.slice(prefix.length)}`
+        : terminalId === `main-${oldProject}`
+          ? `main-${newProject}`
+          : terminalId;
+      rekeys.push({ oldTerminalId: terminalId, newTerminalId, managed });
+    }
+
+    for (const { oldTerminalId, newTerminalId, managed } of rekeys) {
+      managed.project = newProject;
+      if (oldTerminalId === newTerminalId) continue;
+      if (this.terminals.has(newTerminalId)) continue;
+
+      this.terminals.delete(oldTerminalId);
+      this.terminals.set(newTerminalId, managed);
+
+      const chunks = this.outputChunks.get(oldTerminalId);
+      if (chunks) {
+        this.outputChunks.delete(oldTerminalId);
+        this.outputChunks.set(newTerminalId, chunks);
+      }
+
+      const rafId = this.flushRafIds.get(oldTerminalId);
+      if (rafId !== undefined) {
+        this.flushRafIds.delete(oldTerminalId);
+        this.flushRafIds.set(newTerminalId, rafId);
+      }
+
+      const lastSeq = this.lastSeqByTerminal.get(oldTerminalId);
+      if (lastSeq !== undefined) {
+        this.lastSeqByTerminal.delete(oldTerminalId);
+        this.lastSeqByTerminal.set(newTerminalId, lastSeq);
+      }
+    }
+  }
+
   setTheme(mode: "dark" | "light"): void {
     this.currentTheme = mode;
     const theme = mode === "dark" ? DARK_THEME : LIGHT_THEME;

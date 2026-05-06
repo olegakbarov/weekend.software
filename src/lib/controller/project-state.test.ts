@@ -24,7 +24,24 @@ function makeState(): WorkspaceControllerState {
     runtimeDebugSnapshot: null,
     runtimeDebugError: null,
     runtimeTelemetryEvents: [],
-    terminalSessionsByProject: { alpha: [], beta: [] },
+    terminalSessionsByProject: {
+      alpha: [
+        {
+          terminalId: "alpha:Shell",
+          project: "alpha",
+          displayName: "Shell",
+          customName: null,
+          status: "alive",
+          hasActiveProcess: false,
+          foregroundProcessName: null,
+          label: "Shell",
+          createdAt: 1,
+          playSpawned: false,
+          processRole: null,
+        },
+      ],
+      beta: [],
+    },
     playStateByProject: { alpha: "running", beta: "idle" },
     playErrorByProject: { alpha: null, beta: null },
     runtimeProcessHealthyByProject: { alpha: true, beta: false },
@@ -75,6 +92,11 @@ test("renameProjectState rekeys project-scoped maps and archived list", () => {
   assert.ok(!("alpha" in renamed.projectTreeByProject));
   assert.ok("gamma" in renamed.terminalSessionsByProject);
   assert.ok(!("alpha" in renamed.terminalSessionsByProject));
+  assert.equal(renamed.terminalSessionsByProject.gamma[0]?.project, "gamma");
+  assert.equal(
+    renamed.terminalSessionsByProject.gamma[0]?.terminalId,
+    "gamma:Shell"
+  );
   assert.deepEqual(renamed.archivedProjects, ["archive-me", "gamma"]);
 });
 

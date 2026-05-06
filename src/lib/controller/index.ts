@@ -552,7 +552,10 @@ export function createWorkspaceController() {
       renameSharedAssetImpl(ctx, fileName, newFileName),
     deleteSharedAsset: (fileName: string) =>
       deleteSharedAssetImpl(ctx, fileName),
-    updateProjectConfig: (project: string, options?: { env?: Record<string, string> }) =>
+    updateProjectConfig: (
+      project: string,
+      options?: { env?: Record<string, string>; deployUrl?: string | null }
+    ) =>
       updateProjectConfigImpl(ctx, runtimeInternals, project, options),
     deleteProject: (project: string) =>
       deleteProjectImpl(ctx, projectInternals, runtimeInternals, project),

@@ -41,6 +41,7 @@ use logging::{
 };
 
 struct TerminalSession {
+    terminal_id: Mutex<String>,
     master: Mutex<Box<dyn portable_pty::MasterPty + Send>>,
     writer: Mutex<Box<dyn Write + Send>>,
     #[allow(dead_code)]
@@ -370,6 +371,7 @@ const PROJECT_AGENT_RUNTIME_GUIDANCE: &str = r#"# Runtime Configuration
 Read `./weekend.config.json` before launching any runtime command.
 Resolve the runtime endpoint from that file:
 - Always use `runtime.url` from `runtime.mode: "portless"`.
+- Treat `runtime.deployUrl` as the optional public deployment URL when present.
 Weekend may provide a bundled `portless` runtime during Play for `dev-server` processes.
 Do not assume every process is automatically wrapped.
 Use backend commands (or browser controls) to update `weekend.config.json`.
@@ -1940,6 +1942,15 @@ fn recover_runtime_url_from_raw_project_config(project_dir: &Path) -> Option<Str
         .flatten()
 }
 
+fn recover_deploy_url_from_raw_project_config(project_dir: &Path) -> Option<String> {
+    let config_path = project_config_path(project_dir);
+    let raw = std::fs::read_to_string(&config_path).ok()?;
+    let parsed = serde_json::from_str::<ProjectConfig>(&raw).ok()?;
+    normalize_deploy_url(parsed.runtime.deploy_url.as_deref())
+        .ok()
+        .flatten()
+}
+
 fn normalize_startup_commands(commands: &[String]) -> Vec<String> {
     let mut normalized = Vec::new();
     for command in commands {
@@ -2096,15 +2107,17 @@ fn write_project_config(
     startup_commands: &[String],
     processes: Option<&HashMap<String, ProcessEntrySnapshot>>,
     env: Option<&HashMap<String, String>>,
+    deploy_url: Option<&str>,
     archived: bool,
 ) -> Result<PathBuf, String> {
     let normalized_runtime_url = normalize_runtime_url(Some(runtime_url))?
         .ok_or_else(|| "runtime.url is required".to_string())?;
+    let normalized_deploy_url = normalize_deploy_url(deploy_url)?;
     let config = ProjectConfig {
         runtime: ProjectRuntimeConfig {
             mode: Some(ProjectRuntimeMode::Portless.as_str().to_string()),
             url: Some(normalized_runtime_url),
-            deploy_url: None,
+            deploy_url: normalized_deploy_url,
         },
         startup: ProjectStartupConfig {
             commands: normalize_startup_commands(startup_commands),
@@ -2138,13 +2151,32 @@ fn write_project_config(
 }
 
 fn seed_agent_runtime_guidance_files(project_dir: &Path) -> Result<(), String> {
+    let weekend_dir = project_dir.join(PROJECT_WEEKEND_DIR_NAME);
+    if weekend_dir.exists() && !weekend_dir.is_dir() {
+        return Err(format!("{} must be a directory", weekend_dir.display()));
+    }
+    std::fs::create_dir_all(&weekend_dir)
+        .map_err(|error| format!("failed to create {}: {error}", weekend_dir.display()))?;
+
+    let runtime_guidance_path = weekend_dir.join(PROJECT_AGENT_RUNTIME_GUIDANCE_FILE_NAME);
+    std::fs::write(&runtime_guidance_path, PROJECT_AGENT_RUNTIME_GUIDANCE).map_err(|error| {
+        format!(
+            "failed to write {}: {error}",
+            runtime_guidance_path.display()
+        )
+    })?;
+
     let claude_path = project_dir.join(PROJECT_CLAUDE_FILE_NAME);
-    std::fs::write(&claude_path, PROJECT_AGENT_RUNTIME_GUIDANCE)
-        .map_err(|error| format!("failed to write {}: {error}", claude_path.display()))?;
+    if !claude_path.exists() {
+        std::fs::write(&claude_path, PROJECT_AGENT_GUIDANCE_POINTER)
+            .map_err(|error| format!("failed to write {}: {error}", claude_path.display()))?;
+    }
 
     let agents_path = project_dir.join(PROJECT_AGENTS_FILE_NAME);
-    std::fs::write(&agents_path, PROJECT_AGENT_RUNTIME_GUIDANCE)
-        .map_err(|error| format!("failed to write {}: {error}", agents_path.display()))?;
+    if !agents_path.exists() {
+        std::fs::write(&agents_path, PROJECT_AGENT_GUIDANCE_POINTER)
+            .map_err(|error| format!("failed to write {}: {error}", agents_path.display()))?;
+    }
 
     seed_mcp_json(project_dir)?;
     seed_codex_config(project_dir)?;
@@ -3184,6 +3216,7 @@ fn spawn_terminal_reader<R: Runtime>(
     app: AppHandle<R>,
     terminal_id: String,
     mut reader: Box<dyn Read + Send>,
+    session: Arc<TerminalSession>,
     sessions: Arc<Mutex<HashMap<String, Arc<TerminalSession>>>>,
     session_info: Arc<Mutex<HashMap<String, TerminalSessionInfo>>>,
 ) {
@@ -3205,8 +3238,13 @@ fn spawn_terminal_reader<R: Runtime>(
                         continue;
                     }
                     seq = seq.saturating_add(1);
+                    let current_terminal_id = session
+                        .terminal_id
+                        .lock()
+                        .map(|value| value.clone())
+                        .unwrap_or_else(|_| terminal_id.clone());
                     let payload = TerminalOutputPayload {
-                        terminal_id: terminal_id.clone(),
+                        terminal_id: current_terminal_id,
                         seq,
                         data,
                     };
@@ -3220,8 +3258,13 @@ fn spawn_terminal_reader<R: Runtime>(
             let data = String::from_utf8_lossy(&pending_utf8).to_string();
             if !data.is_empty() {
                 seq = seq.saturating_add(1);
+                let current_terminal_id = session
+                    .terminal_id
+                    .lock()
+                    .map(|value| value.clone())
+                    .unwrap_or_else(|_| terminal_id.clone());
                 let payload = TerminalOutputPayload {
-                    terminal_id: terminal_id.clone(),
+                    terminal_id: current_terminal_id,
                     seq,
                     data,
                 };
@@ -3230,24 +3273,29 @@ fn spawn_terminal_reader<R: Runtime>(
             pending_utf8.clear();
         }
 
+        let current_terminal_id = session
+            .terminal_id
+            .lock()
+            .map(|value| value.clone())
+            .unwrap_or_else(|_| terminal_id.clone());
         if debug_enabled && replacement_total > 0 {
             log_backend(
                 "WARN",
                 format!(
                     "terminal reader utf8 replacements terminal_id={} replacements={replacement_total}",
-                    terminal_id
+                    current_terminal_id
                 ),
             );
         }
 
         if let Ok(mut map) = sessions.lock() {
-            map.remove(&terminal_id);
+            map.remove(&current_terminal_id);
         }
 
         // Mark session as exited and emit event (only if not already removed
         // by terminal_remove_session — avoids ghost re-add race condition)
         if let Ok(mut info_map) = session_info.lock() {
-            if let Some(info) = info_map.get_mut(&terminal_id) {
+            if let Some(info) = info_map.get_mut(&current_terminal_id) {
                 if info.status != "exited" {
                     info.status = "exited".to_string();
                     info.has_active_process = false;
@@ -3852,7 +3900,7 @@ mod watcher_tests {
 #[cfg(test)]
 mod config_tests {
     use super::{
-        read_project_config, ProcessEntrySnapshot, ProjectConfigLookup,
+        read_project_config, write_project_config, ProcessEntrySnapshot, ProjectConfigLookup,
         LEGACY_PROJECT_CONFIG_FILE_NAME, PROJECT_CONFIG_FILE_NAME,
     };
     use std::collections::HashMap;
@@ -4184,11 +4232,43 @@ mod config_tests {
         };
         assert!(error.contains("runtime.url must target a local address"));
     }
+
+    #[test]
+    fn write_project_config_preserves_normalized_deploy_url() {
+        let project_dir = make_temp_project_dir("weekend-config-deploy-url");
+        let startup_commands = vec!["pnpm dev".to_string()];
+
+        write_project_config(
+            &project_dir,
+            "http://music.localhost",
+            &startup_commands,
+            None,
+            None,
+            Some("example.com/app"),
+            false,
+        )
+        .expect("write project config");
+
+        let lookup = read_project_config(&project_dir);
+        let _ = std::fs::remove_dir_all(&project_dir);
+
+        let ProjectConfigLookup::Valid(config) = lookup else {
+            panic!("expected valid config");
+        };
+        assert_eq!(
+            config.runtime.deploy_url.as_deref(),
+            Some("https://example.com/app")
+        );
+    }
 }
 
 #[cfg(test)]
 mod mcp_config_tests {
-    use super::{project_name_from_browser_webview_label, seed_codex_config, seed_mcp_json};
+    use super::{
+        project_name_from_browser_webview_label, seed_agent_runtime_guidance_files,
+        seed_codex_config, seed_mcp_json, PROJECT_AGENT_RUNTIME_GUIDANCE_FILE_NAME,
+        PROJECT_WEEKEND_DIR_NAME,
+    };
     use serde_json::Value;
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -4268,6 +4348,38 @@ args = ["other.js"]
         );
         assert_eq!(
             parsed["mcp_servers"]["weekend-browser"]["env"]["WEEKEND_PROJECT"].as_str(),
+            Some("rl-lab")
+        );
+    }
+
+    #[test]
+    fn seed_agent_runtime_guidance_preserves_user_owned_agent_files() {
+        let root = make_temp_project_dir("weekend-guidance-seed");
+        let project_dir = root.join("rl-lab");
+        std::fs::create_dir_all(&project_dir).expect("project dir");
+        std::fs::write(project_dir.join("CLAUDE.md"), "# User Claude\n").expect("write claude");
+        std::fs::write(project_dir.join("AGENTS.md"), "# User Agents\n").expect("write agents");
+
+        seed_agent_runtime_guidance_files(&project_dir).expect("seed guidance");
+        let claude = std::fs::read_to_string(project_dir.join("CLAUDE.md")).expect("read claude");
+        let agents = std::fs::read_to_string(project_dir.join("AGENTS.md")).expect("read agents");
+        let guidance = std::fs::read_to_string(
+            project_dir
+                .join(PROJECT_WEEKEND_DIR_NAME)
+                .join(PROJECT_AGENT_RUNTIME_GUIDANCE_FILE_NAME),
+        )
+        .expect("read host guidance");
+        let mcp: Value = serde_json::from_str(
+            &std::fs::read_to_string(project_dir.join(".mcp.json")).expect("read mcp json"),
+        )
+        .expect("parse mcp json");
+        let _ = std::fs::remove_dir_all(&root);
+
+        assert_eq!(claude, "# User Claude\n");
+        assert_eq!(agents, "# User Agents\n");
+        assert!(guidance.contains("# Runtime Configuration"));
+        assert_eq!(
+            mcp["mcpServers"]["weekend-browser"]["env"]["WEEKEND_PROJECT"].as_str(),
             Some("rl-lab")
         );
     }
@@ -4526,7 +4638,8 @@ fn backfill_mcp_configs() -> Result<(), String> {
 
         let project_dir = entry.path();
 
-        // Always refresh guidance files so existing projects get latest instructions
+        // Refresh host-owned guidance and MCP config without replacing user-owned
+        // CLAUDE.md/AGENTS.md files.
         if let Err(error) = seed_agent_runtime_guidance_files(&project_dir) {
             log_backend(
                 "WARN",
@@ -4543,7 +4656,7 @@ fn backfill_mcp_configs() -> Result<(), String> {
         log_backend(
             "INFO",
             format!(
-                "refreshed agent guidance, .mcp.json, and .codex/config.toml for {config_count} existing project(s)"
+                "refreshed host guidance, .mcp.json, and .codex/config.toml for {config_count} existing project(s)"
             ),
         );
     }
@@ -4769,13 +4882,18 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                 } else {
                     Some(config.processes)
                 };
-                let env_ref = if config.env.is_empty() { None } else { Some(&config.env) };
+                let env_ref = if config.env.is_empty() {
+                    None
+                } else {
+                    Some(&config.env)
+                };
                 write_project_config(
                     &project_dir,
                     &runtime_url,
                     &startup_commands,
                     procs.as_ref(),
                     env_ref,
+                    config.runtime.deploy_url.as_deref(),
                     config.archived,
                 )?;
             }
@@ -4787,6 +4905,7 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                     &runtime_url,
                     &default_startup_commands(),
                     Some(&default_procs),
+                    None,
                     None,
                     false,
                 )?;
@@ -4814,6 +4933,9 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                         .ok()
                         .flatten()
                         .unwrap_or_else(|| default_runtime_url_for_project_name(&project_name));
+                    let deploy_url = normalize_deploy_url(parsed.runtime.deploy_url.as_deref())
+                        .ok()
+                        .flatten();
                     log_backend(
                         "WARN",
                         format!(
@@ -4826,6 +4948,7 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                         &startup_commands,
                         procs.as_ref(),
                         parsed.env.as_ref(),
+                        deploy_url.as_deref(),
                         parsed.archived,
                     )?;
                 } else {
@@ -4957,6 +5080,7 @@ fn create_new_project(
         &created_runtime_url,
         &default_startup_commands(),
         Some(&default_processes),
+        None,
         None,
         false,
     )?;
@@ -5242,6 +5366,7 @@ fn project_config_write(
     project: String,
     startup_commands: Option<Vec<String>>,
     env: Option<HashMap<String, String>>,
+    deploy_url: Option<String>,
 ) -> Result<ProjectConfigReadSnapshot, String> {
     let project_name = project.trim();
     if project_name.is_empty() {
@@ -5286,6 +5411,16 @@ fn project_config_write(
             _ => None,
         },
     };
+    let resolved_deploy_url = match deploy_url {
+        Some(value) => normalize_deploy_url(Some(value.as_str()))?,
+        None => match &existing {
+            ProjectConfigLookup::Valid(config) => config.runtime.deploy_url.clone(),
+            ProjectConfigLookup::Invalid(_) => {
+                recover_deploy_url_from_raw_project_config(&project_dir)
+            }
+            ProjectConfigLookup::Missing => None,
+        },
+    };
     let resolved_archived = match &existing {
         ProjectConfigLookup::Valid(config) => config.archived,
         _ => false,
@@ -5297,6 +5432,7 @@ fn project_config_write(
         &resolved_startup_commands,
         resolved_processes.as_ref(),
         resolved_env.as_ref(),
+        resolved_deploy_url.as_deref(),
         resolved_archived,
     )?;
 
@@ -5455,10 +5591,267 @@ fn is_project_archived(project_dir: &Path) -> bool {
     }
 }
 
+fn terminal_id_belongs_to_project(terminal_id: &str, project: &str) -> bool {
+    let project_prefix = format!("{project}:");
+    terminal_id.starts_with(project_prefix.as_str()) || terminal_id == format!("main-{project}")
+}
+
+fn rekey_project_terminal_id(terminal_id: &str, old_name: &str, new_name: &str) -> Option<String> {
+    let old_prefix = format!("{old_name}:");
+    if let Some(suffix) = terminal_id.strip_prefix(old_prefix.as_str()) {
+        return Some(format!("{new_name}:{suffix}"));
+    }
+    if terminal_id == format!("main-{old_name}") {
+        return Some(format!("main-{new_name}"));
+    }
+    None
+}
+
+struct DetachedProjectTerminalSessions {
+    terminal_ids: Vec<String>,
+    sessions: Vec<Arc<TerminalSession>>,
+}
+
+fn detach_project_terminal_sessions(
+    terminal_state: &TerminalState,
+    project: &str,
+) -> Result<DetachedProjectTerminalSessions, String> {
+    let mut terminal_ids = Vec::<String>::new();
+    let mut detached_sessions = Vec::<Arc<TerminalSession>>::new();
+
+    {
+        let mut sessions = terminal_state
+            .sessions
+            .lock()
+            .map_err(|_| "failed to lock terminal sessions".to_string())?;
+        let session_ids: Vec<String> = sessions
+            .keys()
+            .filter(|terminal_id| terminal_id_belongs_to_project(terminal_id, project))
+            .cloned()
+            .collect();
+        for terminal_id in session_ids {
+            if let Some(session) = sessions.remove(&terminal_id) {
+                terminal_ids.push(terminal_id);
+                detached_sessions.push(session);
+            }
+        }
+    }
+
+    if let Ok(mut opening_sessions) = terminal_state.opening_sessions.lock() {
+        let opening_ids: Vec<String> = opening_sessions
+            .iter()
+            .filter(|terminal_id| terminal_id_belongs_to_project(terminal_id, project))
+            .cloned()
+            .collect();
+        opening_sessions
+            .retain(|terminal_id| !terminal_id_belongs_to_project(terminal_id, project));
+        terminal_ids.extend(opening_ids);
+    }
+
+    {
+        let mut session_info = terminal_state
+            .session_info
+            .lock()
+            .map_err(|_| "failed to lock session info".to_string())?;
+        let info_ids: Vec<String> = session_info
+            .keys()
+            .filter(|terminal_id| terminal_id_belongs_to_project(terminal_id, project))
+            .cloned()
+            .collect();
+        for terminal_id in info_ids {
+            session_info.remove(&terminal_id);
+            terminal_ids.push(terminal_id);
+        }
+    }
+
+    terminal_ids.sort_unstable();
+    terminal_ids.dedup();
+    Ok(DetachedProjectTerminalSessions {
+        terminal_ids,
+        sessions: detached_sessions,
+    })
+}
+
+fn kill_detached_terminal_sessions(sessions: Vec<Arc<TerminalSession>>) {
+    for session in sessions {
+        std::thread::spawn(move || {
+            if let Ok(mut child) = session.child.lock() {
+                let _ = child.kill();
+            }
+        });
+    }
+}
+
+fn rekey_project_terminal_state(
+    terminal_state: &TerminalState,
+    old_name: &str,
+    new_name: &str,
+) -> Result<Vec<TerminalSessionInfo>, String> {
+    {
+        let mut sessions = terminal_state
+            .sessions
+            .lock()
+            .map_err(|_| "failed to lock terminal sessions".to_string())?;
+        let rekeys: Vec<(String, String)> = sessions
+            .keys()
+            .filter_map(|terminal_id| {
+                rekey_project_terminal_id(terminal_id, old_name, new_name)
+                    .map(|new_id| (terminal_id.clone(), new_id))
+            })
+            .collect();
+        for (old_id, new_id) in rekeys {
+            let Some(session) = sessions.remove(&old_id) else {
+                continue;
+            };
+            if sessions.contains_key(&new_id) {
+                log_backend(
+                    "WARN",
+                    format!(
+                        "skipped terminal session rekey old_id={old_id} new_id={new_id}: target exists"
+                    ),
+                );
+                sessions.insert(old_id, session);
+            } else {
+                if let Ok(mut current_terminal_id) = session.terminal_id.lock() {
+                    *current_terminal_id = new_id.clone();
+                }
+                sessions.insert(new_id, session);
+            }
+        }
+    }
+
+    if let Ok(mut opening_sessions) = terminal_state.opening_sessions.lock() {
+        let rekeys: Vec<(String, String)> = opening_sessions
+            .iter()
+            .filter_map(|terminal_id| {
+                rekey_project_terminal_id(terminal_id, old_name, new_name)
+                    .map(|new_id| (terminal_id.clone(), new_id))
+            })
+            .collect();
+        for (old_id, new_id) in rekeys {
+            opening_sessions.remove(&old_id);
+            opening_sessions.insert(new_id);
+        }
+    }
+
+    let mut updated_infos = Vec::<TerminalSessionInfo>::new();
+    {
+        let mut session_info = terminal_state
+            .session_info
+            .lock()
+            .map_err(|_| "failed to lock session info".to_string())?;
+        let rekeys: Vec<(String, String)> = session_info
+            .keys()
+            .filter_map(|terminal_id| {
+                rekey_project_terminal_id(terminal_id, old_name, new_name)
+                    .map(|new_id| (terminal_id.clone(), new_id))
+            })
+            .collect();
+        for (old_id, new_id) in rekeys {
+            let Some(mut info) = session_info.remove(&old_id) else {
+                continue;
+            };
+            if session_info.contains_key(&new_id) {
+                log_backend(
+                    "WARN",
+                    format!(
+                        "skipped terminal session info rekey old_id={old_id} new_id={new_id}: target exists"
+                    ),
+                );
+                session_info.insert(old_id, info);
+            } else {
+                info.terminal_id = new_id.clone();
+                info.project = new_name.to_string();
+                updated_infos.push(info.clone());
+                session_info.insert(new_id, info);
+            }
+        }
+    }
+
+    Ok(updated_infos)
+}
+
+fn remove_project_bridge_port_file(project_name: &str) -> Result<(), String> {
+    let path = project_bridge_port_file_path(project_name)?;
+    match std::fs::remove_file(&path) {
+        Ok(_) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(format!("failed to remove {}: {error}", path.display())),
+    }
+}
+
+fn refresh_project_identity_files_after_rename(
+    project_dir: &Path,
+    old_name: &str,
+    new_name: &str,
+) -> Result<(), String> {
+    match read_project_config(project_dir) {
+        ProjectConfigLookup::Valid(config) => {
+            let old_default = normalize_runtime_url(Some(
+                default_runtime_url_for_project_name(old_name).as_str(),
+            ))?
+            .ok_or_else(|| "old default runtime url is required".to_string())?;
+            let new_default = default_runtime_url_for_project_name(new_name);
+            let current_runtime_url = config
+                .runtime
+                .url
+                .clone()
+                .unwrap_or_else(|| default_runtime_url_for_project_name(old_name));
+            let runtime_url = if current_runtime_url == old_default {
+                new_default
+            } else {
+                current_runtime_url
+            };
+            let processes = if config.processes.is_empty() {
+                None
+            } else {
+                Some(config.processes)
+            };
+            let env = if config.env.is_empty() {
+                None
+            } else {
+                Some(config.env)
+            };
+            write_project_config(
+                project_dir,
+                &runtime_url,
+                &config.startup_commands,
+                processes.as_ref(),
+                env.as_ref(),
+                config.runtime.deploy_url.as_deref(),
+                config.archived,
+            )?;
+        }
+        ProjectConfigLookup::Missing => {
+            let default_processes = default_processes_map(DEFAULT_AGENT_COMMAND);
+            write_project_config(
+                project_dir,
+                &default_runtime_url_for_project_name(new_name),
+                &default_startup_commands(),
+                Some(&default_processes),
+                None,
+                None,
+                false,
+            )?;
+        }
+        ProjectConfigLookup::Invalid(error) => {
+            log_backend(
+                "WARN",
+                format!(
+                    "rename project '{old_name}' -> '{new_name}': skipped runtime config rewrite because {PROJECT_CONFIG_FILE_NAME} is invalid ({error})"
+                ),
+            );
+        }
+    }
+
+    seed_agent_runtime_guidance_files(project_dir)
+}
+
 #[tauri::command]
-fn archive_project(
+fn archive_project<R: Runtime>(
     project: String,
     terminal_state: State<'_, TerminalState>,
+    app: AppHandle<R>,
 ) -> Result<u64, String> {
     log_backend(
         "INFO",
@@ -5466,45 +5859,18 @@ fn archive_project(
     );
     let project_dir = resolve_project_dir(&project)?;
 
-    // Kill all terminal sessions for the project (same pattern as delete_project)
-    let detached_sessions = {
-        let project_prefix = format!("{project}:");
-        let mut sessions = terminal_state
-            .sessions
-            .lock()
-            .map_err(|_| "failed to lock terminal sessions".to_string())?;
-        let terminal_ids: Vec<String> = sessions
-            .keys()
-            .filter(|terminal_id| {
-                terminal_id.starts_with(project_prefix.as_str())
-                    || terminal_id.as_str() == format!("main-{project}")
-            })
-            .cloned()
-            .collect();
-
-        let mut detached = Vec::<Arc<TerminalSession>>::new();
-        for terminal_id in terminal_ids {
-            if let Some(session) = sessions.remove(&terminal_id) {
-                detached.push(session);
-            }
-        }
-        detached
-    };
-
-    if let Ok(mut opening_sessions) = terminal_state.opening_sessions.lock() {
-        let project_prefix = format!("{project}:");
-        opening_sessions.retain(|terminal_id| {
-            !terminal_id.starts_with(project_prefix.as_str())
-                && terminal_id.as_str() != format!("main-{project}")
-        });
+    let detached = detach_project_terminal_sessions(terminal_state.inner(), &project)?;
+    for terminal_id in &detached.terminal_ids {
+        emit_session_removed(&app, terminal_id);
     }
-
-    for session in detached_sessions {
-        std::thread::spawn(move || {
-            if let Ok(mut child) = session.child.lock() {
-                let _ = child.kill();
-            }
-        });
+    kill_detached_terminal_sessions(detached.sessions);
+    if let Err(error) = remove_project_bridge_port_file(&project) {
+        log_backend(
+            "WARN",
+            format!(
+                "archive_project project={project}: failed to remove bridge port file ({error})"
+            ),
+        );
     }
 
     let bytes_freed = clean_build_artifacts(&project_dir);
@@ -5530,51 +5896,29 @@ fn unarchive_project(project: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn delete_project(project: String, terminal_state: State<'_, TerminalState>) -> Result<(), String> {
+fn delete_project<R: Runtime>(
+    project: String,
+    terminal_state: State<'_, TerminalState>,
+    app: AppHandle<R>,
+) -> Result<(), String> {
     log_backend(
         "INFO",
         format!("delete_project requested project={project}"),
     );
     let project_dir = resolve_project_dir(&project)?;
 
-    let detached_sessions = {
-        let project_prefix = format!("{project}:");
-        let mut sessions = terminal_state
-            .sessions
-            .lock()
-            .map_err(|_| "failed to lock terminal sessions".to_string())?;
-        let terminal_ids: Vec<String> = sessions
-            .keys()
-            .filter(|terminal_id| {
-                terminal_id.starts_with(project_prefix.as_str())
-                    || terminal_id.as_str() == format!("main-{project}")
-            })
-            .cloned()
-            .collect();
-
-        let mut detached = Vec::<Arc<TerminalSession>>::new();
-        for terminal_id in terminal_ids {
-            if let Some(session) = sessions.remove(&terminal_id) {
-                detached.push(session);
-            }
-        }
-        detached
-    };
-
-    if let Ok(mut opening_sessions) = terminal_state.opening_sessions.lock() {
-        let project_prefix = format!("{project}:");
-        opening_sessions.retain(|terminal_id| {
-            !terminal_id.starts_with(project_prefix.as_str())
-                && terminal_id.as_str() != format!("main-{project}")
-        });
+    let detached = detach_project_terminal_sessions(terminal_state.inner(), &project)?;
+    for terminal_id in &detached.terminal_ids {
+        emit_session_removed(&app, terminal_id);
     }
-
-    for session in detached_sessions {
-        std::thread::spawn(move || {
-            if let Ok(mut child) = session.child.lock() {
-                let _ = child.kill();
-            }
-        });
+    kill_detached_terminal_sessions(detached.sessions);
+    if let Err(error) = remove_project_bridge_port_file(&project) {
+        log_backend(
+            "WARN",
+            format!(
+                "delete_project project={project}: failed to remove bridge port file ({error})"
+            ),
+        );
     }
 
     std::fs::remove_dir_all(&project_dir).map_err(|error| {
@@ -5588,13 +5932,17 @@ fn delete_project(project: String, terminal_state: State<'_, TerminalState>) -> 
 }
 
 #[tauri::command]
-fn rename_project(
+fn rename_project<R: Runtime>(
     old_name: String,
     new_name: String,
     terminal_state: State<'_, TerminalState>,
+    app: AppHandle<R>,
 ) -> Result<String, String> {
     let old_name = old_name.trim().to_string();
     let sanitized = sanitize_project_name(&new_name);
+    if old_name.is_empty() || !is_safe_project_name(&old_name) {
+        return Err("invalid existing project name".to_string());
+    }
     if sanitized.is_empty() {
         return Err("invalid project name".to_string());
     }
@@ -5613,32 +5961,54 @@ fn rename_project(
         return Err(format!("a project named '{sanitized}' already exists"));
     }
 
-    // Update terminal session keys in backend state
+    std::fs::rename(&old_dir, &new_dir)
+        .map_err(|error| format!("failed to rename project directory: {error}"))?;
+
+    if let Err(error) = refresh_project_identity_files_after_rename(&new_dir, &old_name, &sanitized)
     {
-        let old_prefix = format!("{old_name}:");
-        let mut sessions = terminal_state
-            .sessions
-            .lock()
-            .map_err(|_| "failed to lock terminal sessions".to_string())?;
+        log_backend(
+            "WARN",
+            format!(
+                "rename project '{old_name}' -> '{sanitized}': failed to refresh project identity files ({error})"
+            ),
+        );
+    }
 
-        // Collect terminal IDs that belong to this project
-        let terminal_ids: Vec<String> = sessions
-            .keys()
-            .filter(|id| id.starts_with(&old_prefix))
-            .cloned()
-            .collect();
-
-        // Re-key sessions with new project name
-        for old_id in terminal_ids {
-            if let Some(session) = sessions.remove(&old_id) {
-                let new_id = format!("{sanitized}:{}", &old_id[old_prefix.len()..]);
-                sessions.insert(new_id, session);
+    match rekey_project_terminal_state(terminal_state.inner(), &old_name, &sanitized) {
+        Ok(updated_infos) => {
+            for info in &updated_infos {
+                emit_session_changed(&app, info);
             }
+        }
+        Err(error) => {
+            log_backend(
+                "WARN",
+                format!(
+                    "rename project '{old_name}' -> '{sanitized}': failed to rekey terminal state ({error})"
+                ),
+            );
         }
     }
 
-    std::fs::rename(&old_dir, &new_dir)
-        .map_err(|error| format!("failed to rename project directory: {error}"))?;
+    if let Err(error) = remove_project_bridge_port_file(&old_name) {
+        log_backend(
+            "WARN",
+            format!(
+                "rename project '{old_name}' -> '{sanitized}': failed to remove old bridge port file ({error})"
+            ),
+        );
+    }
+    {
+        let bridge_state: tauri::State<'_, BridgeState> = app.state();
+        if let Err(error) = sync_project_bridge_port_file(&sanitized, bridge_state.inner()) {
+            log_backend(
+                "WARN",
+                format!(
+                    "rename project '{old_name}' -> '{sanitized}': failed to sync bridge port file ({error})"
+                ),
+            );
+        }
+    }
 
     log_backend(
         "INFO",
@@ -5999,6 +6369,9 @@ fn terminal_open<R: Runtime>(
                     if let Some(runtime_url) = config.runtime.url {
                         cmd.env("WEEKEND_RUNTIME_URL", runtime_url);
                     }
+                    if let Some(deploy_url) = config.runtime.deploy_url {
+                        cmd.env("WEEKEND_DEPLOY_URL", deploy_url);
+                    }
                     // Inject project-level env vars (overrides shared)
                     for (key, value) in &config.env {
                         cmd.env(key, value);
@@ -6038,6 +6411,7 @@ fn terminal_open<R: Runtime>(
             .map_err(|error| format!("failed to take PTY writer: {error}"))?;
 
         let session = Arc::new(TerminalSession {
+            terminal_id: Mutex::new(terminal_id.clone()),
             master: Mutex::new(pair.master),
             writer: Mutex::new(writer),
             child: Mutex::new(child),
@@ -6051,7 +6425,7 @@ fn terminal_open<R: Runtime>(
             if sessions.contains_key(&terminal_id) {
                 return Ok(());
             }
-            sessions.insert(terminal_id.clone(), session);
+            sessions.insert(terminal_id.clone(), Arc::clone(&session));
         }
 
         // Extract project name from terminal_id (format: "project:label")
@@ -6089,6 +6463,7 @@ fn terminal_open<R: Runtime>(
             app,
             terminal_id.clone(),
             reader,
+            Arc::clone(&session),
             Arc::clone(&terminal_state.sessions),
             Arc::clone(&terminal_state.session_info),
         );

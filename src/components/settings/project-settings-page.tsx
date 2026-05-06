@@ -1,5 +1,13 @@
-import { useMemo } from "react";
-import { AlertTriangle, Archive, Loader2, Play, Square, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  Archive,
+  Loader2,
+  Play,
+  Save,
+  Square,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EnvVarsEditor } from "@/components/ui/env-vars-editor";
 import { Input } from "@/components/ui/input";
@@ -33,6 +41,7 @@ export type ProjectSettingsPageProps = {
   isDeletingProject: boolean;
   onDeleteProject: () => Promise<void>;
   onUpdateEnv: (env: Record<string, string>) => Promise<void>;
+  onUpdateDeployUrl: (deployUrl: string | null) => Promise<void>;
 };
 
 export function ProjectSettingsPage({
@@ -48,16 +57,41 @@ export function ProjectSettingsPage({
   isDeletingProject,
   onDeleteProject,
   onUpdateEnv,
+  onUpdateDeployUrl,
 }: ProjectSettingsPageProps) {
   const isStarting = playState === "starting";
   const isRunning = playState === "running";
   const isFailed = playState === "failed";
+  const currentDeployUrl = projectConfigSnapshot?.deployUrl?.trim() ?? "";
+  const [deployUrlDraft, setDeployUrlDraft] = useState(currentDeployUrl);
+  const [deployUrlError, setDeployUrlError] = useState<string | null>(null);
+  const [isDeployUrlSaving, setIsDeployUrlSaving] = useState(false);
   const runtimeAddress = useMemo(
     () =>
       projectConfigSnapshot?.runtimeUrl?.trim() ||
       localRuntimeAddressForProject(project),
     [project, projectConfigSnapshot?.runtimeUrl]
   );
+  const normalizedDeployUrlDraft = deployUrlDraft.trim();
+  const hasDeployUrlChanges = normalizedDeployUrlDraft !== currentDeployUrl;
+
+  useEffect(() => {
+    setDeployUrlDraft(currentDeployUrl);
+    setDeployUrlError(null);
+  }, [currentDeployUrl, project]);
+
+  const handleSaveDeployUrl = async () => {
+    if (!hasDeployUrlChanges || isDeployUrlSaving) return;
+    setIsDeployUrlSaving(true);
+    setDeployUrlError(null);
+    try {
+      await onUpdateDeployUrl(normalizedDeployUrlDraft || null);
+    } catch (error) {
+      setDeployUrlError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setIsDeployUrlSaving(false);
+    }
+  };
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-auto p-6">
@@ -83,6 +117,41 @@ export function ProjectSettingsPage({
                 value={runtimeAddress}
               />
             </label>
+            <label className="space-y-1">
+              <span className="font-code text-xs text-foreground">Deployed Address</span>
+              <div className="flex gap-2">
+                <Input
+                  className="h-8 min-w-0 flex-1 font-code text-xs"
+                  onChange={(event) => {
+                    setDeployUrlDraft(event.target.value);
+                    setDeployUrlError(null);
+                  }}
+                  placeholder="https://example.com"
+                  type="url"
+                  value={deployUrlDraft}
+                />
+                <Button
+                  disabled={!hasDeployUrlChanges || isDeployUrlSaving}
+                  onClick={() => {
+                    void handleSaveDeployUrl();
+                  }}
+                  size="sm"
+                  variant="ghost"
+                >
+                  {isDeployUrlSaving ? (
+                    <Loader2 className="mr-1.5 size-3 animate-spin" />
+                  ) : (
+                    <Save className="mr-1.5 size-3" />
+                  )}
+                  Save
+                </Button>
+              </div>
+            </label>
+            {deployUrlError ? (
+              <p className="font-code text-xs text-destructive/80">
+                {deployUrlError}
+              </p>
+            ) : null}
           </div>
         </div>
 

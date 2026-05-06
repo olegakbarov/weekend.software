@@ -299,7 +299,7 @@ export async function updateProjectConfig(
   ctx: ControllerContext,
   runtimeInternals: RuntimeInternals,
   project: string,
-  options?: { env?: Record<string, string> }
+  options?: { env?: Record<string, string>; deployUrl?: string | null }
 ): Promise<ProjectConfigReadSnapshot> {
   const projectName = project.trim();
   if (!projectName) {
@@ -324,6 +324,8 @@ export async function updateProjectConfig(
       {
         project: projectName,
         env: options?.env,
+        deployUrl:
+          options?.deployUrl === undefined ? undefined : options.deployUrl ?? "",
       }
     );
 
@@ -380,6 +382,7 @@ export async function renameProject(
     newName: trimmedNew,
   });
 
+  terminalRegistry.renameProject(trimmedOld, resolvedName);
   ctx.setState((previous) => renameProjectState(previous, trimmedOld, resolvedName));
 
   persistTerminalSessions(ctx.getState().terminalSessionsByProject);

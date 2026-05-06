@@ -157,6 +157,13 @@ function WorkspaceRoute() {
     [controller, project]
   );
 
+  const handleUpdateDeployUrl = useCallback(
+    async (deployUrl: string | null) => {
+      await controller.updateProjectConfig(project, { deployUrl });
+    },
+    [controller, project]
+  );
+
   const handleOpenConfigFile = useCallback(() => {
     setSelectedEditorFilePathByProject((prev) => ({
       ...prev,
@@ -226,6 +233,7 @@ function WorkspaceRoute() {
             isDeletingProject={projectActions.isDeletingProject}
             onDeleteProject={projectActions.deleteProject}
             onUpdateEnv={handleUpdateEnv}
+            onUpdateDeployUrl={handleUpdateDeployUrl}
           />
         }
         terminalSessions={state.terminalSessionsByProject[project] ?? []}

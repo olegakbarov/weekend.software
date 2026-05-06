@@ -1,56 +1,7 @@
 {
   "symbol": "TabsContent",
   "tier": "registry",
-  "consumers": [
-    {
-      "file": "src/components/settings/settings-page.tsx",
-      "line": 133,
-      "props": [
-        "className",
-        "value"
-      ]
-    },
-    {
-      "file": "src/components/settings/settings-page.tsx",
-      "line": 184,
-      "props": [
-        "className",
-        "value"
-      ]
-    },
-    {
-      "file": "src/components/settings/settings-page.tsx",
-      "line": 226,
-      "props": [
-        "className",
-        "value"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/tabs.tsx",
-      "line": 50,
-      "props": [
-        "value"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/tabs.tsx",
-      "line": 55,
-      "props": [
-        "value"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/tabs.tsx",
-      "line": 60,
-      "props": [
-        "value"
-      ]
-    }
-  ],
-  "propUsage": {
-    "className": 3,
-    "value": 6
-  },
-  "totalUsages": 6
+  "consumers": [],
+  "propUsage": {},
+  "totalUsages": 0
 }

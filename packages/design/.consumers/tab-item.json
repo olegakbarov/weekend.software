@@ -1,0 +1,128 @@
+{
+  "symbol": "TabItem",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 133,
+      "props": [
+        "value",
+        "label"
+      ]
+    },
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 134,
+      "props": [
+        "value",
+        "label"
+      ]
+    },
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 135,
+      "props": [
+        "value",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 60,
+      "props": [
+        "value",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 61,
+      "props": [
+        "value",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 62,
+      "props": [
+        "value",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 63,
+      "props": [
+        "value",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 118,
+      "props": [
+        "value",
+        "icon",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 119,
+      "props": [
+        "value",
+        "icon",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 120,
+      "props": [
+        "value",
+        "icon",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 121,
+      "props": [
+        "value",
+        "icon",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 141,
+      "props": [
+        "value",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 142,
+      "props": [
+        "value",
+        "label"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 143,
+      "props": [
+        "value",
+        "label"
+      ]
+    }
+  ],
+  "propUsage": {
+    "icon": 4,
+    "label": 14,
+    "value": 14
+  },
+  "totalUsages": 14
+}

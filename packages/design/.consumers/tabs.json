@@ -4,23 +4,41 @@
   "consumers": [
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 125,
+      "line": 127,
       "props": [
         "className",
+        "value",
+        "onValueChange"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 58,
+      "props": [
         "defaultValue"
       ]
     },
     {
       "file": "src/dev/docs/views/pages/tabs.tsx",
-      "line": 44,
+      "line": 116,
       "props": [
         "defaultValue"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 139,
+      "props": [
+        "value",
+        "onValueChange"
       ]
     }
   ],
   "propUsage": {
     "className": 1,
-    "defaultValue": 2
+    "defaultValue": 2,
+    "onValueChange": 2,
+    "value": 2
   },
-  "totalUsages": 2
+  "totalUsages": 4
 }

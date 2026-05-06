@@ -1,0 +1,63 @@
+{
+  "symbol": "TabPanel",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 139,
+      "props": [
+        "className",
+        "value"
+      ]
+    },
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 190,
+      "props": [
+        "className",
+        "value"
+      ]
+    },
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 232,
+      "props": [
+        "className",
+        "value"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 65,
+      "props": [
+        "value"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 70,
+      "props": [
+        "value"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 75,
+      "props": [
+        "value"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 80,
+      "props": [
+        "value"
+      ]
+    }
+  ],
+  "propUsage": {
+    "className": 3,
+    "value": 7
+  },
+  "totalUsages": 7
+}

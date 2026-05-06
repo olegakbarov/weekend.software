@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   THEME_NAMES,
   type ThemeName,
@@ -5,7 +6,7 @@ import {
 import { useTheme } from "@/components/theme/use-theme";
 import { Button } from "@/components/ui/button";
 import { Seg, type SegItem, Switch } from "@weekend/design";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@weekend/design/registry";
+import { TabItem, TabPanel, Tabs, TabsList } from "@weekend/design/registry";
 import {
   type RuntimeDebugSnapshot,
   type RuntimeTelemetryEvent,
@@ -117,20 +118,25 @@ export function SettingsPage({
   onRefreshLogs,
 }: SettingsPageProps) {
   const { activeTheme, setActiveTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState<"basic" | "logs" | "advanced">("basic");
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden p-6">
       <h1 className="font-code text-sm text-foreground">Settings</h1>
 
-      <Tabs className="mt-4 min-h-0 flex-1" defaultValue="basic">
+      <Tabs
+        className="mt-4 min-h-0 flex-1"
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as "basic" | "logs" | "advanced")}
+      >
         <TabsList>
-          <TabsTrigger className="font-code text-xs" value="basic">Basic</TabsTrigger>
-          <TabsTrigger className="font-code text-xs" value="logs">Logs</TabsTrigger>
-          <TabsTrigger className="font-code text-xs" value="advanced">Advanced</TabsTrigger>
+          <TabItem value="basic" label="Basic" />
+          <TabItem value="logs" label="Logs" />
+          <TabItem value="advanced" label="Advanced" />
         </TabsList>
 
         {/* ── Basic ── */}
-        <TabsContent className="overflow-auto" value="basic">
+        <TabPanel className="overflow-auto" value="basic">
           <div className="space-y-3">
             {/* Theme */}
             <div className="rounded border border-border/70 bg-background/60 px-3 py-2.5">
@@ -178,10 +184,10 @@ export function SettingsPage({
               />
             </div>
           </div>
-        </TabsContent>
+        </TabPanel>
 
         {/* ── Logs ── */}
-        <TabsContent className="flex min-h-0 flex-1 flex-col overflow-hidden" value="logs">
+        <TabPanel className="flex min-h-0 flex-1 flex-col overflow-hidden" value="logs">
           <div className="flex min-h-0 flex-1 flex-col rounded border border-border/70 bg-background/60 p-3">
             <div className="flex items-center justify-between">
               <p className="font-code text-[11px] text-muted-foreground">
@@ -220,10 +226,10 @@ export function SettingsPage({
               </div>
             </div>
           </div>
-        </TabsContent>
+        </TabPanel>
 
         {/* ── Advanced ── */}
-        <TabsContent className="overflow-auto" value="advanced">
+        <TabPanel className="overflow-auto" value="advanced">
           <div className="space-y-3">
             {/* Runtime Debug */}
             <div className="space-y-2 rounded border border-border/70 bg-background/60 p-3">
@@ -272,7 +278,7 @@ export function SettingsPage({
               </pre>
             </div>
           </div>
-        </TabsContent>
+        </TabPanel>
       </Tabs>
     </section>
   );

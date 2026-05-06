@@ -4,15 +4,25 @@
   "consumers": [
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 126,
+      "line": 132,
       "props": []
     },
     {
       "file": "src/dev/docs/views/pages/tabs.tsx",
-      "line": 45,
+      "line": 59,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 117,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/tabs.tsx",
+      "line": 140,
       "props": []
     }
   ],
   "propUsage": {},
-  "totalUsages": 2
+  "totalUsages": 4
 }

@@ -30,6 +30,21 @@ function omitProjectScopedRecord<T>(
   return next;
 }
 
+function rekeyTerminalId(
+  terminalId: string,
+  oldName: string,
+  newName: string
+): string {
+  const prefix = `${oldName}:`;
+  if (terminalId.startsWith(prefix)) {
+    return `${newName}:${terminalId.slice(prefix.length)}`;
+  }
+  if (terminalId === `main-${oldName}`) {
+    return `main-${newName}`;
+  }
+  return terminalId;
+}
+
 export function resolveFocusedProject(args: {
   projects: string[];
   currentFocusedProject: string | null;
@@ -93,11 +108,23 @@ export function renameProjectState(
       oldName,
       newName
     ),
-    terminalSessionsByProject: rekeyProjectScopedRecord(
-      previous.terminalSessionsByProject,
-      oldName,
-      newName
-    ),
+    terminalSessionsByProject: (() => {
+      const rekeyed = rekeyProjectScopedRecord(
+        previous.terminalSessionsByProject,
+        oldName,
+        newName
+      );
+      const sessions = rekeyed[newName];
+      if (!sessions) return rekeyed;
+      return {
+        ...rekeyed,
+        [newName]: sessions.map((session) => ({
+          ...session,
+          project: newName,
+          terminalId: rekeyTerminalId(session.terminalId, oldName, newName),
+        })),
+      };
+    })(),
     playStateByProject: rekeyProjectScopedRecord(
       previous.playStateByProject,
       oldName,
