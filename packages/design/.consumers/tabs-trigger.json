@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 122,
+      "line": 127,
       "props": [
         "className",
         "value"
@@ -12,7 +12,7 @@
     },
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 123,
+      "line": 128,
       "props": [
         "className",
         "value"
@@ -20,7 +20,7 @@
     },
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 124,
+      "line": 129,
       "props": [
         "className",
         "value"

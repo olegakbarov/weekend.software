@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 163,
+      "line": 159,
       "props": [
         "checked",
         "onChange",
@@ -13,7 +13,7 @@
     },
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 178,
+      "line": 174,
       "props": [
         "checked",
         "onChange",

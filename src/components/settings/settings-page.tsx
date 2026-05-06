@@ -4,7 +4,7 @@ import {
 } from "@/components/theme/theme-provider";
 import { useTheme } from "@/components/theme/use-theme";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@weekend/design";
+import { Seg, type SegItem, Switch } from "@weekend/design";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@weekend/design/registry";
 import {
   type RuntimeDebugSnapshot,
@@ -96,6 +96,11 @@ const THEME_LABELS: Record<ThemeName, string> = {
   "weekend-paper": "Weekend · paper",
 };
 
+const THEME_SEG_ITEMS: ReadonlyArray<SegItem<ThemeName>> = THEME_NAMES.map((t) => ({
+  value: t,
+  label: THEME_LABELS[t],
+}));
+
 export function SettingsPage({
   snapshot,
   error,
@@ -128,28 +133,19 @@ export function SettingsPage({
         <TabsContent className="overflow-auto" value="basic">
           <div className="space-y-3">
             {/* Theme */}
-            <div className="flex items-center justify-between rounded border border-border/70 bg-background/60 px-3 py-2.5">
-              <div>
+            <div className="rounded border border-border/70 bg-background/60 px-3 py-2.5">
+              <div className="mb-2">
                 <p className="font-code text-xs text-foreground">Theme</p>
                 <p className="font-code text-[11px] text-muted-foreground">
                   Pick the active theme. Applies across all windows.
                 </p>
               </div>
-              <div className="flex flex-wrap justify-end gap-1">
-                {THEME_NAMES.map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setActiveTheme(t)}
-                    className={`rounded px-2.5 py-1 font-code text-xs transition-colors ${
-                      activeTheme === t
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    }`}
-                  >
-                    {THEME_LABELS[t]}
-                  </button>
-                ))}
-              </div>
+              <Seg
+                items={THEME_SEG_ITEMS}
+                value={activeTheme}
+                onChange={(next: ThemeName) => setActiveTheme(next)}
+                variant="subtle"
+              />
             </div>
 
             {/* Vim Mode */}

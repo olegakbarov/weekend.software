@@ -3,6 +3,16 @@
   "tier": "core",
   "consumers": [
     {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 143,
+      "props": [
+        "items",
+        "value",
+        "onChange",
+        "variant"
+      ]
+    },
+    {
       "file": "src/dev/docs/views/pages/tabs.tsx",
       "line": 124,
       "props": [
@@ -23,10 +33,10 @@
     }
   ],
   "propUsage": {
-    "items": 2,
-    "onChange": 2,
-    "value": 2,
-    "variant": 1
+    "items": 3,
+    "onChange": 3,
+    "value": 3,
+    "variant": 2
   },
-  "totalUsages": 2
+  "totalUsages": 3
 }

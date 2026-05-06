@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 121,
+      "line": 126,
       "props": []
     },
     {
