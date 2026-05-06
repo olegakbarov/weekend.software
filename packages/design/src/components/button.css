@@ -1,0 +1,134 @@
+.btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1_5);
+  height: 32px;
+  padding: 0 var(--space-4) 0 var(--space-4);
+  border: 0;
+  cursor: pointer;
+  outline: none;
+  border-radius: var(--radius-control);
+  font-size: var(--text-sm);
+  font-variation-settings: var(--fw-medium);
+  transition:
+    color var(--spring-fast-ms),
+    font-variation-settings var(--spring-fast-ms);
+  background: transparent;
+  color: var(--foreground);
+  font-family: inherit;
+}
+
+.btn .btn-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transition:
+    background-color var(--spring-fast-ms),
+    transform var(--spring-fast-ms);
+  z-index: -1;
+}
+
+.btn:hover {
+  font-variation-settings: var(--fw-semibold);
+}
+
+.btn:active .btn-bg {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  color: var(--background);
+}
+
+.btn-primary .btn-bg {
+  background: var(--foreground);
+}
+
+.btn-primary:hover .btn-bg {
+  background: color-mix(in oklab, var(--foreground), transparent 12%);
+}
+
+.btn-tertiary {
+  border: 1px solid var(--border);
+}
+
+.btn-tertiary:hover .btn-bg {
+  background: var(--hover);
+}
+
+.btn-ghost {
+  color: var(--muted-foreground);
+  padding: 0 var(--space-2_5);
+}
+
+.btn-ghost:hover {
+  color: var(--foreground);
+  background: var(--hover);
+}
+
+.btn-sm {
+  height: 26px;
+  font-size: var(--text-xs);
+  padding: 0 var(--space-2_5);
+}
+
+.btn-lg {
+  height: 36px;
+  font-size: var(--text-md);
+  padding: 0 18px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 3px var(--focus-ring);
+}
+
+/* Icon button — round, icon-only */
+.btn-icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-pill);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition:
+    color var(--spring-fast-ms),
+    background-color var(--spring-fast-ms);
+}
+
+.btn-icon:hover {
+  color: var(--foreground);
+  background: var(--hover);
+}
+
+.btn-icon svg {
+  width: 14px;
+  height: 14px;
+  transition: stroke-width var(--spring-fast-ms);
+}
+
+.btn-icon:hover svg {
+  stroke-width: 2;
+}
+
+.btn-icon:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.btn-icon:focus-visible {
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 3px var(--focus-ring);
+}

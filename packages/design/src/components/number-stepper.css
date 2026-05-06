@@ -1,0 +1,51 @@
+.ds-number-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--card);
+  height: 32px;
+  overflow: hidden;
+}
+
+.ds-number-stepper input {
+  border: 0;
+  outline: 0;
+  width: 56px;
+  text-align: center;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-variation-settings: var(--fw-semibold);
+  background: transparent;
+  color: var(--foreground);
+  font-feature-settings: "tnum";
+}
+
+.ds-number-stepper button {
+  border: 0;
+  background: transparent;
+  width: 28px;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  font: inherit;
+  font-size: var(--text-md);
+  transition: all var(--spring-fast-ms);
+}
+
+.ds-number-stepper button:hover {
+  background: var(--hover);
+  color: var(--foreground);
+}
+
+.ds-number-stepper button:first-child {
+  border-right: 1px solid var(--border);
+}
+
+.ds-number-stepper button:last-child {
+  border-left: 1px solid var(--border);
+}
+
+.ds-number-stepper button:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}

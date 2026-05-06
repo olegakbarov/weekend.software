@@ -1,0 +1,116 @@
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--muted);
+  border-radius: var(--radius-container);
+  gap: 2px;
+  width: 100%;
+  position: relative;
+  isolation: isolate;
+}
+
+.seg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+.seg-grid button {
+  flex: none;
+}
+
+.seg-plate {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  background: var(--card);
+  border-radius: calc(var(--radius-container) - 4px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition:
+    transform var(--spring-moderate-ms) var(--ease-out-ui),
+    width var(--spring-moderate-ms) var(--ease-out-ui),
+    height var(--spring-moderate-ms) var(--ease-out-ui);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.seg button {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  height: 28px;
+  padding: 0 var(--space-1_5);
+  border-radius: calc(var(--radius-container) - 4px);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-variation-settings: var(--fw-medium);
+  cursor: pointer;
+  color: var(--muted-foreground);
+  transition:
+    color var(--spring-fast-ms),
+    font-variation-settings var(--spring-fast-ms);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.seg button:hover {
+  color: var(--foreground);
+}
+
+.seg button[data-active="true"] {
+  color: var(--foreground);
+  font-variation-settings: var(--fw-semibold);
+}
+
+.seg-subtle {
+  display: inline-flex;
+  gap: 2px;
+  position: relative;
+  isolation: isolate;
+}
+
+.seg-subtle-plate {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--accent);
+  border-radius: var(--radius-control);
+  transition:
+    transform var(--spring-moderate-ms) var(--ease-out-ui),
+    width var(--spring-moderate-ms) var(--ease-out-ui);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.seg-subtle button {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  background: transparent;
+  height: 28px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-variation-settings: var(--fw-medium);
+  cursor: pointer;
+  color: var(--muted-foreground);
+  transition:
+    color var(--spring-fast-ms),
+    font-variation-settings var(--spring-fast-ms);
+}
+
+.seg-subtle button:hover {
+  color: var(--foreground);
+}
+
+.seg-subtle button[data-active="true"] {
+  color: var(--foreground);
+  font-variation-settings: var(--fw-semibold);
+}

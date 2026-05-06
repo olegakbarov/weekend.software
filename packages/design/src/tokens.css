@@ -1,0 +1,277 @@
+/* =====================================================================
+   WEEKEND DESIGN — design tokens
+   See packages/design/CREDITS.md for upstream attribution.
+
+   Drift kept here:
+   - Focus ring stays #6B97FF (matches registry/default/* hardcoded value)
+   - VCR OSD Mono is opt-in; consumers add the @font-face themselves
+   ===================================================================== */
+
+@font-face {
+  font-family: "Inter";
+  src: url("./fonts/InterVariable.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ── Surfaces ──────────────────────────────────────────────────── */
+  --background: #fafafa;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+
+  /* ── Interactive states ───────────────────────────────────────── */
+  --accent: #e5e5e5;
+  --accent-foreground: #171717;
+  --selected: #d4d4d4;
+  --hover: color-mix(in oklab, var(--foreground) 6%, transparent);
+  --active: color-mix(in oklab, var(--foreground) 10%, transparent);
+
+  /* ── Borders / rings / inputs ─────────────────────────────────── */
+  --border: #e5e5e5;
+  --ring: #e5e5e5;
+  --input: #e5e5e5;
+  --focus-ring: #6b97ff;
+
+  /* ── Status / destructive ─────────────────────────────────────── */
+  --destructive: #ef4444;
+  --destructive-light: #fef2f2;
+
+  /* ── Neutral ramp ─────────────────────────────────────────────── */
+  --neutral-50: #fafafa;
+  --neutral-100: #f5f5f5;
+  --neutral-200: #e5e5e5;
+  --neutral-300: #d4d4d4;
+  --neutral-400: #a3a3a3;
+  --neutral-500: #737373;
+  --neutral-600: #525252;
+  --neutral-700: #404040;
+  --neutral-800: #262626;
+  --neutral-900: #171717;
+  --neutral-950: #0a0a0a;
+
+  /* ── Accent palette (Tailwind 500s) ───────────────────────────── */
+  --color-gray: #a3a3a3;
+  --color-red: #ef4444;
+  --color-orange: #f97316;
+  --color-amber: #f59e0b;
+  --color-yellow: #eab308;
+  --color-lime: #84cc16;
+  --color-green: #22c55e;
+  --color-emerald: #10b981;
+  --color-teal: #14b8a6;
+  --color-cyan: #06b6d4;
+  --color-blue: #3b82f6;
+  --color-indigo: #6366f1;
+  --color-violet: #8b5cf6;
+  --color-purple: #a855f7;
+  --color-fuchsia: #d946ef;
+  --color-pink: #ec4899;
+  --color-rose: #f43f5e;
+
+  /* ── Type ─────────────────────────────────────────────────────── */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* ── Font slots (consumer-overridable) ─────────────────────────── */
+  --font-ui: var(--font-sans);
+  --font-mono-ui: var(--font-mono);
+  --font-display: var(--font-sans);
+
+  /* Variable font-weight axes — lighter than typical to keep UI refined.
+     Bold is reserved for hover/active label transitions. */
+  --fw-normal: "wght" 400;
+  --fw-medium: "wght" 450;
+  --fw-semibold: "wght" 550;
+  --fw-bold: "wght" 700;
+
+  /* ── Type scale ───────────────────────────────────────────────── */
+  --text-h1: 28px;
+  --text-h2: 22px;
+  --text-h3: 18px;
+  --text-lg: 15px;
+  --text-md: 14px;
+  --text-sm: 13px;
+  --text-xs: 12px;
+  --text-xxs: 11px;
+
+  /* ── Radii ────────────────────────────────────────────────────── */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-pill: 9999px;
+
+  /* Shape: pill (default) vs rounded. Toggle via [data-shape="..."]. */
+  --radius-control: 20px;
+  --radius-container: 24px;
+
+  /* ── Spacing (Tailwind 4-pt scale) ────────────────────────────── */
+  --space-0_5: 2px;
+  --space-1: 4px;
+  --space-1_5: 6px;
+  --space-2: 8px;
+  --space-2_5: 10px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ── Shadows ──────────────────────────────────────────────────── */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-popover:
+    0 8px 24px -4px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow-modal:
+    0 24px 64px -12px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* ── Motion (paired with framer-motion springs in registry) ───── */
+  --spring-fast-ms: 80ms;
+  --spring-moderate-ms: 160ms;
+  --spring-slow-ms: 240ms;
+  --ease-out-ui: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-shape="pill"] {
+  --radius-control: 20px;
+  --radius-container: 24px;
+}
+
+[data-shape="rounded"] {
+  --radius-control: 8px;
+  --radius-container: 12px;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #f5f5f5;
+  --card: #171717;
+  --card-foreground: #f5f5f5;
+  --muted: #1f1f1f;
+  --muted-foreground: #a3a3a3;
+
+  --accent: #2a2a2a;
+  --accent-foreground: #f5f5f5;
+  --selected: #525252;
+
+  --border: #2a2a2a;
+  --ring: #404040;
+  --input: #2a2a2a;
+
+  --destructive: #f87171;
+  --destructive-light: #450a0a;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-popover:
+    0 8px 24px -4px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-modal:
+    0 24px 64px -12px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  --card-red: #f87171;
+
+  color-scheme: dark;
+}
+
+/* =====================================================================
+   WEEKEND THEME — dark (default)
+   Brutalist black, semantic font-split (Inter + VCR + Berkeley),
+   +2px text scale, #00BE83 focus.
+   Source: app's src/styles.css :root block.
+   Inert until something sets data-theme="weekend-dark" on <html>.
+   ===================================================================== */
+[data-theme="weekend-dark"] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --background: #000000;
+  --foreground: #A7A7A7;
+  --card: #181818;
+  --card-foreground: #DEDEDE;
+  --muted: #191919;
+  --muted-foreground: #8A8A8A;
+
+  /* Interactive states (Weekend has no --accent; derive from --secondary) */
+  --accent: #1A1A1A;
+  --accent-foreground: #DEDEDE;
+
+  /* Borders / rings / inputs */
+  --border: #2D2D2D;
+  --ring: #00BE83;
+  --input: #181818;
+  --focus-ring: #00BE83;
+
+  /* Status / destructive */
+  --destructive: #F14D4C;
+
+  /* Type scale (+2px Weekend identity) */
+  --text-xs: 14px;
+  --text-sm: 16px;
+  --text-md: 16px;
+  --text-lg: 17px;
+  --text-h3: 20px;
+  --text-h2: 24px;
+  --text-h1: 30px;
+  --text-3xl: 32px;
+
+  /* Font slots */
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono-ui: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: "VCR OSD Mono", monospace;
+}
+
+/* =====================================================================
+   WEEKEND THEME — paper (light)
+   Warm cream paper, pink focus.
+   +2px text scale (same as dark — Weekend identity choice).
+   Source: app's src/styles.css .light block.
+   Inert until something sets data-theme="weekend-paper" on <html>.
+   ===================================================================== */
+[data-theme="weekend-paper"] {
+  color-scheme: light;
+
+  /* Surfaces */
+  --background: #F5F0EB;
+  --foreground: #2C2420;
+  --card: #EDE7E1;
+  --card-foreground: #2C2420;
+  --muted: #E8E2DB;
+  --muted-foreground: #8A7F75;
+
+  /* Interactive states (Weekend has no --accent; derive from --secondary) */
+  --accent: #E8E2DB;
+  --accent-foreground: #2C2420;
+
+  /* Borders / rings / inputs */
+  --border: #D8D0C8;
+  --ring: #E84B8A;
+  --input: #EDE7E1;
+  --focus-ring: #E84B8A;
+
+  /* Status / destructive */
+  --destructive: #D40924;
+
+  /* Type scale (+2px Weekend identity, same as dark) */
+  --text-xs: 14px;
+  --text-sm: 16px;
+  --text-md: 16px;
+  --text-lg: 17px;
+  --text-h3: 20px;
+  --text-h2: 24px;
+  --text-h1: 30px;
+  --text-3xl: 32px;
+
+  /* Font slots (same as dark) */
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono-ui: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: "VCR OSD Mono", monospace;
+}
