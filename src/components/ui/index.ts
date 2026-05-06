@@ -32,14 +32,6 @@ export {
   ResizablePanel,
   ResizablePanelGroup,
 } from "./resizable";
-export {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectRoot,
-  SelectTrigger,
-  SelectValue,
-} from "./select";
 export { Spinner } from "./spinner";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 export { Textarea } from "./textarea";
