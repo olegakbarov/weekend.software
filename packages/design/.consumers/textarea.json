@@ -3,21 +3,6 @@
   "tier": "core",
   "consumers": [
     {
-      "file": "src/components/home/home-page.tsx",
-      "line": 147,
-      "props": [
-        "autoFocus",
-        "disabled",
-        "onChange",
-        "onKeyDown",
-        "placeholder",
-        "ref",
-        "value",
-        "variant",
-        "className"
-      ]
-    },
-    {
       "file": "src/dev/docs/views/pages/input.tsx",
       "line": 72,
       "props": [
@@ -38,15 +23,10 @@
     }
   ],
   "propUsage": {
-    "autoFocus": 1,
-    "className": 1,
-    "disabled": 1,
-    "onChange": 3,
-    "onKeyDown": 1,
-    "placeholder": 3,
-    "ref": 1,
-    "value": 3,
-    "variant": 2
+    "onChange": 2,
+    "placeholder": 2,
+    "value": 2,
+    "variant": 1
   },
-  "totalUsages": 3
+  "totalUsages": 2
 }

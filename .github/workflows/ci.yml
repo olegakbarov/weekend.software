@@ -37,3 +37,6 @@ jobs:
 
       - name: Design package tests
         run: pnpm --filter @weekend/design test
+
+      - name: App typecheck
+        run: pnpm exec tsc --noEmit -p tsconfig.json

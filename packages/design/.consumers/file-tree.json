@@ -13,7 +13,7 @@
     },
     {
       "file": "src/components/shared/shared-page.tsx",
-      "line": 395,
+      "line": 398,
       "props": [
         "model",
         "style"

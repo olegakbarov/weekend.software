@@ -2201,21 +2201,56 @@ fn resolve_project_theme_policy(project_name: &str) -> ProjectThemeConfig {
     read_project_theme_field(&project_config_path(&project_dir)).unwrap_or_default()
 }
 
-/// JS that flips `<html data-theme>`, mirrors the `dark`/`light` class so
-/// tailwind `dark:` variants and `.dark` selectors keep working, and fires a
+/// JS that flips `<html data-theme>` AND `<html class="dark|light">`, so both
+/// the modern `[data-theme="..."]` cascade and the legacy `.dark`/`.light`
+/// anchors (Tailwind `dark:` variants, shadcn-style projects, hand-rolled
+/// designs like the home project) end up in lockstep. Persists the theme to
+/// BOTH `localStorage["weekend.theme"]` (modern, four named themes) and
+/// `localStorage["theme"]` (legacy "light"/"dark" convention) so a project's
+/// own no-FOUC bootstrap reads the shell's value on next mount. Fires a
 /// `weekend:theme` window event for projects that need imperative reactions
-/// (canvas, charts) on top of the CSS cascade.
+/// (canvas, charts) on top of the CSS cascade. `__WEEKEND_SHELL_THEME__` is
+/// the live source of truth used by the MutationObserver guard installed by
+/// the preamble. The is-different checks prevent the observer from
+/// triggering itself when the same value is rewritten.
 fn theme_apply_script(theme: &str) -> String {
     // `theme` is always one of `VALID_THEMES`, so no escaping needed.
     let dark = matches!(theme, "fluid-dark" | "weekend-dark");
+    let legacy = if dark { "dark" } else { "light" };
     format!(
-        "(function(){{try{{var t=\"{theme}\";var r=document.documentElement;\
-r.dataset.theme=t;r.classList.toggle(\"dark\",{dark});r.classList.toggle(\"light\",{light});\
+        "(function(){{try{{var t=\"{theme}\";window.__WEEKEND_SHELL_THEME__=t;\
+var r=document.documentElement;\
+if(r.dataset.theme!==t)r.dataset.theme=t;\
+if(r.classList.contains(\"dark\")!=={dark})r.classList.toggle(\"dark\",{dark});\
+if(r.classList.contains(\"light\")!=={light})r.classList.toggle(\"light\",{light});\
+try{{localStorage.setItem(\"weekend.theme\",t);}}catch(_){{}}\
+try{{localStorage.setItem(\"theme\",\"{legacy}\");}}catch(_){{}}\
 try{{window.dispatchEvent(new CustomEvent(\"weekend:theme\",{{detail:{{theme:t}}}}));}}catch(_){{}}\
 }}catch(_){{}}}})();",
         light = !dark,
     )
 }
+
+/// Defends against the project's own ThemeProvider re-applying a stale value
+/// on hydrate. The observer watches BOTH `data-theme` and `class` because
+/// projects use either anchor (or both): home rewrites `class`, while a
+/// `[data-theme]`-styled project rewrites `data-theme`. Idempotent via
+/// `__WEEKEND_THEME_GUARD__`. The is-different checks inside `apply` prevent
+/// the observer from triggering itself on its own writes.
+const THEME_GUARD_SCRIPT: &str = "(function(){\
+if(window.__WEEKEND_THEME_GUARD__)return;window.__WEEKEND_THEME_GUARD__=true;\
+try{var ob=new MutationObserver(function(){\
+var t=window.__WEEKEND_SHELL_THEME__;if(!t)return;\
+var dark=(t===\"fluid-dark\"||t===\"weekend-dark\");\
+var legacy=dark?\"dark\":\"light\";\
+var r=document.documentElement;\
+if(r.dataset.theme!==t)r.dataset.theme=t;\
+if(r.classList.contains(\"dark\")!==dark)r.classList.toggle(\"dark\",dark);\
+if(r.classList.contains(\"light\")!==!dark)r.classList.toggle(\"light\",!dark);\
+try{localStorage.setItem(\"weekend.theme\",t);}catch(_){}\
+try{localStorage.setItem(\"theme\",legacy);}catch(_){}});\
+ob.observe(document.documentElement,{attributes:true,attributeFilter:[\"data-theme\",\"class\"]});\
+}catch(_){}})();";
 
 /// JS preamble that the bridge prepends to every `bridge_inject.js` eval for
 /// a project webview. Returns `None` when the project has opted out of shell
@@ -2226,7 +2261,8 @@ fn theme_injection_preamble(project_name: &str) -> Option<String> {
     if !policy.track_shell {
         return None;
     }
-    Some(theme_apply_script(&read_active_theme()))
+    let apply = theme_apply_script(&read_active_theme());
+    Some(format!("{apply}{THEME_GUARD_SCRIPT}"))
 }
 
 fn seed_agent_runtime_guidance_files(project_dir: &Path) -> Result<(), String> {

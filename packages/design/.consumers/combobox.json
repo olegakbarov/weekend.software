@@ -4,7 +4,21 @@
   "consumers": [
     {
       "file": "src/components/home/home-page.tsx",
-      "line": 160,
+      "line": 209,
+      "props": [
+        "variant",
+        "disabled",
+        "items",
+        "onChange",
+        "value",
+        "placeholder",
+        "popoverWidth",
+        "className"
+      ]
+    },
+    {
+      "file": "src/components/home/home-page.tsx",
+      "line": 222,
       "props": [
         "variant",
         "disabled",
@@ -40,14 +54,14 @@
   ],
   "propUsage": {
     "allowFreeText": 1,
-    "className": 1,
-    "disabled": 1,
-    "items": 3,
-    "onChange": 3,
-    "placeholder": 3,
-    "popoverWidth": 1,
-    "value": 3,
-    "variant": 1
+    "className": 2,
+    "disabled": 2,
+    "items": 4,
+    "onChange": 4,
+    "placeholder": 4,
+    "popoverWidth": 2,
+    "value": 4,
+    "variant": 2
   },
-  "totalUsages": 3
+  "totalUsages": 4
 }
