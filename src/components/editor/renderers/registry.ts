@@ -1,14 +1,16 @@
+import { csvRenderer } from "./csv-renderer";
 import { imageRenderer } from "./image-renderer";
 import { textRenderer } from "./text-renderer";
 import type { RendererDescriptor } from "./types";
 
 /**
  * Renderers are matched in declaration order. The text renderer is the
- * catch-all and must stay last. To add a new renderer (CSV table view, PDF
- * preview, archive browser, etc.), add it before the text renderer.
+ * catch-all and must stay last. To add a new renderer (PDF preview, archive
+ * browser, etc.), add it before the text renderer.
  */
 const RENDERERS: ReadonlyArray<RendererDescriptor> = [
   imageRenderer,
+  csvRenderer,
   textRenderer,
 ];
 

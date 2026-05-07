@@ -1,4 +1,5 @@
 export { pickRenderer, listRenderers } from "./registry";
+export { csvRenderer } from "./csv-renderer";
 export { imageRenderer } from "./image-renderer";
 export { textRenderer } from "./text-renderer";
 export type {
