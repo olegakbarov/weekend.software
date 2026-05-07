@@ -1,17 +1,15 @@
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, FileText, Pencil, RefreshCw, Trash2, Upload, X } from "lucide-react";
+import {
+  FileTree,
+  prepareFileTreeInput,
+  useFileTree,
+} from "@weekend/design/registry";
 import { Button } from "@/components/ui/button";
 import { EnvVarsEditor } from "@/components/ui/env-vars-editor";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import type { SharedAssetSnapshot } from "@/lib/controller";
-import {
-  Upload,
-  RefreshCw,
-  Pencil,
-  Trash2,
-  FileText,
-  X,
-  Check,
-} from "lucide-react";
 
 function formatFileSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 0) return "n/a";
@@ -44,7 +42,7 @@ export type SharedPageProps = {
   onUpdateSharedEnv: (env: Record<string, string>) => Promise<void>;
 };
 
-function AssetRow({
+function DetailsPanel({
   asset,
   isUploading,
   onRename,
@@ -56,18 +54,26 @@ function AssetRow({
   onDelete: (fileName: string) => Promise<void>;
 }) {
   const [isRenaming, setIsRenaming] = useState(false);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(asset.fileName);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const startRename = () => {
-    setIsRenaming(true);
+  // Reset local edit state when the selected asset changes.
+  useEffect(() => {
+    setIsRenaming(false);
     setDraft(asset.fileName);
-  };
+    setIsDeleting(false);
+  }, [asset.fileName]);
 
   const submitRename = () => {
     const trimmed = draft.trim();
-    if (!trimmed || trimmed === asset.fileName || trimmed.includes("/") || trimmed.includes("\\")) {
+    if (
+      !trimmed ||
+      trimmed === asset.fileName ||
+      trimmed.includes("/") ||
+      trimmed.includes("\\")
+    ) {
       setIsRenaming(false);
+      setDraft(asset.fileName);
       return;
     }
     void onRename(asset.fileName, trimmed).then(() => setIsRenaming(false));
@@ -82,75 +88,85 @@ function AssetRow({
   };
 
   return (
-    <div className="flex items-center gap-2 rounded border border-border/40 px-3 py-1.5 transition-colors hover:border-border/70 hover:bg-muted/20">
-      <FileText className="size-3 shrink-0 text-muted-foreground/50" />
-
-      {isRenaming ? (
-        <div className="flex min-w-0 flex-1 items-center gap-1">
-          <Input
-            autoFocus
-            className="h-6 flex-1 px-1.5 font-code text-[10px]"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") submitRename();
-              else if (e.key === "Escape") setIsRenaming(false);
-            }}
-          />
-          <button
-            className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground"
-            onClick={submitRename}
-            type="button"
-          >
-            <Check className="size-2.5" />
-          </button>
-          <button
-            className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground"
-            onClick={() => setIsRenaming(false)}
-            type="button"
-          >
-            <X className="size-2.5" />
-          </button>
-        </div>
-      ) : (
+    <div className="flex h-full flex-col gap-3 p-4">
+      <div className="flex items-start gap-2">
+        <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground/60" />
         <div className="min-w-0 flex-1">
-          <span className="truncate font-code text-[11px] text-foreground">
-            {asset.fileName}
-          </span>
-          <span className="ml-2 font-code text-[9px] text-muted-foreground/60">
-            {formatFileSize(asset.sizeBytes)}
-            {asset.modifiedAtUnixMs
-              ? ` · ${formatTimestamp(asset.modifiedAtUnixMs)}`
-              : ""}
-          </span>
+          {isRenaming ? (
+            <div className="flex items-center gap-1">
+              <Input
+                autoFocus
+                className="h-7 flex-1 px-2 font-code text-xs"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") submitRename();
+                  else if (e.key === "Escape") {
+                    setIsRenaming(false);
+                    setDraft(asset.fileName);
+                  }
+                }}
+              />
+              <button
+                className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
+                onClick={submitRename}
+                type="button"
+                title="Save"
+              >
+                <Check className="size-3" />
+              </button>
+              <button
+                className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
+                onClick={() => {
+                  setIsRenaming(false);
+                  setDraft(asset.fileName);
+                }}
+                type="button"
+                title="Cancel"
+              >
+                <X className="size-3" />
+              </button>
+            </div>
+          ) : (
+            <p className="break-all font-code text-sm text-foreground">
+              {asset.fileName}
+            </p>
+          )}
         </div>
-      )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-code text-[11px] text-muted-foreground">
+        <span>Size</span>
+        <span className="text-foreground/80">{formatFileSize(asset.sizeBytes)}</span>
+        <span>Modified</span>
+        <span className="text-foreground/80">
+          {asset.modifiedAtUnixMs ? formatTimestamp(asset.modifiedAtUnixMs) : "n/a"}
+        </span>
+      </div>
 
       {!isRenaming && (
-        <div className="flex shrink-0 items-center gap-0.5">
-          <button
-            className="rounded p-1 text-muted-foreground/50 transition-colors hover:text-foreground"
+        <div className="mt-auto flex items-center gap-1 border-t border-border/40 pt-3">
+          <Button
+            size="xs"
+            variant="ghost"
+            className="gap-1 font-code text-[11px]"
             disabled={isUploading}
-            onClick={startRename}
-            title="Rename"
-            type="button"
+            onClick={() => setIsRenaming(true)}
           >
-            <Pencil className="size-2.5" />
-          </button>
-          <button
-            className={`rounded p-1 transition-colors ${
-              isDeleting
-                ? "text-destructive hover:text-destructive"
-                : "text-muted-foreground/50 hover:text-destructive"
-            }`}
+            <Pencil className="size-2.5" /> Rename
+          </Button>
+          <Button
+            size="xs"
+            variant={isDeleting ? "destructive" : "ghost"}
+            className="gap-1 font-code text-[11px]"
             disabled={isUploading}
-            onClick={handleDelete}
             onBlur={() => setIsDeleting(false)}
+            onClick={handleDelete}
             title={isDeleting ? "Click again to confirm" : "Delete"}
-            type="button"
           >
             <Trash2 className="size-2.5" />
-          </button>
+            {isDeleting ? "Confirm delete" : "Delete"}
+          </Button>
         </div>
       )}
     </div>
@@ -171,10 +187,52 @@ export function SharedPage({
 }: SharedPageProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
   useEffect(() => {
     onRefresh();
   }, [onRefresh]);
+
+  const paths = useMemo(
+    () => sharedAssets.map((a) => a.fileName).sort(),
+    [sharedAssets],
+  );
+  const preparedInput = useMemo(() => prepareFileTreeInput(paths), [paths]);
+
+  const onSelectFileRef = useRef<(name: string) => void>(() => {});
+  useEffect(() => {
+    onSelectFileRef.current = (name: string) => setSelectedFileName(name);
+  });
+
+  const { model } = useFileTree({
+    initialExpansion: "open",
+    preparedInput,
+    onSelectionChange: (selectedPaths) => {
+      const head = selectedPaths[0];
+      if (!head || head.endsWith("/")) return;
+      onSelectFileRef.current(head);
+    },
+  });
+
+  // Reset paths when the assets list changes.
+  const initialInputRef = useRef(preparedInput);
+  useEffect(() => {
+    if (initialInputRef.current === preparedInput) return;
+    model.resetPaths(paths, { preparedInput });
+  }, [model, paths, preparedInput]);
+
+  // Drop selection if the file goes away (e.g. after delete).
+  useEffect(() => {
+    if (!selectedFileName) return;
+    if (!sharedAssets.some((a) => a.fileName === selectedFileName)) {
+      setSelectedFileName(null);
+    }
+  }, [selectedFileName, sharedAssets]);
+
+  const selectedAsset = useMemo(
+    () => sharedAssets.find((a) => a.fileName === selectedFileName) ?? null,
+    [selectedFileName, sharedAssets],
+  );
 
   const handleFiles = (files: FileList | File[] | null) => {
     if (!files || files.length === 0) return;
@@ -232,13 +290,12 @@ export function SharedPage({
         </div>
       )}
 
-      {/* Drop zone + file list */}
+      {/* Two-column file browser with drop zone */}
       <div
-        className={`mx-4 mt-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded border transition-colors ${
-          dragOver
-            ? "border-primary/50 bg-primary/5"
-            : "border-border/30"
-        }`}
+        className={cn(
+          "mx-4 mt-1 flex min-h-0 flex-1 overflow-hidden rounded border transition-colors",
+          dragOver ? "border-primary/50 bg-primary/5" : "border-border/30",
+        )}
         onDragOver={(e) => {
           e.preventDefault();
           setDragOver(true);
@@ -261,28 +318,37 @@ export function SharedPage({
             </p>
           </div>
         ) : (
-          <div className="flex-1 overflow-auto p-2">
-            <div className="flex flex-col gap-1">
-              {sharedAssets.map((asset) => (
-                <AssetRow
-                  key={asset.fileName}
-                  asset={asset}
+          <>
+            {/* Left column: file tree */}
+            <div className="flex min-h-0 w-[280px] shrink-0 flex-col overflow-hidden border-r border-border/40">
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <FileTree model={model} style={{ height: "100%" }} />
+              </div>
+              <div className="shrink-0 border-t border-border/20 px-3 py-1">
+                <span className="font-code text-[9px] text-muted-foreground/50">
+                  {sharedAssets.length} file{sharedAssets.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+            </div>
+
+            {/* Right column: details */}
+            <div className="min-h-0 flex-1 overflow-auto">
+              {selectedAsset ? (
+                <DetailsPanel
+                  asset={selectedAsset}
                   isUploading={isUploading}
                   onRename={onRename}
                   onDelete={onDelete}
                 />
-              ))}
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <p className="font-code text-[11px] text-muted-foreground/50">
+                    Select a file to see details
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
-        )}
-
-        {/* Footer count */}
-        {sharedAssets.length > 0 && (
-          <div className="shrink-0 border-t border-border/20 px-3 py-1">
-            <span className="font-code text-[9px] text-muted-foreground/50">
-              {sharedAssets.length} file{sharedAssets.length !== 1 ? "s" : ""}
-            </span>
-          </div>
+          </>
         )}
       </div>
 
