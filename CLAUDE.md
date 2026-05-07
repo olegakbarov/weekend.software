@@ -29,9 +29,10 @@ When you encounter a UI pattern during migration, classify it:
 ## Theming
 
 - Single source of truth: `<html data-theme="...">` where the value is `fluid` | `fluid-dark` | `weekend-dark` | `weekend-paper`.
-- `ThemeProvider` (`src/components/theme/theme-provider.tsx`) writes `data-theme` only — never `style.setProperty("--*", ...)`. Inline-style writes break the design system's `:root[data-theme=...]` cascade because inline has specificity 1,0,0,0.
+- `ThemeProvider` (`src/components/theme/theme-provider.tsx`) writes `data-theme` only — never `style.setProperty("--*", ...)`. Inline-style writes break the design system's `:root[data-theme=...]` cascade because inline has specificity 1,0,0,0. ThemeProvider also toggles `.light` / `.dark` classes; these no longer carry token definitions but are still load-bearing as the anchor for Tailwind's `dark:` variant.
 - Active theme persists to `~/.weekend/theme.json` via Tauri commands `get_active_theme` / `set_active_theme`. Setting emits a `theme-changed` event so all webviews stay in sync.
-- Tokens for all four themes live in `packages/design/src/tokens.css`. Adding a token: add it to all five blocks (`:root`, `.dark`, and the four `:root[data-theme="..."]` blocks).
+- **All theme tokens live in `packages/design/src/tokens.css`.** Adding a token: add it to all six blocks (`:root`, `.dark`, and the four `:root[data-theme="..."]` blocks). The exception is the Weekend `@theme inline` block in `src/styles.css`, which holds Tailwind v4 utility-class generators (`--font-sans`, `--font-mono`, `--text-xs..3xl`, `--radius-sm..xl`) — those drive `.text-xs`, `.font-mono`, `.rounded-sm` etc. and are intentionally global.
+- `src/styles.css` is for **app-internal CSS only** (animations, `.tool-*` classes, scrollbar webkit overrides, `@theme inline` for Tailwind utilities). It does not define theme tokens. Run `pnpm tokens:lint` any time to see what's defined where; `pnpm tokens:lint:check` exits 1 if a legacy-only token gains a consumer (use it in CI).
 
 ## Commands
 
@@ -44,6 +45,8 @@ When you encounter a UI pattern during migration, classify it:
 | `pnpm design:build` | Build `packages/design/dist/` |
 | `pnpm design:index` | Regenerate `packages/design/.consumers/*.json` |
 | `pnpm design:index:check` | CI mode — exits 1 if manifests are stale |
+| `pnpm tokens:lint` | Diagnose token drift between `src/styles.css` and `packages/design/src/tokens.css` |
+| `pnpm tokens:lint:check` | CI mode — exits 1 if any legacy-only token has a consumer |
 | `cargo check` (in `src-tauri/`) | Rust check |
 
 ## /dev/ds

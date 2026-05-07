@@ -3,6 +3,53 @@
   "tier": "registry",
   "consumers": [
     {
+      "file": "src/components/editor/renderers/csv-renderer.tsx",
+      "line": 122,
+      "props": [
+        "key"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/audit.tsx",
+      "line": 308,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/audit.tsx",
+      "line": 309,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/audit.tsx",
+      "line": 310,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/audit.tsx",
+      "line": 311,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/consumers.tsx",
+      "line": 114,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/consumers.tsx",
+      "line": 115,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/consumers.tsx",
+      "line": 116,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/consumers.tsx",
+      "line": 117,
+      "props": []
+    },
+    {
       "file": "src/dev/docs/views/pages/table.tsx",
       "line": 48,
       "props": []
@@ -23,6 +70,8 @@
       "props": []
     }
   ],
-  "propUsage": {},
-  "totalUsages": 4
+  "propUsage": {
+    "key": 1
+  },
+  "totalUsages": 13
 }

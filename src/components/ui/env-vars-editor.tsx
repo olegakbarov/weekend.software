@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Loader2, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -98,38 +98,34 @@ export function EnvVarsEditor({ env, onUpdate, title, description }: EnvVarsEdit
             />
             <Button
               className="text-muted-foreground hover:text-destructive"
+              icon={X}
               onClick={() => handleRemove(index)}
-              size="sm"
+              size="icon-sm"
               variant="ghost"
-            >
-              <X className="size-3" />
-            </Button>
+            />
           </div>
         ))}
 
         <div className="flex items-center gap-2">
           <Button
             className="text-foreground"
+            icon={Plus}
             onClick={handleAdd}
             size="sm"
             variant="ghost"
           >
-            <Plus className="mr-1.5 size-3" />
             Add Variable
           </Button>
 
           {hasChanges ? (
             <Button
               className="text-foreground"
-              disabled={isSaving}
+              loading={isSaving}
               onClick={() => void handleSave()}
               size="sm"
               variant="ghost"
             >
-              {isSaving ? (
-                <Loader2 className="mr-1.5 size-3 animate-spin" />
-              ) : null}
-              {isSaving ? "Saving..." : "Save"}
+              Save
             </Button>
           ) : null}
         </div>

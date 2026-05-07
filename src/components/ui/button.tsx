@@ -64,6 +64,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: IconComponent;
   /** Icon rendered after children. Same alignment rationale as `icon`. */
   trailingIcon?: IconComponent;
+  /** Swaps content for the design-system spinner and disables the button. */
+  loading?: boolean;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(

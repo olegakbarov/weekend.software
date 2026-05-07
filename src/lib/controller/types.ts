@@ -80,11 +80,14 @@ export type SharedAssetSnapshot = {
   modifiedAtUnixMs: number | null;
 };
 
+export type DesignSystemChoice = "weekend" | "none";
+
 export type CreateProjectInput = {
   name?: string;
   defaultAgentCommand?: string;
   githubRepoUrl?: string;
   initialPrompt?: string;
+  designSystem?: DesignSystemChoice;
 };
 
 export type SharedAssetUploadInput = {

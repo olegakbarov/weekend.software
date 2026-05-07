@@ -23,6 +23,35 @@
   --card-foreground: #171717;
   --muted: #f5f5f5;
   --muted-foreground: #737373;
+  /* Always slightly lighter than --muted; used for raised pills on a
+     muted tray (Tabs active indicator, Seg subtle plate). */
+  --surface-raised: #ffffff;
+
+  /* ── Feature surfaces (FeatureInput, prompt-input) ────────────── */
+  --feature-input-bg: #f5f5f5;
+  --feature-input-body-bg: #ffffff;
+  --prompt-input-surface: #ffffff;
+  --prompt-input-inner-shadow: rgba(23, 23, 23, 0.04);
+
+  /* ── Editor selection / focus highlight ───────────────────────── */
+  --text-highlight: #6b97ff;
+  --text-highlight-selection: #6b97ff66;
+  --text-highlight-selection-strong: #6b97ff80;
+
+  /* ── Scrollbar ────────────────────────────────────────────────── */
+  --scrollbar-thumb: oklch(0.78 0 0);
+
+  /* ── Markdown code block ──────────────────────────────────────── */
+  --markdown-code-block-bg: var(--muted);
+  --markdown-code-block-header-bg: var(--accent);
+
+  /* ── Primary / popover / warning ──────────────────────────────── */
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  --popover: var(--card);
+  --popover-foreground: var(--card-foreground);
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
 
   /* ── Interactive states ───────────────────────────────────────── */
   --accent: #e5e5e5;
@@ -152,6 +181,53 @@
   --ease-out-ui: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* =====================================================================
+   CodeMirror syntax highlight tokens
+
+   Mapped to design palette colors. CodeMirror highlight uses inline
+   `color: var(--syntax-*)` per token (see src/components/editor/syntax-
+   highlight.ts in consumers), so changing these vars per theme retones
+   the editor without touching JS. References resolve theme-aware via
+   the cascade — no per-theme override needed.
+   ===================================================================== */
+:root {
+  --syntax-keyword: var(--color-violet);
+  --syntax-string: var(--color-green);
+  --syntax-comment: var(--muted-foreground);
+  --syntax-number: var(--color-orange);
+  --syntax-function: var(--color-blue);
+  --syntax-variable: var(--foreground);
+  --syntax-type: var(--color-amber);
+  --syntax-tag: var(--color-red);
+  --syntax-attribute: var(--color-cyan);
+  --syntax-punctuation: var(--muted-foreground);
+  --syntax-regexp: var(--color-orange);
+  --syntax-link: var(--color-blue);
+  --syntax-heading: var(--foreground);
+}
+
+/* =====================================================================
+   @pierre/trees theme bridge
+
+   The FileTree component renders inside a shadow root; CSS custom
+   properties inherit through the boundary, so mapping our existing
+   theme tokens to the --trees-theme-* names the lib reads (per
+   dist/utils/themeToTreeStyles.js) makes the tree pick up active-theme
+   colors automatically.
+   ===================================================================== */
+:root {
+  --trees-theme-sidebar-bg: var(--background);
+  --trees-theme-sidebar-fg: var(--foreground);
+  --trees-theme-sidebar-header-fg: var(--muted-foreground);
+  --trees-theme-list-active-selection-fg: var(--foreground);
+  --trees-theme-list-hover-bg: var(--secondary);
+  --trees-theme-list-active-selection-bg: var(--secondary);
+  --trees-theme-focus-ring: var(--ring);
+  --trees-theme-input-bg: var(--card);
+  --trees-theme-sidebar-border: var(--border);
+  --trees-theme-scrollbar-thumb: var(--scrollbar-thumb);
+}
+
 [data-shape="pill"] {
   --radius-control: 20px;
   --radius-container: 24px;
@@ -169,6 +245,28 @@
   --card-foreground: #f5f5f5;
   --muted: #1f1f1f;
   --muted-foreground: #a3a3a3;
+  --surface-raised: #2d2d2d;
+
+  --feature-input-bg: #141414;
+  --feature-input-body-bg: #1f1f1f;
+  --prompt-input-surface: #141414;
+  --prompt-input-inner-shadow: rgba(0, 0, 0, 0.25);
+
+  --text-highlight: #6b97ff;
+  --text-highlight-selection: #6b97ff66;
+  --text-highlight-selection-strong: #6b97ff80;
+
+  --scrollbar-thumb: oklch(0.35 0 0);
+
+  --markdown-code-block-bg: #0f0f0f;
+  --markdown-code-block-header-bg: #0a0a0a;
+
+  --primary: #f5f5f5;
+  --primary-foreground: #0a0a0a;
+  --popover: var(--card);
+  --popover-foreground: var(--card-foreground);
+  --warning: #fbbf24;
+  --warning-foreground: #1a1a00;
 
   --accent: #2a2a2a;
   --accent-foreground: #f5f5f5;
@@ -318,6 +416,33 @@ html.transitioning *::after {
   --card-foreground: #DEDEDE;
   --muted: #191919;
   --muted-foreground: #8A8A8A;
+  --surface-raised: #232323;
+
+  /* Feature surfaces */
+  --feature-input-bg: #101010;
+  --feature-input-body-bg: #1A1A1A;
+  --prompt-input-surface: #0C0C0C;
+  --prompt-input-inner-shadow: rgba(0, 0, 0, 0.25);
+
+  /* Editor selection / focus highlight */
+  --text-highlight: #00BE83;
+  --text-highlight-selection: #00BE8366;
+  --text-highlight-selection-strong: #00BE8380;
+
+  /* Scrollbar */
+  --scrollbar-thumb: oklch(0.35 0 0);
+
+  /* Markdown code block */
+  --markdown-code-block-bg: #121212;
+  --markdown-code-block-header-bg: #0D0D0D;
+
+  /* Primary / popover / warning */
+  --primary: #DEDEDE;
+  --primary-foreground: #030303;
+  --popover: var(--card);
+  --popover-foreground: var(--card-foreground);
+  --warning: #D9A514;
+  --warning-foreground: #030303;
 
   /* Interactive states (Weekend has no --accent; derive from --secondary) */
   --accent: #1A1A1A;
@@ -343,14 +468,21 @@ html.transitioning *::after {
   --text-xs: 14px;
   --text-sm: 16px;
   --text-md: 16px;
-  --text-lg: 17px;
+  --text-lg: 20px;
   --text-h3: 20px;
   --text-h2: 24px;
   --text-h1: 30px;
   --text-3xl: 32px;
 
+  /* Border radius (Weekend's tighter shape) */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+
   /* Font slots */
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   --font-mono-ui: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-display: "VCR OSD Mono", monospace;
 }
@@ -376,6 +508,33 @@ html.transitioning *::after {
   --card-foreground: #2C2420;
   --muted: #E8E2DB;
   --muted-foreground: #8A7F75;
+  --surface-raised: #F5F0EB;
+
+  /* Feature surfaces */
+  --feature-input-bg: #EDE7E1;
+  --feature-input-body-bg: #F5F0EB;
+  --prompt-input-surface: #FAF6F1;
+  --prompt-input-inner-shadow: rgba(44, 36, 32, 0.04);
+
+  /* Editor selection / focus highlight */
+  --text-highlight: #E84B8A;
+  --text-highlight-selection: #E84B8A40;
+  --text-highlight-selection-strong: #E84B8A60;
+
+  /* Scrollbar */
+  --scrollbar-thumb: oklch(0.65 0.02 60);
+
+  /* Markdown code block */
+  --markdown-code-block-bg: #E4DDD6;
+  --markdown-code-block-header-bg: #DBD4CC;
+
+  /* Primary / popover / warning */
+  --primary: #2C2420;
+  --primary-foreground: #F5F0EB;
+  --popover: var(--card);
+  --popover-foreground: var(--card-foreground);
+  --warning: #C18200;
+  --warning-foreground: #2C2420;
 
   /* Interactive states (Weekend has no --accent; derive from --secondary) */
   --accent: #E8E2DB;
@@ -401,14 +560,21 @@ html.transitioning *::after {
   --text-xs: 14px;
   --text-sm: 16px;
   --text-md: 16px;
-  --text-lg: 17px;
+  --text-lg: 20px;
   --text-h3: 20px;
   --text-h2: 24px;
   --text-h1: 30px;
   --text-3xl: 32px;
 
+  /* Border radius (Weekend's tighter shape) */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+
   /* Font slots (same as dark) */
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   --font-mono-ui: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-display: "VCR OSD Mono", monospace;
 }
@@ -427,6 +593,23 @@ html.transitioning *::after {
   --card-foreground: #171717;
   --muted: #f5f5f5;
   --muted-foreground: #737373;
+  --surface-raised: #ffffff;
+  --feature-input-bg: #f5f5f5;
+  --feature-input-body-bg: #ffffff;
+  --prompt-input-surface: #ffffff;
+  --prompt-input-inner-shadow: rgba(23, 23, 23, 0.04);
+  --text-highlight: #6b97ff;
+  --text-highlight-selection: #6b97ff66;
+  --text-highlight-selection-strong: #6b97ff80;
+  --scrollbar-thumb: oklch(0.78 0 0);
+  --markdown-code-block-bg: var(--muted);
+  --markdown-code-block-header-bg: var(--accent);
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  --popover: var(--card);
+  --popover-foreground: var(--card-foreground);
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
   --accent: #e5e5e5;
   --accent-foreground: #171717;
   --selected: #d4d4d4;
@@ -474,6 +657,27 @@ html.transitioning *::after {
   --card-foreground: #f5f5f5;
   --muted: #262626;
   --muted-foreground: #a3a3a3;
+  --surface-raised: #333333;
+  --feature-input-bg: #1a1a1a;
+  --feature-input-body-bg: #262626;
+  --prompt-input-surface: #1a1a1a;
+  --prompt-input-inner-shadow: rgba(0, 0, 0, 0.25);
+
+  --text-highlight: #6b97ff;
+  --text-highlight-selection: #6b97ff66;
+  --text-highlight-selection-strong: #6b97ff80;
+
+  --scrollbar-thumb: oklch(0.35 0 0);
+
+  --markdown-code-block-bg: #1a1a1a;
+  --markdown-code-block-header-bg: #141414;
+
+  --primary: #f5f5f5;
+  --primary-foreground: #0a0a0a;
+  --popover: var(--card);
+  --popover-foreground: var(--card-foreground);
+  --warning: #fbbf24;
+  --warning-foreground: #1a1a00;
   --accent: #525252;
   --accent-foreground: #f5f5f5;
   --selected: #525252;

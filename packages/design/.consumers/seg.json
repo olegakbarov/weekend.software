@@ -14,7 +14,7 @@
     },
     {
       "file": "src/dev/docs/views/pages/tabs.tsx",
-      "line": 200,
+      "line": 203,
       "props": [
         "items",
         "value",
@@ -23,7 +23,7 @@
     },
     {
       "file": "src/dev/docs/views/pages/tabs.tsx",
-      "line": 210,
+      "line": 213,
       "props": [
         "items",
         "value",

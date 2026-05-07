@@ -73,6 +73,7 @@ export type {
   RuntimeTelemetryEvent,
   SharedAssetSnapshot,
   CreateProjectInput,
+  DesignSystemChoice,
   ProcessRole,
   TerminalSessionDescriptor,
   ProcessEntrySnapshot,

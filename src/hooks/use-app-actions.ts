@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import type { WorkspaceController } from "@/hooks/use-workspace-controller";
 import type { WorkspaceControllerState } from "@/lib/controller";
+import { runRegisteredPreviewCapturer } from "@/lib/project-preview";
 import {
   buildWorkspaceLocation,
   type WorkspaceSearch,
@@ -114,7 +115,9 @@ export function useAppActions(
 
   const stop = useCallback(
     (project: string) => {
-      controller.stopProject(project);
+      void runRegisteredPreviewCapturer(project).finally(() => {
+        controller.stopProject(project);
+      });
     },
     [controller]
   );
@@ -129,6 +132,43 @@ export function useAppActions(
       navigateToProject(project, { view: "browser" });
     },
     [controller, navigateToProject]
+  );
+
+  const isCurrentProject = useCallback(
+    (project: string) =>
+      currentRoute.routeId === "/workspace/$project" &&
+      currentRoute.params?.project === project,
+    [currentRoute],
+  );
+
+  const navigateAfterRemoval = useCallback(
+    (removed: string) => {
+      const remaining = state.projects.filter((p) => p !== removed);
+      if (remaining.length > 0) {
+        navigateToProject(remaining[0]!, { view: "browser" });
+      } else {
+        void navigate({ to: "/home" });
+      }
+    },
+    [navigate, navigateToProject, state.projects],
+  );
+
+  const archiveProject = useCallback(
+    async (project: string) => {
+      const wasCurrent = isCurrentProject(project);
+      await controller.archiveProject(project);
+      if (wasCurrent) navigateAfterRemoval(project);
+    },
+    [controller, isCurrentProject, navigateAfterRemoval],
+  );
+
+  const deleteProject = useCallback(
+    async (project: string) => {
+      const wasCurrent = isCurrentProject(project);
+      await controller.deleteProject(project);
+      if (wasCurrent) navigateAfterRemoval(project);
+    },
+    [controller, isCurrentProject, navigateAfterRemoval],
   );
 
   const renameTerminal = useCallback(
@@ -147,7 +187,9 @@ export function useAppActions(
 
   return {
     archivedProjects: state.archivedProjects,
+    archiveProject,
     createTerminal,
+    deleteProject,
     play,
     projects: state.projects,
     removeTerminal,

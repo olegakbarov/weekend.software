@@ -50,13 +50,29 @@ export function Seg<T extends string | number = string>({
       setPlate((p) => ({ ...p, ready: false }));
       return;
     }
-    setPlate({
-      x: btn.offsetLeft,
-      y: btn.offsetTop,
-      w: btn.offsetWidth,
-      h: btn.offsetHeight,
-      ready: true,
+
+    const measure = () => {
+      setPlate({
+        x: btn.offsetLeft,
+        y: btn.offsetTop,
+        w: btn.offsetWidth,
+        h: btn.offsetHeight,
+        ready: true,
+      });
+    };
+
+    measure();
+
+    // Active buttons transition `font-variation-settings` (medium ↔ semibold),
+    // which changes their rendered width over ~150ms. The initial measurement
+    // is taken pre-transition, so without re-measuring the plate ends up
+    // offset relative to the post-transition layout. Observe every button so
+    // we react to both the active button widening AND siblings shifting.
+    const observer = new ResizeObserver(measure);
+    root.querySelectorAll<HTMLButtonElement>("button").forEach((b) => {
+      observer.observe(b);
     });
+    return () => observer.disconnect();
   }, [value, items, grid, variant]);
 
   const isSubtle = variant === "subtle";

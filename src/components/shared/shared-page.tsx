@@ -156,21 +156,22 @@ function ActionBar({
           <Button
             size="xs"
             variant="ghost"
-            className="gap-1 font-code text-[11px]"
+            className="font-code text-[11px]"
             disabled={isUploading}
+            icon={Pencil}
             onClick={() => setIsRenaming(true)}
           >
-            <Pencil className="size-2.5" /> Rename
+            Rename
           </Button>
           <Button
             size="xs"
             variant={isDeleting ? "destructive" : "ghost"}
-            className="gap-1 font-code text-[11px]"
+            className="font-code text-[11px]"
             disabled={isUploading}
+            icon={Trash2}
             onBlur={() => setIsDeleting(false)}
             onClick={handleDelete}
           >
-            <Trash2 className="size-2.5" />
             {isDeleting ? "Confirm" : "Delete"}
           </Button>
         </div>
@@ -326,22 +327,24 @@ export function SharedPage({
           <Button
             size="xs"
             variant="ghost"
-            className="gap-1 font-code text-[10px]"
+            className="font-code text-[10px]"
             disabled={isLoading}
+            icon={RefreshCw}
+            loading={isLoading}
             onClick={onRefresh}
           >
-            <RefreshCw className={`size-2.5 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
           <Button
             size="xs"
             variant="outline"
-            className="gap-1 font-code text-[10px]"
+            className="font-code text-[10px]"
             disabled={isUploading}
+            icon={Upload}
+            loading={isUploading}
             onClick={() => fileInputRef.current?.click()}
           >
-            <Upload className="size-2.5" />
-            {isUploading ? "Uploading..." : "Upload"}
+            Upload
           </Button>
           <input
             className="hidden"

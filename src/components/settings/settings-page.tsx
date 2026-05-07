@@ -136,7 +136,7 @@ export function SettingsPage({
         </TabsList>
 
         {/* ── Basic ── */}
-        <TabPanel className="overflow-auto" value="basic">
+        <TabPanel className="mt-4 overflow-auto" value="basic">
           <div className="space-y-3">
             {/* Theme */}
             <div className="rounded border border-border/70 bg-background/60 px-3 py-2.5">
@@ -187,7 +187,7 @@ export function SettingsPage({
         </TabPanel>
 
         {/* ── Logs ── */}
-        <TabPanel className="flex min-h-0 flex-1 flex-col overflow-hidden" value="logs">
+        <TabPanel className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden" value="logs">
           <div className="flex min-h-0 flex-1 flex-col rounded border border-border/70 bg-background/60 p-3">
             <div className="flex items-center justify-between">
               <p className="font-code text-[11px] text-muted-foreground">
@@ -208,7 +208,7 @@ export function SettingsPage({
             ) : null}
 
             <div className="mt-2 grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="flex min-h-0 flex-col rounded border border-border/70 bg-[var(--feature-input-body-bg)]">
+              <div className="flex min-h-0 flex-col rounded border border-border/70 bg-card">
                 <div className="border-b border-border/60 px-2 py-1">
                   <p className="font-code text-[11px] text-muted-foreground">Frontend</p>
                 </div>
@@ -216,7 +216,7 @@ export function SettingsPage({
                   {weekendLogs ? (weekendLogs.frontend.trim() || "No logs yet.") : "Loading logs..."}
                 </pre>
               </div>
-              <div className="flex min-h-0 flex-col rounded border border-border/70 bg-[var(--feature-input-body-bg)]">
+              <div className="flex min-h-0 flex-col rounded border border-border/70 bg-card">
                 <div className="border-b border-border/60 px-2 py-1">
                   <p className="font-code text-[11px] text-muted-foreground">Backend</p>
                 </div>
@@ -229,7 +229,7 @@ export function SettingsPage({
         </TabPanel>
 
         {/* ── Advanced ── */}
-        <TabPanel className="overflow-auto" value="advanced">
+        <TabPanel className="mt-4 overflow-auto" value="advanced">
           <div className="space-y-3">
             {/* Runtime Debug */}
             <div className="space-y-2 rounded border border-border/70 bg-background/60 p-3">
@@ -254,7 +254,7 @@ export function SettingsPage({
                 <p className="font-code text-xs text-destructive">{error}</p>
               ) : null}
 
-              <pre className="min-h-0 overflow-auto rounded border border-border/70 bg-[var(--feature-input-body-bg)] p-3 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
+              <pre className="min-h-0 overflow-auto rounded border border-border/70 bg-card p-3 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
                 {snapshot ? formatRuntimeDebugDump(snapshot) : "Loading runtime state..."}
               </pre>
             </div>
@@ -273,7 +273,7 @@ export function SettingsPage({
                 </p>
               </div>
 
-              <pre className="min-h-0 max-h-64 overflow-auto rounded border border-border/70 bg-[var(--feature-input-body-bg)] p-3 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
+              <pre className="min-h-0 max-h-64 overflow-auto rounded border border-border/70 bg-card p-3 font-code text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap">
                 {formatRuntimeTelemetryDump(runtimeTelemetryEvents)}
               </pre>
             </div>

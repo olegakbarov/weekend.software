@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { invoke } from "@tauri-apps/api/core";
 import type { WorkspaceController } from "@/hooks/use-workspace-controller";
 import type { WorkspaceControllerState } from "@/lib/controller";
+import { runRegisteredPreviewCapturer } from "@/lib/project-preview";
 import {
   buildWorkspaceLocation,
   type WorkspaceSearch,
@@ -147,7 +148,9 @@ export function useProjectActions(
   }, [controller, project]);
 
   const stop = useCallback(() => {
-    controller.stopProject(project);
+    void runRegisteredPreviewCapturer(project).finally(() => {
+      controller.stopProject(project);
+    });
   }, [controller, project]);
 
   const deleteProject = useCallback(async () => {

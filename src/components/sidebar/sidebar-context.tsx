@@ -36,7 +36,9 @@ export type SidebarActions = {
   onOpenLogs: () => void;
   onOpenDesignSystem: () => void;
   onToggleShowArchived: () => void;
+  onArchiveProject: (project: string) => Promise<void>;
   onUnarchiveProject: (project: string) => Promise<void>;
+  onDeleteProject: (project: string) => Promise<void>;
   onToggleSidebar?: () => void;
 };
 

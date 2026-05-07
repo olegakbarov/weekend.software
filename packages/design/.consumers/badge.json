@@ -3,6 +3,24 @@
   "tier": "registry",
   "consumers": [
     {
+      "file": "src/dev/docs/views/pages/audit.tsx",
+      "line": 277,
+      "props": [
+        "color",
+        "size",
+        "variant"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/audit.tsx",
+      "line": 334,
+      "props": [
+        "color",
+        "size",
+        "variant"
+      ]
+    },
+    {
       "file": "src/dev/docs/views/pages/badge.tsx",
       "line": 26,
       "props": [
@@ -50,49 +68,64 @@
       ]
     },
     {
-      "file": "src/dev/docs/views/pages/introduction.tsx",
-      "line": 23,
+      "file": "src/dev/docs/views/pages/consumers.tsx",
+      "line": 91,
+      "props": [
+        "color"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/consumers.tsx",
+      "line": 92,
+      "props": [
+        "color"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/consumers.tsx",
+      "line": 94,
       "props": [
         "color",
         "variant"
       ]
     },
     {
-      "file": "src/dev/docs/views/pages/introduction.tsx",
-      "line": 26,
+      "file": "src/dev/docs/views/pages/consumers.tsx",
+      "line": 135,
       "props": [
-        "color"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/introduction.tsx",
-      "line": 27,
-      "props": [
-        "color"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/introduction.tsx",
-      "line": 28,
-      "props": [
-        "color"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/introduction.tsx",
-      "line": 73,
-      "props": [
-        "key",
         "color",
-        "size"
+        "size",
+        "variant"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/status.tsx",
+      "line": 107,
+      "props": [
+        "color",
+        "variant"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/status.tsx",
+      "line": 110,
+      "props": [
+        "color"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/status.tsx",
+      "line": 111,
+      "props": [
+        "color"
       ]
     }
   ],
   "propUsage": {
-    "color": 11,
-    "key": 2,
-    "size": 4,
-    "variant": 2
+    "color": 15,
+    "key": 1,
+    "size": 6,
+    "variant": 6
   },
-  "totalUsages": 11
+  "totalUsages": 15
 }

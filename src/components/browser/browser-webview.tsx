@@ -12,6 +12,11 @@ import {
 } from "@/lib/embedded-browser-webview";
 import type { PlayState } from "@/lib/controller";
 import { planBrowserPaneVisibility } from "@/lib/browser-pane-webviews";
+import {
+  notifyPreviewCaptured,
+  registerPreviewCapturer,
+  saveProjectPreview,
+} from "@/lib/project-preview";
 import { MOCK_MODE } from "@/lib/tauri-mock";
 import {
   isLocalDevUrl,
@@ -26,13 +31,47 @@ export type WebviewState = {
   displayRuntimeSurfaceUrl: string | null;
 };
 
+export type CapturePreviewResult =
+  | { ok: true; dataUrl: string }
+  | { ok: false; reason: string };
+
 export type WebviewActions = {
   goBack: () => void;
   goForward: () => void;
   toggleElementGrab: () => void;
   reloadCurrentPage: () => void;
   isGrabbing: boolean;
+  capturePreview: () => Promise<CapturePreviewResult>;
 };
+
+const PREVIEW_MAX_WIDTH = 1024;
+
+async function downscalePngDataUrl(
+  dataUrl: string,
+  maxWidth: number
+): Promise<string> {
+  const img = new Image();
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error("preview image failed to decode"));
+    img.src = dataUrl;
+  });
+  if (img.width <= maxWidth) return dataUrl;
+  const scale = maxWidth / img.width;
+  const canvas = document.createElement("canvas");
+  canvas.width = maxWidth;
+  canvas.height = Math.max(1, Math.round(img.height * scale));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return dataUrl;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/png");
+}
+
+function toErrorMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
 
 type BrowserRuntimeProbeResult = {
   ready: boolean;
@@ -632,6 +671,41 @@ export function useBrowserWebview({
     setFrameErrorMessage(null);
   }, [onAddressBarErrorChange, projectKey]);
 
+  const capturePreview = useCallback(async (): Promise<CapturePreviewResult> => {
+    const handle = embeddedWebviewRef.current;
+    if (!handle) {
+      return { ok: false, reason: "webview not mounted" };
+    }
+    let rawDataUrl: string | null;
+    try {
+      rawDataUrl = await handle.captureScreenshot();
+    } catch (error) {
+      return { ok: false, reason: `capture: ${toErrorMessage(error)}` };
+    }
+    if (!rawDataUrl) {
+      return { ok: false, reason: "capture returned empty" };
+    }
+    let dataUrl: string;
+    try {
+      dataUrl = await downscalePngDataUrl(rawDataUrl, PREVIEW_MAX_WIDTH);
+    } catch (error) {
+      return { ok: false, reason: `downscale: ${toErrorMessage(error)}` };
+    }
+    try {
+      await saveProjectPreview(projectKey, dataUrl);
+    } catch (error) {
+      return { ok: false, reason: `save: ${toErrorMessage(error)}` };
+    }
+    notifyPreviewCaptured(projectKey, dataUrl);
+    return { ok: true, dataUrl };
+  }, [projectKey]);
+
+  useEffect(() => {
+    return registerPreviewCapturer(projectKey, async () => {
+      await capturePreview();
+    });
+  }, [capturePreview, projectKey]);
+
   return {
     isFrameLoading,
     frameErrorMessage,
@@ -643,6 +717,7 @@ export function useBrowserWebview({
     goForward,
     toggleElementGrab,
     reloadCurrentPage,
+    capturePreview,
     nativeWebviewHostRef,
   };
 }

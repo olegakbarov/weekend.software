@@ -350,6 +350,8 @@ function SharedDropRoute() {
           <Button
             className="h-8 rounded-full bg-white/7 px-3 font-vcr text-[10px] uppercase tracking-[0.12em] text-muted-foreground hover:bg-white/12 hover:text-foreground"
             disabled={isBusy}
+            icon={RefreshCw}
+            loading={isLoading}
             onClick={() => {
               void refreshAssets();
             }}
@@ -357,11 +359,6 @@ function SharedDropRoute() {
             soundCue="none"
             variant="ghost"
           >
-            {isLoading ? (
-              <Spinner className="text-muted-foreground" size="xs" />
-            ) : (
-              <RefreshCw className="size-3.5" />
-            )}
             Refresh
           </Button>
         </header>

@@ -141,15 +141,9 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
-  --color-status-running: var(--status-running);
-  --color-status-completed: var(--status-completed);
-  --color-status-failed: var(--status-failed);
-  --color-status-pending: var(--status-pending);
-  --color-status-cancelled: var(--status-cancelled);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-highlight: var(--text-highlight);
 
   /* Semantic aliases for ispo-code compatibility */
   --color-panel: var(--card);
@@ -185,109 +179,14 @@
   /* Cyan tone for selected and active states */
   --cyan-selection: oklch(0.7 0.15 195);
 
-  /* Text highlight (selection + focus ring) */
-  --text-highlight: #00BE83;
-  --text-highlight-selection: #00BE8366;
-  --text-highlight-selection-strong: #00BE8380;
-
-  /* Neutral Colors (cohesive dark palette - card/secondary closer to background) */
-  --background: #000000;
-  --foreground: #A7A7A7;
-  --card: #181818;
-  --card-foreground: #DEDEDE;
-  --popover: #181818;
-  --popover-foreground: #DEDEDE;
-  --secondary: #1A1A1A;
-  --secondary-foreground: #DEDEDE;
-  --muted: #191919;
-  --muted-foreground: #8A8A8A;
-  --border: #2D2D2D;
-  --input: #181818;
-  --feature-input-bg: #101010;
-  --feature-input-body-bg: #1A1A1A;
-  --markdown-code-block-bg: #121212;
-  --markdown-code-block-header-bg: #0D0D0D;
-  --prompt-input-surface: #0C0C0C;
-  --prompt-input-inner-shadow: rgba(0, 0, 0, 0.25);
-
-  /* Primary - Neutral (not colored) */
-  --primary: #DEDEDE;
-  --primary-foreground: #030303;
-
-  /* Status Colors */
-  --destructive: #F14D4C;
-  --destructive-foreground: #F8F8F8;
-  --success: #31AA40;
-  --success-foreground: #F8F8F8;
-  --warning: #D9A514;
-  --warning-foreground: #030303;
-
-  /* Ring & Focus */
-  --ring: var(--text-highlight);
-
-  /* Status Colors */
-  --status-running: #E8E8E8;
-  --status-completed: #11AD32;
-  --status-failed: #F14D4C;
-  --status-pending: #8A8A8A;
-  --status-cancelled: #8A8A8A;
-
-  /* Status Badge Backgrounds */
-  --badge-running: #E8E8E820;
-  --badge-completed: #11AD3220;
-  --badge-failed: #F14D4C20;
-  --badge-pending: #19191980;
-
-  /* Scrollbar */
-  --scrollbar-thumb: oklch(0.35 0 0);
-  --scrollbar-thumb-hover: oklch(0.45 0 0);
+  /* Theme tokens (color, surfaces, primary, popover, warning, scrollbar,
+     markdown-code-block, text-highlight, feature-input, prompt-input)
+     are defined in packages/design/src/tokens.css per [data-theme="..."]
+     block. The remaining tokens here are app-internal only. */
 }
 
-/* ============================================================================
-   CodeMirror syntax highlight tokens
-
-   Mapped to design palette colors. CodeMirror highlight uses inline `color:
-   var(--syntax-*)` per token (see src/components/editor/syntax-highlight.ts),
-   so changing these vars per theme retones the editor without touching JS.
-   ============================================================================ */
-
-:root {
-  --syntax-keyword: var(--color-violet);
-  --syntax-string: var(--color-green);
-  --syntax-comment: var(--muted-foreground);
-  --syntax-number: var(--color-orange);
-  --syntax-function: var(--color-blue);
-  --syntax-variable: var(--foreground);
-  --syntax-type: var(--color-amber);
-  --syntax-tag: var(--color-red);
-  --syntax-attribute: var(--color-cyan);
-  --syntax-punctuation: var(--muted-foreground);
-  --syntax-regexp: var(--color-orange);
-  --syntax-link: var(--color-blue);
-  --syntax-heading: var(--foreground);
-}
-
-/* ============================================================================
-   @pierre/trees theme bridge
-
-   The FileTree component renders inside a shadow root; CSS custom properties
-   inherit through the boundary, so mapping our existing theme tokens to the
-   --trees-theme-* names the lib reads (per dist/utils/themeToTreeStyles.js)
-   makes the tree pick up active-theme colors automatically.
-   ============================================================================ */
-
-:root {
-  --trees-theme-sidebar-bg: var(--background);
-  --trees-theme-sidebar-fg: var(--foreground);
-  --trees-theme-sidebar-header-fg: var(--muted-foreground);
-  --trees-theme-list-active-selection-fg: var(--foreground);
-  --trees-theme-list-hover-bg: var(--secondary);
-  --trees-theme-list-active-selection-bg: var(--secondary);
-  --trees-theme-focus-ring: var(--ring);
-  --trees-theme-input-bg: var(--card);
-  --trees-theme-sidebar-border: var(--border);
-  --trees-theme-scrollbar-thumb: var(--scrollbar-thumb);
-}
+/* CodeMirror syntax highlight tokens and @pierre/trees theme bridge moved to
+   packages/design/src/tokens.css. */
 
 /* ============================================================================
    Theme Variables - Light
@@ -295,62 +194,10 @@
 
 .light {
   color-scheme: light;
-
-  --background: #F5F0EB;
-  --foreground: #2C2420;
-  --card: #EDE7E1;
-  --card-foreground: #2C2420;
-  --popover: #EDE7E1;
-  --popover-foreground: #2C2420;
-  --secondary: #E8E2DB;
-  --secondary-foreground: #2C2420;
-  --muted: #E8E2DB;
-  --muted-foreground: #8A7F75;
-  --border: #D8D0C8;
-  --input: #EDE7E1;
-  --feature-input-bg: #EDE7E1;
-  --feature-input-body-bg: #F5F0EB;
-  --markdown-code-block-bg: #E4DDD6;
-  --markdown-code-block-header-bg: #DBD4CC;
-  --prompt-input-surface: #FAF6F1;
-  --prompt-input-inner-shadow: rgba(44, 36, 32, 0.04);
-
-  /* Primary - Warm dark brown */
-  --primary: #2C2420;
-  --primary-foreground: #F5F0EB;
-
-  /* Status Colors */
-  --destructive: #D40924;
-  --destructive-foreground: #F8F8F8;
-  --success: #008D00;
-  --success-foreground: #F8F8F8;
-  --warning: #C18200;
-  --warning-foreground: #2C2420;
-
-  /* Text highlight (selection + focus ring) — pink */
-  --text-highlight: #E84B8A;
-  --text-highlight-selection: #E84B8A40;
-  --text-highlight-selection-strong: #E84B8A60;
-
-  /* Ring & Focus */
-  --ring: #E84B8A;
-
-  /* Status Colors */
-  --status-running: #2C2420;
-  --status-completed: #11AD32;
-  --status-failed: #F14D4C;
-  --status-pending: #8A7F75;
-  --status-cancelled: #8A7F75;
-
-  /* Status Badge Backgrounds */
-  --badge-running: #2C242026;
-  --badge-completed: #11AD3226;
-  --badge-failed: #F14D4C26;
-  --badge-pending: #E8E2DB80;
-
-  /* Scrollbar */
-  --scrollbar-thumb: oklch(0.65 0.02 60);
-  --scrollbar-thumb-hover: oklch(0.5 0.02 60);
+  /* All tokens for the paper theme are now defined in
+     packages/design/src/tokens.css [data-theme="weekend-paper"].
+     This class only flips color-scheme + acts as the Tailwind
+     dark/light variant anchor. */
 }
 
 /* ============================================================================
@@ -571,35 +418,6 @@ textarea.code,
 
 .animate-slide-up {
   animation: slide-up 0.2s ease-out;
-}
-
-/* ============================================================================
-   Status Classes
-   ============================================================================ */
-
-.status-pending {
-  color: var(--status-pending);
-}
-
-.status-running {
-  color: var(--status-running);
-}
-
-.status-completed {
-  color: var(--status-completed);
-}
-
-.status-failed {
-  color: var(--status-failed);
-}
-
-.status-cancelled {
-  color: var(--status-cancelled);
-  opacity: 0.6;
-}
-
-.status-queued {
-  color: var(--status-pending);
 }
 
 /* ============================================================================

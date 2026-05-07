@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/home/home-page.tsx",
-      "line": 143,
+      "line": 160,
       "props": [
         "variant",
         "disabled",

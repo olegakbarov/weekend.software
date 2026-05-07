@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   Archive,
-  Loader2,
   Play,
   Save,
   Square,
@@ -132,17 +131,14 @@ export function ProjectSettingsPage({
                 />
                 <Button
                   disabled={!hasDeployUrlChanges || isDeployUrlSaving}
+                  icon={Save}
+                  loading={isDeployUrlSaving}
                   onClick={() => {
                     void handleSaveDeployUrl();
                   }}
                   size="sm"
                   variant="ghost"
                 >
-                  {isDeployUrlSaving ? (
-                    <Loader2 className="mr-1.5 size-3 animate-spin" />
-                  ) : (
-                    <Save className="mr-1.5 size-3" />
-                  )}
                   Save
                 </Button>
               </div>
@@ -174,7 +170,8 @@ export function ProjectSettingsPage({
             </p>
             <Button
               className={isFailed ? "text-destructive" : "text-foreground"}
-              disabled={isStarting}
+              icon={isRunning ? Square : isFailed ? AlertTriangle : Play}
+              loading={isStarting}
               onClick={() => {
                 if (isRunning) {
                   onStopProject();
@@ -185,15 +182,6 @@ export function ProjectSettingsPage({
               size="sm"
               variant="ghost"
             >
-              {isStarting ? (
-                <Loader2 className="mr-1.5 size-3 animate-spin" />
-              ) : isRunning ? (
-                <Square className="mr-1.5 size-3" />
-              ) : isFailed ? (
-                <AlertTriangle className="mr-1.5 size-3" />
-              ) : (
-                <Play className="mr-1.5 size-3" />
-              )}
               {isStarting
                 ? "Starting..."
                 : isRunning
@@ -209,15 +197,15 @@ export function ProjectSettingsPage({
             </p>
             <Button
               className="text-foreground"
-              disabled={isArchivingProject}
+              icon={Archive}
+              loading={isArchivingProject}
               onClick={() => {
                 void onArchiveProject();
               }}
               size="sm"
               variant="ghost"
             >
-              <Archive className="mr-1.5 size-3" />
-              {isArchivingProject ? "Archiving..." : "Archive Project"}
+              Archive Project
             </Button>
           </div>
         </div>
@@ -231,15 +219,15 @@ export function ProjectSettingsPage({
             </p>
             <Button
               className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-              disabled={isDeletingProject}
+              icon={Trash2}
+              loading={isDeletingProject}
               onClick={() => {
                 void onDeleteProject();
               }}
               size="sm"
               variant="ghost"
             >
-              <Trash2 className="mr-1.5 size-3" />
-              {isDeletingProject ? "Deleting..." : "Delete Project"}
+              Delete Project
             </Button>
           </div>
         </div>

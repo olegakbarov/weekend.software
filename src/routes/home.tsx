@@ -18,10 +18,13 @@ function HomeRoute() {
       setIsCreatingProject(true);
       try {
         const created = await controller.createProject(input);
+        const agentTerminalId =
+          controller.getAgentTerminalId(created) ??
+          controller.ensureAgentTerminalSession(created);
         void navigate({
           to: "/workspace/$project",
           params: { project: created },
-          search: { view: "browser" },
+          search: { view: "terminal", terminalId: agentTerminalId },
         });
       } finally {
         setIsCreatingProject(false);

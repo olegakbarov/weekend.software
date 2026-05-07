@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { FormEvent } from "react";
 import {
+  type ProcessEntrySnapshot,
   type ProcessRole,
   type PlayState,
   type TerminalSessionDescriptor,
@@ -32,10 +33,87 @@ type WorkspaceMode =
 
 type TerminalGroup = "processes" | "agents";
 
+type ConfiguredProcessMap = Record<string, ProcessEntrySnapshot>;
+
+function normalizeProcessMatchValue(value: string | null | undefined): string {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function addSessionMatchValues(
+  values: Set<string>,
+  value: string | null | undefined
+): void {
+  const normalized = normalizeProcessMatchValue(value);
+  if (!normalized) return;
+  values.add(normalized);
+
+  const withoutNumericSuffix = normalized.replace(/\s+\d+$/, "");
+  if (withoutNumericSuffix) {
+    values.add(withoutNumericSuffix);
+  }
+}
+
+function commandExecutableName(command: string): string {
+  const firstToken = command.trim().split(/\s+/)[0] ?? "";
+  const segments = firstToken.split(/[\\/]/);
+  return normalizeProcessMatchValue(segments.at(-1));
+}
+
+function configuredRoleForSession(
+  session: TerminalSessionDescriptor,
+  configuredProcesses: ConfiguredProcessMap
+): ProcessRole | null {
+  const entries = Object.entries(configuredProcesses);
+  if (entries.length === 0) return null;
+
+  const matchValues = new Set<string>();
+  addSessionMatchValues(matchValues, session.label);
+  addSessionMatchValues(matchValues, session.displayName);
+  addSessionMatchValues(matchValues, session.customName);
+  addSessionMatchValues(matchValues, terminalDisplayLabel(session));
+
+  const terminalLabel = session.terminalId.includes(":")
+    ? session.terminalId.slice(session.terminalId.indexOf(":") + 1)
+    : session.terminalId;
+  addSessionMatchValues(matchValues, terminalLabel);
+
+  for (const [label, entry] of entries) {
+    if (matchValues.has(normalizeProcessMatchValue(label))) {
+      return entry.role;
+    }
+
+    const executableName = commandExecutableName(entry.command);
+    if (executableName && matchValues.has(executableName)) {
+      return entry.role;
+    }
+  }
+
+  const foreground = normalizeProcessMatchValue(session.foregroundProcessName);
+  if (!foreground) return null;
+
+  for (const [, entry] of entries) {
+    if (commandExecutableName(entry.command) === foreground) {
+      return entry.role;
+    }
+  }
+
+  return null;
+}
+
+function resolvedProcessRoleForSession(
+  session: TerminalSessionDescriptor,
+  configuredProcesses: ConfiguredProcessMap
+): ProcessRole | null {
+  return configuredRoleForSession(session, configuredProcesses) ?? session.processRole;
+}
+
 function terminalGroupForSession(
-  session: TerminalSessionDescriptor
+  session: TerminalSessionDescriptor,
+  configuredProcesses: ConfiguredProcessMap
 ): TerminalGroup {
-  return session.processRole === "agent" ? "agents" : "processes";
+  return resolvedProcessRoleForSession(session, configuredProcesses) === "agent"
+    ? "agents"
+    : "processes";
 }
 
 function processRoleLabel(role: ProcessRole | null): string {
@@ -45,11 +123,16 @@ function processRoleLabel(role: ProcessRole | null): string {
   return "shell";
 }
 
-function sessionDetailLabel(session: TerminalSessionDescriptor): string {
+function sessionDetailLabel(
+  session: TerminalSessionDescriptor,
+  configuredProcesses: ConfiguredProcessMap
+): string {
   const foreground = session.foregroundProcessName?.trim();
   if (foreground) return foreground;
   if (session.status === "exited") return "exited";
-  return processRoleLabel(session.processRole);
+  return processRoleLabel(
+    resolvedProcessRoleForSession(session, configuredProcesses)
+  );
 }
 
 export function BrowserToolbar({
@@ -71,6 +154,7 @@ export function BrowserToolbar({
   onToggleElementGrab,
   // Terminal tabs
   terminalSessions,
+  configuredProcesses,
   activeTerminalId,
   onSelectTerminal,
   onCreateTerminal,
@@ -106,6 +190,7 @@ export function BrowserToolbar({
   onToggleElementGrab: () => void;
   // Terminal tabs
   terminalSessions: TerminalSessionDescriptor[];
+  configuredProcesses: ConfiguredProcessMap;
   activeTerminalId: string | null;
   onSelectTerminal: (terminalId: string) => void;
   onCreateTerminal: () => void;
@@ -142,14 +227,17 @@ export function BrowserToolbar({
         ) ?? null;
       return {
         processSessions: terminalSessions.filter(
-          (session) => terminalGroupForSession(session) === "processes"
+          (session) =>
+            terminalGroupForSession(session, configuredProcesses) ===
+            "processes"
         ),
         agentSessions: terminalSessions.filter(
-          (session) => terminalGroupForSession(session) === "agents"
+          (session) =>
+            terminalGroupForSession(session, configuredProcesses) === "agents"
         ),
         activeTerminalSession: active,
       };
-    }, [activeTerminalId, terminalSessions]);
+    }, [activeTerminalId, configuredProcesses, terminalSessions]);
 
   const openTerminalSessions =
     openTerminalGroup === "agents" ? agentSessions : processSessions;
@@ -207,7 +295,7 @@ export function BrowserToolbar({
   const segBtnActive = `${segBtnBase} bg-secondary/60 text-foreground`;
   const segBtnInactive = `${segBtnBase} text-muted-foreground hover:text-foreground`;
   const groupBtnBase =
-    "relative inline-flex h-8 shrink-0 items-center justify-center gap-1.5 px-2 font-vcr text-[11px] uppercase tracking-wide transition-colors disabled:cursor-default disabled:opacity-45";
+    "relative inline-flex h-8 w-[110px] shrink-0 items-center justify-center gap-1.5 px-2 font-sans text-[11px] font-medium tracking-normal transition-colors disabled:cursor-default disabled:opacity-45";
 
   const terminalSessionsForGroup = (group: TerminalGroup) =>
     group === "agents" ? agentSessions : processSessions;
@@ -225,10 +313,24 @@ export function BrowserToolbar({
       sessions.find((session) => session.status === "alive") ??
       sessions[0] ??
       null;
-    if (!targetSession) return;
+    if (!targetSession) {
+      if (isBrowserActive) {
+        if (group === "agents") {
+          onCreateAgentTerminal();
+        } else {
+          onCreateTerminal();
+        }
+        setPendingTerminalGroup(group);
+        return;
+      }
+
+      setPendingTerminalGroup(null);
+      setOpenTerminalGroup(group);
+      return;
+    }
 
     const activeGroup = activeTerminalSession
-      ? terminalGroupForSession(activeTerminalSession)
+      ? terminalGroupForSession(activeTerminalSession, configuredProcesses)
       : null;
     if (activeGroup !== group) {
       onSelectTerminal(targetSession.terminalId);
@@ -251,26 +353,23 @@ export function BrowserToolbar({
     const isOpen = openTerminalGroup === group;
     const isGroupActive =
       activeTerminalSession &&
-      terminalGroupForSession(activeTerminalSession) === group &&
+      terminalGroupForSession(activeTerminalSession, configuredProcesses) ===
+        group &&
       (workspaceMode === "terminal" || workspaceMode === "agent");
-    const label = group === "agents" ? "Agents" : "Processes";
+    const label = group === "agents" ? "AGENTS" : "PROCESSES";
     const countLabel = count > 99 ? "99+" : String(count);
 
     return (
       <button
         aria-label={group === "agents" ? "Agent terminals" : "Process terminals"}
         aria-controls="browser-terminal-menu"
-        aria-expanded={isOpen && count > 0}
+        aria-expanded={isOpen}
         className={
           isOpen || isGroupActive
-            ? `${groupBtnBase} ${
-                group === "agents" ? "w-[82px]" : "w-[110px]"
-              } bg-secondary/60 text-foreground`
-            : `${groupBtnBase} ${
-                group === "agents" ? "w-[82px]" : "w-[110px]"
-              } text-muted-foreground hover:text-foreground`
+            ? `${groupBtnBase} bg-secondary/60 text-foreground`
+            : `${groupBtnBase} text-muted-foreground hover:text-foreground`
         }
-        disabled={!projectId || count === 0}
+        disabled={!projectId}
         onClick={() => handleTerminalGroupClick(group)}
         title={group === "agents" ? "Agent terminals" : "Process terminals"}
         type="button"
@@ -354,8 +453,8 @@ export function BrowserToolbar({
                 id="browser-terminal-menu"
               >
                 <div className="mb-1 flex items-center justify-between gap-2">
-                  <p className="font-vcr text-[11px] uppercase tracking-wide text-muted-foreground">
-                    {openTerminalGroupLabel}
+                  <p className="font-sans text-[11px] font-medium tracking-normal text-muted-foreground">
+                    {openTerminalGroupLabel.toUpperCase()}
                   </p>
                   <div className="flex items-center gap-1">
                     <button
@@ -399,7 +498,10 @@ export function BrowserToolbar({
                         activeTerminalId === session.terminalId &&
                         (isTerminalActive || workspaceMode === "agent");
                       const label = terminalDisplayLabel(session);
-                      const detail = sessionDetailLabel(session);
+                      const detail = sessionDetailLabel(
+                        session,
+                        configuredProcesses
+                      );
 
                       return (
                         <div
@@ -425,7 +527,7 @@ export function BrowserToolbar({
                             title={label}
                             type="button"
                           >
-                            <span className="min-w-0 flex-1 truncate font-vcr text-[12px] uppercase tracking-wide text-foreground">
+                            <span className="min-w-0 flex-1 truncate font-sans text-[11px] font-medium tracking-normal text-foreground">
                               {label}
                             </span>
                             <span className="max-w-40 truncate font-code text-[11px] text-muted-foreground">

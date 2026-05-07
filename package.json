@@ -12,6 +12,8 @@
     "mcp:verify": "node scripts/verify-weekend-browser-mcp.mjs",
     "design:index": "tsx scripts/design-index.ts",
     "design:index:check": "tsx scripts/design-index.ts --check",
+    "tokens:lint": "tsx scripts/tokens-lint.ts",
+    "tokens:lint:check": "tsx scripts/tokens-lint.ts --check",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",

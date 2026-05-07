@@ -3,11 +3,26 @@
   "tier": "registry",
   "consumers": [
     {
+      "file": "src/components/editor/renderers/csv-renderer.tsx",
+      "line": 118,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/audit.tsx",
+      "line": 305,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/consumers.tsx",
+      "line": 111,
+      "props": []
+    },
+    {
       "file": "src/dev/docs/views/pages/table.tsx",
       "line": 45,
       "props": []
     }
   ],
   "propUsage": {},
-  "totalUsages": 1
+  "totalUsages": 4
 }

@@ -241,6 +241,33 @@ struct ProjectConfig {
     env: Option<HashMap<String, String>>,
     #[serde(default)]
     archived: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    theme: Option<ProjectThemeConfig>,
+}
+
+/// Per-project theme policy. Persisted in `weekend.config.json` under the
+/// optional `theme` block. When the block is absent, projects track the shell
+/// theme by default (see `resolve_project_theme_policy`).
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+struct ProjectThemeConfig {
+    #[serde(default = "default_track_shell")]
+    track_shell: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    design_system: Option<String>,
+}
+
+fn default_track_shell() -> bool {
+    true
+}
+
+impl Default for ProjectThemeConfig {
+    fn default() -> Self {
+        Self {
+            track_shell: true,
+            design_system: None,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -305,6 +332,8 @@ const LEGACY_PROJECT_CONFIG_FILE_NAME: &str = "aios.config.json";
 const PROJECT_CLAUDE_FILE_NAME: &str = "CLAUDE.md";
 const PROJECT_AGENTS_FILE_NAME: &str = "AGENTS.md";
 const PROJECT_WEEKEND_DIR_NAME: &str = ".weekend";
+const AGENT_STARTUP_MARKER_FILE_NAME: &str = "agent-startup.pending";
+const AGENT_STARTUP_PROMPT_FILE_NAME: &str = "PROMPT.md";
 const PROJECT_AGENT_RUNTIME_GUIDANCE_FILE_NAME: &str = "agent-runtime.md";
 const PROJECT_CODEX_DIR_NAME: &str = ".codex";
 const PROJECT_CODEX_CONFIG_FILE_NAME: &str = "config.toml";
@@ -2113,6 +2142,8 @@ fn write_project_config(
     let normalized_runtime_url = normalize_runtime_url(Some(runtime_url))?
         .ok_or_else(|| "runtime.url is required".to_string())?;
     let normalized_deploy_url = normalize_deploy_url(deploy_url)?;
+    let config_path = project_config_path(project_dir);
+    let preserved_theme = read_project_theme_field(&config_path);
     let config = ProjectConfig {
         runtime: ProjectRuntimeConfig {
             mode: Some(ProjectRuntimeMode::Portless.as_str().to_string()),
@@ -2138,16 +2169,64 @@ fn write_project_config(
         }),
         env: env.filter(|e| !e.is_empty()).cloned(),
         archived,
+        theme: preserved_theme,
     };
     let serialized = serde_json::to_string_pretty(&config)
         .map_err(|error| format!("failed to serialize {PROJECT_CONFIG_FILE_NAME}: {error}"))?;
-    let config_path = project_config_path(project_dir);
     if config_path.exists() {
         ensure_user_writable(&config_path)?;
     }
     std::fs::write(&config_path, format!("{serialized}\n"))
         .map_err(|error| format!("failed to write {}: {error}", config_path.display()))?;
     Ok(config_path)
+}
+
+/// Best-effort read of just the `theme` block from a project config. Returns
+/// `None` if the file is missing or unparseable; the caller treats that as
+/// "use defaults" (track shell), not as an error — config integrity is
+/// orthogonal to theme propagation.
+fn read_project_theme_field(config_path: &Path) -> Option<ProjectThemeConfig> {
+    let raw = std::fs::read_to_string(config_path).ok()?;
+    let parsed: ProjectConfig = serde_json::from_str(&raw).ok()?;
+    parsed.theme
+}
+
+/// Resolve the theme policy for a project. The `track_shell` default is
+/// `true` — every project tracks the shell unless it explicitly opts out by
+/// writing `"theme": { "trackShell": false }` to its `weekend.config.json`.
+fn resolve_project_theme_policy(project_name: &str) -> ProjectThemeConfig {
+    let Ok(project_dir) = resolve_project_dir(project_name) else {
+        return ProjectThemeConfig::default();
+    };
+    read_project_theme_field(&project_config_path(&project_dir)).unwrap_or_default()
+}
+
+/// JS that flips `<html data-theme>`, mirrors the `dark`/`light` class so
+/// tailwind `dark:` variants and `.dark` selectors keep working, and fires a
+/// `weekend:theme` window event for projects that need imperative reactions
+/// (canvas, charts) on top of the CSS cascade.
+fn theme_apply_script(theme: &str) -> String {
+    // `theme` is always one of `VALID_THEMES`, so no escaping needed.
+    let dark = matches!(theme, "fluid-dark" | "weekend-dark");
+    format!(
+        "(function(){{try{{var t=\"{theme}\";var r=document.documentElement;\
+r.dataset.theme=t;r.classList.toggle(\"dark\",{dark});r.classList.toggle(\"light\",{light});\
+try{{window.dispatchEvent(new CustomEvent(\"weekend:theme\",{{detail:{{theme:t}}}}));}}catch(_){{}}\
+}}catch(_){{}}}})();",
+        light = !dark,
+    )
+}
+
+/// JS preamble that the bridge prepends to every `bridge_inject.js` eval for
+/// a project webview. Returns `None` when the project has opted out of shell
+/// theme tracking (`trackShell: false`) — a hard skip, the project keeps
+/// whatever theme its own page set.
+fn theme_injection_preamble(project_name: &str) -> Option<String> {
+    let policy = resolve_project_theme_policy(project_name);
+    if !policy.track_shell {
+        return None;
+    }
+    Some(theme_apply_script(&read_active_theme()))
 }
 
 fn seed_agent_runtime_guidance_files(project_dir: &Path) -> Result<(), String> {
@@ -2182,6 +2261,74 @@ fn seed_agent_runtime_guidance_files(project_dir: &Path) -> Result<(), String> {
     seed_codex_config(project_dir)?;
 
     Ok(())
+}
+
+fn shell_single_quote(input: &str) -> String {
+    let mut out = String::with_capacity(input.len() + 2);
+    out.push('\'');
+    for ch in input.chars() {
+        if ch == '\'' {
+            out.push_str("'\\''");
+        } else {
+            out.push(ch);
+        }
+    }
+    out.push('\'');
+    out
+}
+
+fn maybe_run_agent_autostart(project_dir: &Path, session: Arc<TerminalSession>) {
+    let marker_path = project_dir
+        .join(PROJECT_WEEKEND_DIR_NAME)
+        .join(AGENT_STARTUP_MARKER_FILE_NAME);
+    if !marker_path.is_file() {
+        return;
+    }
+
+    let prompt_path = project_dir.join(AGENT_STARTUP_PROMPT_FILE_NAME);
+    let prompt = match std::fs::read_to_string(&prompt_path) {
+        Ok(value) => value.trim().to_string(),
+        Err(error) => {
+            log_backend(
+                "WARN",
+                format!(
+                    "agent autostart: failed to read {}: {error}",
+                    prompt_path.display()
+                ),
+            );
+            let _ = std::fs::remove_file(&marker_path);
+            return;
+        }
+    };
+    if prompt.is_empty() {
+        let _ = std::fs::remove_file(&marker_path);
+        return;
+    }
+
+    let agent_command = match read_project_config(project_dir) {
+        ProjectConfigLookup::Valid(config) => config
+            .processes
+            .get("agent")
+            .map(|entry| entry.command.clone())
+            .unwrap_or_else(|| DEFAULT_AGENT_COMMAND.to_string()),
+        _ => DEFAULT_AGENT_COMMAND.to_string(),
+    };
+
+    let _ = std::fs::remove_file(&marker_path);
+
+    let line = format!("{} {}\r", agent_command, shell_single_quote(&prompt));
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(500));
+        if let Ok(mut writer) = session.writer.lock() {
+            if let Err(error) = writer.write_all(line.as_bytes()) {
+                log_backend("WARN", format!("agent autostart: write failed: {error}"));
+                return;
+            }
+            if let Err(error) = writer.flush() {
+                log_backend("WARN", format!("agent autostart: flush failed: {error}"));
+            }
+        }
+    });
 }
 
 fn project_name_for_dir(project_dir: &Path) -> Result<String, String> {
@@ -5024,6 +5171,7 @@ fn create_new_project(
     default_agent_command: Option<String>,
     github_repo_url: Option<String>,
     initial_prompt: Option<String>,
+    design_system: Option<String>,
 ) -> Result<String, String> {
     let weekend_root = weekend_root()?;
 
@@ -5037,7 +5185,7 @@ fn create_new_project(
 
     let sanitized_name = sanitize_project_name(name.as_deref().unwrap_or_default());
     let base_name = if sanitized_name.is_empty() {
-        format!("project-{timestamp}")
+        format!("untitled-{timestamp}")
     } else {
         sanitized_name
     };
@@ -5086,30 +5234,51 @@ fn create_new_project(
     )?;
     let shared_root = ensure_shared_assets_root()?;
     sync_shared_assets_into_project(&candidate, &shared_root)?;
-    match design_dist_path(&app_handle) {
-        Ok(dist_dir) => {
-            if let Err(error) = sync_design_system_into_project(&candidate, &dist_dir) {
+
+    let design_choice = normalize_optional_string(design_system)
+        .map(|value| value.to_ascii_lowercase())
+        .unwrap_or_else(|| "weekend".to_string());
+    let install_weekend_design = design_choice != "none";
+
+    if install_weekend_design {
+        match design_dist_path(&app_handle) {
+            Ok(dist_dir) => {
+                if let Err(error) = sync_design_system_into_project(&candidate, &dist_dir) {
+                    log_backend(
+                        "WARN",
+                        format!(
+                            "failed to sync design system into {}: {error}",
+                            candidate.display()
+                        ),
+                    );
+                }
+            }
+            Err(error) => {
                 log_backend(
                     "WARN",
-                    format!(
-                        "failed to sync design system into {}: {error}",
-                        candidate.display()
-                    ),
+                    format!("design system unavailable for new project: {error}"),
                 );
             }
         }
-        Err(error) => {
-            log_backend(
-                "WARN",
-                format!("design system unavailable for new project: {error}"),
-            );
-        }
+    } else {
+        log_backend(
+            "INFO",
+            format!(
+                "design system skipped for {} (design_system=none)",
+                candidate.display()
+            ),
+        );
     }
     seed_agent_runtime_guidance_files(&candidate)?;
     if let Some(prompt) = normalize_optional_string(initial_prompt) {
         let prompt_path = candidate.join("PROMPT.md");
         std::fs::write(&prompt_path, prompt)
             .map_err(|error| format!("failed to write {}: {error}", prompt_path.display()))?;
+        let marker_path = candidate
+            .join(PROJECT_WEEKEND_DIR_NAME)
+            .join(AGENT_STARTUP_MARKER_FILE_NAME);
+        std::fs::write(&marker_path, "")
+            .map_err(|error| format!("failed to write {}: {error}", marker_path.display()))?;
     }
     if resolved_github_repo_url.is_none() {
         init_git_repo(&candidate)?;
@@ -6505,6 +6674,18 @@ fn terminal_open<R: Runtime>(
             Arc::clone(&terminal_state.session_info),
         );
 
+        if process_role.as_deref() == Some("agent") {
+            if let Some(project_name) = project
+                .as_deref()
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+            {
+                if let Ok(project_dir) = resolve_project_dir(project_name) {
+                    maybe_run_agent_autostart(&project_dir, Arc::clone(&session));
+                }
+            }
+        }
+
         Ok(())
     })();
 
@@ -6922,28 +7103,32 @@ fn set_traffic_lights_visible<R: Runtime>(app: AppHandle<R>, visible: bool) -> R
     set_main_window_traffic_lights_visible(&app, visible)
 }
 
-#[tauri::command]
-fn get_active_theme() -> Result<String, String> {
-    let path = match theme_config_path() {
-        Ok(value) => value,
-        Err(_) => return Ok(DEFAULT_THEME.to_string()),
+/// Read the active shell theme from `~/.weekend/theme.json`. Always returns a
+/// valid `VALID_THEMES` value, falling back to `DEFAULT_THEME` on any error.
+fn read_active_theme() -> String {
+    let Ok(path) = theme_config_path() else {
+        return DEFAULT_THEME.to_string();
     };
-    let raw = match std::fs::read_to_string(&path) {
-        Ok(value) => value,
-        Err(_) => return Ok(DEFAULT_THEME.to_string()),
+    let Ok(raw) = std::fs::read_to_string(&path) else {
+        return DEFAULT_THEME.to_string();
     };
-    let parsed: serde_json::Value = match serde_json::from_str(&raw) {
-        Ok(value) => value,
-        Err(_) => return Ok(DEFAULT_THEME.to_string()),
+    let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&raw) else {
+        return DEFAULT_THEME.to_string();
     };
     let theme = parsed
         .get("theme")
         .and_then(|value| value.as_str())
         .unwrap_or(DEFAULT_THEME);
-    if !VALID_THEMES.contains(&theme) {
-        return Ok(DEFAULT_THEME.to_string());
+    if VALID_THEMES.contains(&theme) {
+        theme.to_string()
+    } else {
+        DEFAULT_THEME.to_string()
     }
-    Ok(theme.to_string())
+}
+
+#[tauri::command]
+fn get_active_theme() -> Result<String, String> {
+    Ok(read_active_theme())
 }
 
 #[tauri::command]
@@ -6963,6 +7148,24 @@ fn set_active_theme<R: Runtime>(app_handle: AppHandle<R>, theme: String) -> Resu
     app_handle
         .emit("theme-changed", serde_json::json!({ "theme": &theme }))
         .map_err(|error| format!("emit failed: {error}"))?;
+
+    // Project webviews load foreign-origin pages and don't run a Tauri event
+    // listener, so the `theme-changed` emit above only reaches shell webviews.
+    // Push the data-theme flip into each tracking-enabled project webview
+    // imperatively. Hard skip when the project opted out (trackShell: false).
+    let apply_script = theme_apply_script(&theme);
+    for label in webview_ops::list_browser_webviews(&app_handle) {
+        let Some(project_name) = project_name_from_browser_webview_label(&label) else {
+            continue;
+        };
+        if !resolve_project_theme_policy(project_name).track_shell {
+            continue;
+        }
+        if let Some(webview) = app_handle.get_webview(&label) {
+            let _ = webview.eval(apply_script.clone());
+        }
+    }
+
     log_backend("INFO", format!("active theme set to {theme}"));
     Ok(())
 }
@@ -7213,6 +7416,46 @@ async fn browser_capture_screenshot<R: Runtime>(
     }
 }
 
+const PROJECT_PREVIEW_FILE_NAME: &str = "preview.png";
+
+fn project_preview_path(project: &str) -> Result<PathBuf, String> {
+    let project_dir = resolve_project_dir(project)?;
+    let weekend_dir = project_dir.join(PROJECT_WEEKEND_DIR_NAME);
+    Ok(weekend_dir.join(PROJECT_PREVIEW_FILE_NAME))
+}
+
+#[tauri::command]
+async fn project_save_preview(project: String, data_url: String) -> Result<(), String> {
+    let payload = data_url
+        .strip_prefix("data:image/png;base64,")
+        .ok_or_else(|| "preview data URL must be a base64 PNG".to_string())?;
+    let bytes = BASE64_STANDARD
+        .decode(payload)
+        .map_err(|error| format!("failed to decode preview: {error}"))?;
+
+    let target = project_preview_path(&project)?;
+    if let Some(parent) = target.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
+    }
+    std::fs::write(&target, &bytes)
+        .map_err(|error| format!("failed to write {}: {error}", target.display()))?;
+    Ok(())
+}
+
+#[tauri::command]
+async fn project_load_preview(project: String) -> Result<Option<String>, String> {
+    let target = project_preview_path(&project)?;
+    match std::fs::read(&target) {
+        Ok(bytes) => {
+            let b64 = BASE64_STANDARD.encode(&bytes);
+            Ok(Some(format!("data:image/png;base64,{b64}")))
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(format!("failed to read {}: {error}", target.display())),
+    }
+}
+
 fn spawn_terminal_process_watcher<R: Runtime + 'static>(
     app: AppHandle<R>,
     terminal_state: TerminalState,
@@ -7410,7 +7653,13 @@ fn main() {
                 }
 
                 // Earliest available injection point for child webviews.
-                let _ = webview.eval(include_str!("bridge_inject.js"));
+                let theme_preamble = project_name_from_browser_webview_label(&label)
+                    .and_then(theme_injection_preamble)
+                    .unwrap_or_default();
+                let _ = webview.eval(format!(
+                    "{theme_preamble}{}",
+                    include_str!("bridge_inject.js")
+                ));
 
                 // Inject Cmd/Ctrl+R reload shortcut into the embedded browser.
                 // Keyboard events inside a child Webview never reach the main
@@ -7427,7 +7676,13 @@ fn main() {
 
                     // Re-inject at finished as a fallback for pages that block
                     // early eval timing; bridge script is idempotent/versioned.
-                    let _ = webview.eval(include_str!("bridge_inject.js"));
+                    let theme_preamble = project_name_from_browser_webview_label(&label)
+                        .and_then(theme_injection_preamble)
+                        .unwrap_or_default();
+                    let _ = webview.eval(format!(
+                        "{theme_preamble}{}",
+                        include_str!("bridge_inject.js")
+                    ));
 
                     // Re-apply stored observer config if any
                     let ebs: tauri::State<'_, EventBufferState> = webview.state();
@@ -7524,6 +7779,8 @@ fn main() {
             browser_stop_element_grab,
             browser_eval_result,
             browser_capture_screenshot,
+            project_save_preview,
+            project_load_preview,
             runtime_debug_dump,
             ui_log_batch,
             logs_read_weekend,

@@ -320,8 +320,9 @@ export async function createEmbeddedBrowserWebview({
       if (closed) return null;
       try {
         return await invoke<string>("browser_capture_screenshot", { label });
-      } catch {
-        return null;
+      } catch (error) {
+        console.warn("[Browser] captureScreenshot failed", { label, error });
+        throw error;
       }
     },
     close: async () => {

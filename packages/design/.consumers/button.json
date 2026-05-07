@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/ui/button.tsx",
-      "line": 103,
+      "line": 105,
       "props": [
         "ref",
         "variant",
@@ -70,27 +70,6 @@
         "trailingIcon",
         "variant"
       ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/introduction.tsx",
-      "line": 51,
-      "props": [
-        "variant"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/introduction.tsx",
-      "line": 52,
-      "props": [
-        "variant"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/introduction.tsx",
-      "line": 53,
-      "props": [
-        "variant"
-      ]
     }
   ],
   "propUsage": {
@@ -102,7 +81,7 @@
     "ref": 1,
     "size": 3,
     "trailingIcon": 1,
-    "variant": 9
+    "variant": 6
   },
-  "totalUsages": 12
+  "totalUsages": 9
 }

@@ -1,3 +1,4 @@
+import { Play } from "lucide-react";
 import {
   type FormEvent,
   type ReactNode,
@@ -7,11 +8,13 @@ import {
   useRef,
   useState,
 } from "react";
+import { Button } from "@/components/ui/button";
 import type {
   PlayState,
   ProjectConfigReadSnapshot,
   TerminalSessionDescriptor,
 } from "@/lib/controller";
+import { loadProjectPreview, onPreviewCaptured } from "@/lib/project-preview";
 import { MOCK_MODE } from "@/lib/tauri-mock";
 import {
   buildBrowserSurfaceUrl,
@@ -417,8 +420,6 @@ export function BrowserPane({
     isEmbeddedBrowserAvailable && Boolean(effectiveNavigationUrl);
   const effectiveBrowserErrorMessage =
     startupProbeErrorMessage ?? frameErrorMessage;
-  const showBrowserShell =
-    browserTarget.status === "ready" || startupProbeErrorMessage !== null;
   const retryBrowserLoad = () => {
     if (startupProbeErrorMessage) {
       onRestartApp();
@@ -426,6 +427,49 @@ export function BrowserPane({
     }
     reloadCurrentPage();
   };
+
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setPreviewSrc(null);
+    void loadProjectPreview(projectKey).then((dataUrl) => {
+      if (!cancelled) setPreviewSrc(dataUrl);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectKey]);
+
+  useEffect(() => {
+    return onPreviewCaptured((project, dataUrl) => {
+      if (project === projectKey) setPreviewSrc(dataUrl);
+    });
+  }, [projectKey]);
+
+  const isAwakening =
+    !!effectiveBrowserErrorMessage ||
+    isStartupLoading ||
+    isFrameLoading ||
+    playState !== "running" ||
+    browserTarget.status !== "ready" ||
+    !displayRuntimeSurfaceUrl;
+
+  const awakeningStatus: { kind: "button" } | { kind: "text"; message: string } | null = (() => {
+    if (effectiveBrowserErrorMessage) return null; // error block has its own treatment
+    if (playState === "starting" || isStartupLoading) {
+      return { kind: "text", message: "Starting..." };
+    }
+    if (isFrameLoading) {
+      return { kind: "text", message: "Loading app..." };
+    }
+    if (browserTarget.action === "play") {
+      return { kind: "button" };
+    }
+    if (browserTarget.message) {
+      return { kind: "text", message: browserTarget.message };
+    }
+    return null;
+  })();
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
@@ -444,6 +488,7 @@ export function BrowserPane({
         isGrabbing={isGrabbing}
         onToggleElementGrab={toggleElementGrab}
         terminalSessions={terminalSessions}
+        configuredProcesses={projectConfigSnapshot?.processes ?? {}}
         activeTerminalId={activeTerminalId}
         onSelectTerminal={onSelectTerminal}
         onCreateTerminal={onCreateTerminal}
@@ -521,33 +566,62 @@ export function BrowserPane({
               </p>
             </div>
           </div>
-        ) : showBrowserShell ? (
+        ) : (
           <>
-            {(isStartupLoading || isFrameLoading) &&
-            !effectiveBrowserErrorMessage ? (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background px-4">
-                <p className="font-code text-xs text-muted-foreground">
-                  {isStartupLoading ? "Loading app..." : "Loading page..."}
-                </p>
-              </div>
-            ) : null}
+            <div
+              aria-hidden={!isAwakening}
+              className={`absolute inset-0 ${
+                isAwakening ? "" : "pointer-events-none"
+              }`}
+            >
+              {previewSrc ? (
+                <img
+                  aria-hidden
+                  alt=""
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60 grayscale"
+                  src={previewSrc}
+                />
+              ) : null}
 
-            {effectiveBrowserErrorMessage ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/90 px-4">
-                <div className="max-w-md rounded-md border border-border bg-background p-4 text-center">
-                  <p className="font-code text-xs text-foreground">
-                    {effectiveBrowserErrorMessage}
-                  </p>
-                  <button
-                    className="mt-3 rounded border border-border px-3 py-1.5 font-code text-xs text-muted-foreground transition-colors hover:text-foreground"
-                    onClick={retryBrowserLoad}
-                    type="button"
-                  >
-                    Retry
-                  </button>
+              {effectiveBrowserErrorMessage ? (
+                <div className="absolute inset-0 flex items-center justify-center px-4">
+                  <div className="max-w-md rounded-md border border-border bg-background/90 p-4 text-center backdrop-blur-sm">
+                    <p className="font-code text-xs text-foreground">
+                      {effectiveBrowserErrorMessage}
+                    </p>
+                    <button
+                      className="mt-3 rounded border border-border px-3 py-1.5 font-code text-xs text-muted-foreground transition-colors hover:text-foreground"
+                      onClick={retryBrowserLoad}
+                      type="button"
+                    >
+                      Retry
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : null}
+              ) : awakeningStatus ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4">
+                  <Button
+                    variant="success"
+                    size="lg"
+                    icon={Play}
+                    className="!h-11 min-w-[10rem] !px-6"
+                    loading={awakeningStatus.kind !== "button"}
+                    onClick={
+                      awakeningStatus.kind === "button"
+                        ? onPlayProject
+                        : undefined
+                    }
+                  >
+                    start
+                  </Button>
+                  {awakeningStatus.kind !== "button" ? (
+                    <p className="font-code text-xs text-muted-foreground">
+                      {awakeningStatus.message}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
 
             {addressBarError ? (
               <div className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rounded border border-destructive/50 bg-background/90 px-2 py-1">
@@ -557,31 +631,6 @@ export function BrowserPane({
               </div>
             ) : null}
           </>
-        ) : browserTarget.action === "play" ? (
-          <div className="flex h-full items-center justify-center px-4">
-            <button
-              className="inline-flex items-center rounded border border-border px-3 py-1.5 font-code text-xs text-foreground transition-colors hover:bg-secondary/60 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={playState === "starting"}
-              onClick={onPlayProject}
-              type="button"
-            >
-              {playState === "starting" ? "Starting..." : "|> start"}
-            </button>
-          </div>
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <div className="max-w-xl rounded-md border border-border bg-background p-4 text-center">
-              <p
-                className={
-                  browserTarget.status === "loading"
-                    ? "font-code text-xs text-muted-foreground"
-                    : "font-code text-xs text-foreground"
-                }
-              >
-                {browserTarget.message}
-              </p>
-            </div>
-          </div>
         )}
       </div>
     </section>

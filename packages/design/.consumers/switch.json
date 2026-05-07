@@ -21,24 +21,6 @@
       ]
     },
     {
-      "file": "src/dev/docs/views/pages/introduction.tsx",
-      "line": 58,
-      "props": [
-        "checked",
-        "onChange",
-        "ariaLabel"
-      ]
-    },
-    {
-      "file": "src/dev/docs/views/pages/introduction.tsx",
-      "line": 59,
-      "props": [
-        "checked",
-        "onChange",
-        "ariaLabel"
-      ]
-    },
-    {
       "file": "src/dev/docs/views/pages/switch.tsx",
       "line": 24,
       "props": [
@@ -68,10 +50,10 @@
     }
   ],
   "propUsage": {
-    "ariaLabel": 7,
-    "checked": 7,
+    "ariaLabel": 5,
+    "checked": 5,
     "disabled": 1,
-    "onChange": 7
+    "onChange": 5
   },
-  "totalUsages": 7
+  "totalUsages": 5
 }

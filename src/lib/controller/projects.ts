@@ -262,6 +262,7 @@ export async function createProject(
     defaultAgentCommand?: string;
     githubRepoUrl?: string;
     initialPrompt?: string;
+    designSystem?: "weekend" | "none";
   } = {}
 ): Promise<string> {
   const normalizedName = input.name?.trim();
@@ -274,6 +275,7 @@ export async function createProject(
     defaultAgentCommand: normalizedAgentCommand || undefined,
     githubRepoUrl: normalizedGithubRepoUrl || undefined,
     initialPrompt: normalizedInitialPrompt || undefined,
+    designSystem: input.designSystem ?? undefined,
   });
   const createdName = extractProjectName(createdPath);
 

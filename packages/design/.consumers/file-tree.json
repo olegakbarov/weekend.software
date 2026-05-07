@@ -12,6 +12,14 @@
       ]
     },
     {
+      "file": "src/components/shared/shared-page.tsx",
+      "line": 395,
+      "props": [
+        "model",
+        "style"
+      ]
+    },
+    {
       "file": "src/dev/docs/views/pages/file-tree.tsx",
       "line": 34,
       "props": [
@@ -21,9 +29,9 @@
     }
   ],
   "propUsage": {
-    "model": 2,
+    "model": 3,
     "renderContextMenu": 1,
-    "style": 2
+    "style": 3
   },
-  "totalUsages": 2
+  "totalUsages": 3
 }
