@@ -8,7 +8,11 @@ import {
   type DroppedTreeFile,
   type ProjectFileTreeHandle,
 } from "@/components/editor/project-file-tree";
-import { CodeEditor, type VimMode } from "@/components/editor/code-editor";
+import { type VimMode } from "@/components/editor/code-editor";
+import {
+  pickRenderer,
+  type RendererPayload,
+} from "@/components/editor/renderers";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -39,13 +43,6 @@ const IMAGE_MIME_BY_EXTENSION: Record<string, string> = {
 
 type ProjectBinaryPayload = {
   dataBase64: string;
-  sizeBytes: number;
-};
-
-type ImagePreviewState = {
-  path: string;
-  mimeType: string;
-  dataUrl: string;
   sizeBytes: number;
 };
 
@@ -137,8 +134,7 @@ export function ProjectEditorPane({
   onVimModeEnabledChange?: (enabled: boolean) => void;
 }) {
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
-  const [fileContent, setFileContent] = useState<string | null>(null);
-  const [imagePreview, setImagePreview] = useState<ImagePreviewState | null>(null);
+  const [payload, setPayload] = useState<RendererPayload | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -200,30 +196,30 @@ export function ProjectEditorPane({
       setSelectedFilePath(path);
       onSelectedFilePathChange(path);
       currentPathRef.current = path;
-      setFileContent(null);
-      setImagePreview(null);
+      setPayload(null);
       setLoadError(null);
       setIsLoading(true);
 
       try {
-        const imageMimeType = toImageMimeType(path);
-        if (imageMimeType) {
-          const payload = await invoke<ProjectBinaryPayload>(
+        const renderer = pickRenderer(path);
+        if (renderer.payloadKind === "image") {
+          const mimeType = toImageMimeType(path) ?? "application/octet-stream";
+          const result = await invoke<ProjectBinaryPayload>(
             "read_project_file_binary",
             { project, path }
           );
-          setImagePreview({
-            path,
-            mimeType: imageMimeType,
-            dataUrl: `data:${imageMimeType};base64,${payload.dataBase64}`,
-            sizeBytes: payload.sizeBytes,
+          setPayload({
+            kind: "image",
+            mimeType,
+            dataUrl: `data:${mimeType};base64,${result.dataBase64}`,
+            sizeBytes: result.sizeBytes,
           });
         } else {
           const content = await invoke<string>("read_project_file", {
             project,
             path,
           });
-          setFileContent(content);
+          setPayload({ kind: "text", content });
         }
       } catch (error) {
         setLoadError(
@@ -286,11 +282,9 @@ export function ProjectEditorPane({
           onSelectedFilePathChange(nextSelectedPath);
           currentPathRef.current = nextSelectedPath;
         }
-        setImagePreview((prev) => {
-          if (!prev) return prev;
-          const remappedPath = remapPathAfterRename(prev.path, path, renamedPath);
-          return remappedPath ? { ...prev, path: remappedPath } : prev;
-        });
+        // Image payloads carry no path themselves; selectedFilePath above is
+        // already remapped, so the next render passes the new filePath into
+        // the renderer. No payload mutation needed.
         if (onProjectTreeMutated) {
           await onProjectTreeMutated(project).catch((error) => {
             console.error("[ProjectEditor] refresh tree after rename failed", error);
@@ -328,8 +322,7 @@ export function ProjectEditorPane({
           onSelectedFilePathChange(null);
           currentPathRef.current = null;
           pendingContentRef.current = null;
-          setFileContent(null);
-          setImagePreview(null);
+          setPayload(null);
           setLoadError(null);
         }
         if (onProjectTreeMutated) {
@@ -427,13 +420,8 @@ export function ProjectEditorPane({
       : vimMode === "visual" && vimSubMode === "blockwise"
         ? "V-BLOCK"
         : (VIM_MODE_LABELS[vimMode] ?? vimMode.toUpperCase());
-  const isImageSelected =
-    imagePreview !== null &&
-    selectedFilePath !== null &&
-    imagePreview.path === selectedFilePath;
-  const previewSizeLabel = isImageSelected
-    ? new Intl.NumberFormat("en-US").format(imagePreview.sizeBytes)
-    : null;
+  const activeRenderer = selectedFilePath ? pickRenderer(selectedFilePath) : null;
+  const isReadOnlyView = activeRenderer ? !activeRenderer.editable : false;
 
   return (
     <div className="flex h-full w-full min-h-0 min-w-0">
@@ -456,33 +444,14 @@ export function ProjectEditorPane({
                   {loadError}
                 </p>
               </div>
-            ) : isImageSelected && imagePreview ? (
-              <div className="flex h-full min-h-0 flex-col">
-                <div className="border-b border-border/70 px-3 py-2">
-                  <p
-                    className="truncate font-code text-xs text-muted-foreground"
-                    title={imagePreview.path}
-                  >
-                    {imagePreview.path}
-                    {previewSizeLabel ? ` • ${previewSizeLabel} bytes` : ""}
-                  </p>
-                </div>
-                <div className="flex min-h-0 flex-1 items-center justify-center p-4">
-                  <img
-                    alt={selectedFilePath}
-                    className="max-h-full max-w-full rounded border border-border/60 bg-background object-contain shadow-sm"
-                    src={imagePreview.dataUrl}
-                  />
-                </div>
-              </div>
-            ) : fileContent !== null && selectedFilePath ? (
-              <CodeEditor
-                content={fileContent}
+            ) : payload && selectedFilePath && activeRenderer ? (
+              <activeRenderer.Component
                 filePath={selectedFilePath}
                 isVimModeEnabled={isVimModeEnabled}
                 onChange={handleContentChange}
                 onSave={handleSave}
                 onVimModeChange={handleVimModeChange}
+                payload={payload}
               />
             ) : (
               <div className="flex h-full items-center justify-center">
@@ -568,14 +537,18 @@ export function ProjectEditorPane({
               />
             </div>
             <Button
-              disabled={!selectedFilePath || isSaving || isImageSelected}
+              disabled={!selectedFilePath || isSaving || isReadOnlyView}
               icon={Save}
               onClick={handleSave}
               size="xs"
               variant="ghost"
               className="font-code text-[12px]"
             >
-              {isSaving ? "Saving..." : isImageSelected ? "Image" : "Save"}
+              {isSaving
+                ? "Saving..."
+                : isReadOnlyView
+                  ? activeRenderer?.name ?? "View"
+                  : "Save"}
             </Button>
           </div>
         </ResizablePanel>

@@ -19,6 +19,10 @@ import { json } from "@codemirror/lang-json";
 import { html } from "@codemirror/lang-html";
 import { css } from "@codemirror/lang-css";
 import { markdown } from "@codemirror/lang-markdown";
+import { python } from "@codemirror/lang-python";
+import { rust } from "@codemirror/lang-rust";
+import { xml } from "@codemirror/lang-xml";
+import { yaml } from "@codemirror/lang-yaml";
 import {
   defaultKeymap,
   history,
@@ -37,20 +41,41 @@ function languageExtensionForPath(filePath: string): Extension[] {
   switch (ext) {
     case "js":
     case "jsx":
+    case "mjs":
+    case "cjs":
       return [javascript({ jsx: true })];
     case "ts":
     case "tsx":
+    case "mts":
+    case "cts":
       return [javascript({ jsx: true, typescript: true })];
     case "json":
+    case "jsonc":
       return [json()];
     case "html":
     case "htm":
       return [html()];
     case "css":
+    case "scss":
+    case "sass":
+    case "less":
       return [css()];
     case "md":
     case "mdx":
+    case "markdown":
       return [markdown()];
+    case "py":
+    case "pyi":
+      return [python()];
+    case "rs":
+      return [rust()];
+    case "yaml":
+    case "yml":
+      return [yaml()];
+    case "xml":
+    case "svg":
+    case "plist":
+      return [xml()];
     default:
       return [];
   }
