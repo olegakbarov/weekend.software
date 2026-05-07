@@ -244,6 +244,30 @@
 }
 
 /* ============================================================================
+   CodeMirror syntax highlight tokens
+
+   Mapped to design palette colors. CodeMirror highlight uses inline `color:
+   var(--syntax-*)` per token (see src/components/editor/syntax-highlight.ts),
+   so changing these vars per theme retones the editor without touching JS.
+   ============================================================================ */
+
+:root {
+  --syntax-keyword: var(--color-violet);
+  --syntax-string: var(--color-green);
+  --syntax-comment: var(--muted-foreground);
+  --syntax-number: var(--color-orange);
+  --syntax-function: var(--color-blue);
+  --syntax-variable: var(--foreground);
+  --syntax-type: var(--color-amber);
+  --syntax-tag: var(--color-red);
+  --syntax-attribute: var(--color-cyan);
+  --syntax-punctuation: var(--muted-foreground);
+  --syntax-regexp: var(--color-orange);
+  --syntax-link: var(--color-blue);
+  --syntax-heading: var(--foreground);
+}
+
+/* ============================================================================
    @pierre/trees theme bridge
 
    The FileTree component renders inside a shadow root; CSS custom properties

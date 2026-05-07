@@ -13,7 +13,7 @@ import {
   type KeyBinding,
 } from "@codemirror/view";
 import { EditorState, Prec, type Extension } from "@codemirror/state";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { weekendSyntaxHighlighting } from "./syntax-highlight";
 import { javascript } from "@codemirror/lang-javascript";
 import { json } from "@codemirror/lang-json";
 import { html } from "@codemirror/lang-html";
@@ -159,7 +159,7 @@ export function CodeEditor({
             ...historyKeymap,
           ])
         ),
-        ...(isDark ? [oneDark] : []),
+        weekendSyntaxHighlighting,
         Prec.highest(
           EditorView.theme(
             {
