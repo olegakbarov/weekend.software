@@ -95,15 +95,6 @@ export function BrowserPane({
   }) => void;
 }) {
   const [browserSource, setBrowserSource] = useState<BrowserSource>("local");
-  const deployUrl = projectConfigSnapshot?.deployUrl?.trim() || null;
-  const hasDeployUrl = !!deployUrl;
-
-  // Reset to local when deploy URL disappears
-  useEffect(() => {
-    if (browserSource === "web" && !hasDeployUrl) {
-      setBrowserSource("local");
-    }
-  }, [browserSource, hasDeployUrl]);
 
   const [frameVersionByProject, setFrameVersionByProject] = useState<
     Record<string, number>
@@ -183,11 +174,8 @@ export function BrowserPane({
   const addressBarError = addressBarErrorByProject[projectKey] ?? null;
   const isEmbeddedBrowserAvailable = !MOCK_MODE;
 
-  // When in "web" mode, override navigation to use the deploy URL
-  const effectiveNavigationUrl =
-    browserSource === "web" && deployUrl ? deployUrl : navigationUrl;
-  const effectiveUrlInputDraft =
-    browserSource === "web" && deployUrl ? deployUrl : urlInputDraft;
+  const effectiveNavigationUrl = navigationUrl;
+  const effectiveUrlInputDraft = urlInputDraft;
 
   const runtimeSurfaceUrl = useMemo(
     () =>
@@ -255,8 +243,8 @@ export function BrowserPane({
     projectKey,
     frameVersion,
     navigationUrl: effectiveNavigationUrl,
-    currentPageUrl: browserSource === "web" ? deployUrl : currentPageUrl,
-    configuredRuntimeUrl: browserSource === "web" ? deployUrl : configuredRuntimeUrl,
+    currentPageUrl,
+    configuredRuntimeUrl,
     runtimeSurfaceUrl,
     workspaceMode,
     playState,
@@ -467,14 +455,12 @@ export function BrowserPane({
         hasHealthyRuntimeProcess={hasHealthyRuntimeProcess}
         browserSource={browserSource}
         onBrowserSourceChange={setBrowserSource}
-        hasDeployUrl={hasDeployUrl}
         onOpenConfigFile={onOpenConfigFile}
       />
 
       <div className="relative min-h-0 flex-1 bg-background">
         {isEmbeddedBrowserAvailable &&
-        (browserTarget.status === "ready" ||
-          (browserSource === "web" && deployUrl)) &&
+        browserTarget.status === "ready" &&
         displayRuntimeSurfaceUrl ? (
           <div
             aria-hidden={workspaceMode !== "browser"}

@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Crosshair,
   FileCode2,
-  Globe,
   Monitor,
   Play,
   RefreshCw,
@@ -85,7 +84,6 @@ export function BrowserToolbar({
   // Browser source
   browserSource,
   onBrowserSourceChange,
-  hasDeployUrl,
   onOpenConfigFile,
 }: {
   workspaceMode: WorkspaceMode;
@@ -121,7 +119,6 @@ export function BrowserToolbar({
   // Browser source
   browserSource: BrowserSource;
   onBrowserSourceChange: (source: BrowserSource) => void;
-  hasDeployUrl: boolean;
   onOpenConfigFile: () => void;
 }) {
   const isAppIdle = playState === "idle" || playState === "failed";
@@ -290,7 +287,7 @@ export function BrowserToolbar({
     <div className="relative h-12 shrink-0 border-border border-b bg-background">
       <div className="flex h-full items-center gap-2 px-3">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          {/* Segmented bar: Play/Stop, Local, Web */}
+          {/* Segmented bar: Play/Stop, Local */}
           <div className="flex shrink-0 items-center overflow-hidden rounded-md border border-border/80 bg-background">
             {/* Play / Stop */}
             {isAppIdle ? (
@@ -344,31 +341,6 @@ export function BrowserToolbar({
               type="button"
             >
               <Monitor className="size-3.5" />
-            </button>
-
-            {/* Web */}
-            <button
-              className={`${
-                isBrowserActive && browserSource === "web"
-                  ? segBtnActive
-                  : segBtnInactive
-              } w-8`}
-              onClick={() => {
-                if (hasDeployUrl) {
-                  onBrowserSourceChange("web");
-                  if (!isBrowserActive) onWorkspaceModeChange("browser");
-                } else {
-                  onOpenConfigFile();
-                }
-              }}
-              title={
-                hasDeployUrl
-                  ? "Deployed version"
-                  : "Set runtime.deployUrl in weekend.config.json"
-              }
-              type="button"
-            >
-              <Globe className="size-3.5" />
             </button>
           </div>
 
@@ -503,11 +475,7 @@ export function BrowserToolbar({
                   onAddressBarDraftChange(event.target.value)
                 }
                 onClick={!isBrowserActive ? handleBrowserBarClick : undefined}
-                placeholder={
-                  browserSource === "web"
-                    ? "Deployed URL"
-                    : "Enter URL and press Enter"
-                }
+                placeholder="Enter URL and press Enter"
                 readOnly={!isBrowserActive}
                 spellCheck={false}
                 tabIndex={!isBrowserActive ? -1 : undefined}
