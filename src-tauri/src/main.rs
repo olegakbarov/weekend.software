@@ -5146,6 +5146,43 @@ fn shared_assets_list() -> Result<Vec<SharedAssetSnapshot>, String> {
 }
 
 #[tauri::command]
+fn shared_assets_read_text(file_name: String) -> Result<String, String> {
+    let shared_root = ensure_shared_assets_root()?;
+    let sanitized = sanitize_shared_asset_file_name(&file_name)?;
+    let path = shared_root.join(&sanitized);
+    if !path.is_file() {
+        return Err(format!("shared asset {sanitized} is not a file"));
+    }
+    std::fs::read_to_string(&path)
+        .map_err(|error| format!("failed to read {}: {error}", path.display()))
+}
+
+#[tauri::command]
+fn shared_assets_read_binary(file_name: String) -> Result<ProjectFileBinaryPayload, String> {
+    let shared_root = ensure_shared_assets_root()?;
+    let sanitized = sanitize_shared_asset_file_name(&file_name)?;
+    let path = shared_root.join(&sanitized);
+    if !path.is_file() {
+        return Err(format!("shared asset {sanitized} is not a file"));
+    }
+    let metadata = std::fs::metadata(&path)
+        .map_err(|error| format!("failed to inspect {}: {error}", path.display()))?;
+    if metadata.len() > MAX_PREVIEW_FILE_BYTES {
+        return Err(format!(
+            "file is too large to preview ({} bytes, limit {} bytes)",
+            metadata.len(),
+            MAX_PREVIEW_FILE_BYTES
+        ));
+    }
+    let bytes = std::fs::read(&path)
+        .map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+    Ok(ProjectFileBinaryPayload {
+        data_base64: BASE64_STANDARD.encode(bytes.as_slice()),
+        size_bytes: bytes.len() as u64,
+    })
+}
+
+#[tauri::command]
 fn shared_assets_upload_batch(
     files: Vec<SharedAssetUploadInput>,
 ) -> Result<Vec<SharedAssetSnapshot>, String> {
@@ -7449,6 +7486,8 @@ fn main() {
             shared_env_read,
             shared_env_write,
             shared_assets_list,
+            shared_assets_read_binary,
+            shared_assets_read_text,
             shared_assets_upload_batch,
             shared_assets_import_paths,
             shared_assets_rename,

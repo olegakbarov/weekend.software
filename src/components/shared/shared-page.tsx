@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, FileText, Pencil, RefreshCw, Trash2, Upload, X } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
+import { Check, Pencil, RefreshCw, Trash2, Upload, X } from "lucide-react";
 import {
   FileTree,
   prepareFileTreeInput,
@@ -8,8 +9,33 @@ import {
 import { Button } from "@/components/ui/button";
 import { EnvVarsEditor } from "@/components/ui/env-vars-editor";
 import { Input } from "@/components/ui/input";
+import {
+  pickRenderer,
+  type RendererPayload,
+} from "@/components/editor/renderers";
 import { cn } from "@/lib/utils";
 import type { SharedAssetSnapshot } from "@/lib/controller";
+
+const IMAGE_MIME_BY_EXTENSION: Record<string, string> = {
+  avif: "image/avif",
+  bmp: "image/bmp",
+  gif: "image/gif",
+  ico: "image/x-icon",
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  svg: "image/svg+xml",
+  tif: "image/tiff",
+  tiff: "image/tiff",
+  webp: "image/webp",
+};
+
+type SharedBinaryPayload = { dataBase64: string; sizeBytes: number };
+
+function toMimeForExt(fileName: string): string {
+  const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
+  return IMAGE_MIME_BY_EXTENSION[ext] ?? "application/octet-stream";
+}
 
 function formatFileSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 0) return "n/a";
@@ -18,15 +44,6 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024 * 1024)
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-}
-
-function formatTimestamp(unixMs: number): string {
-  if (!Number.isFinite(unixMs) || unixMs <= 0) return "n/a";
-  try {
-    return new Date(unixMs).toLocaleString();
-  } catch {
-    return String(unixMs);
-  }
 }
 
 export type SharedPageProps = {
@@ -42,7 +59,7 @@ export type SharedPageProps = {
   onUpdateSharedEnv: (env: Record<string, string>) => Promise<void>;
 };
 
-function DetailsPanel({
+function ActionBar({
   asset,
   isUploading,
   onRename,
@@ -57,7 +74,6 @@ function DetailsPanel({
   const [draft, setDraft] = useState(asset.fileName);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Reset local edit state when the selected asset changes.
   useEffect(() => {
     setIsRenaming(false);
     setDraft(asset.fileName);
@@ -88,64 +104,55 @@ function DetailsPanel({
   };
 
   return (
-    <div className="flex h-full flex-col gap-3 p-4">
-      <div className="flex items-start gap-2">
-        <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground/60" />
-        <div className="min-w-0 flex-1">
-          {isRenaming ? (
-            <div className="flex items-center gap-1">
-              <Input
-                autoFocus
-                className="h-7 flex-1 px-2 font-code text-xs"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") submitRename();
-                  else if (e.key === "Escape") {
-                    setIsRenaming(false);
-                    setDraft(asset.fileName);
-                  }
-                }}
-              />
-              <button
-                className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
-                onClick={submitRename}
-                type="button"
-                title="Save"
-              >
-                <Check className="size-3" />
-              </button>
-              <button
-                className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
-                onClick={() => {
-                  setIsRenaming(false);
-                  setDraft(asset.fileName);
-                }}
-                type="button"
-                title="Cancel"
-              >
-                <X className="size-3" />
-              </button>
-            </div>
-          ) : (
-            <p className="break-all font-code text-sm text-foreground">
-              {asset.fileName}
-            </p>
-          )}
+    <div className="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-border/40 px-3">
+      {isRenaming ? (
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          <Input
+            autoFocus
+            className="h-7 flex-1 px-2 font-code text-xs"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submitRename();
+              else if (e.key === "Escape") {
+                setIsRenaming(false);
+                setDraft(asset.fileName);
+              }
+            }}
+          />
+          <button
+            className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
+            onClick={submitRename}
+            type="button"
+            title="Save"
+          >
+            <Check className="size-3" />
+          </button>
+          <button
+            className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
+            onClick={() => {
+              setIsRenaming(false);
+              setDraft(asset.fileName);
+            }}
+            type="button"
+            title="Cancel"
+          >
+            <X className="size-3" />
+          </button>
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-code text-[11px] text-muted-foreground">
-        <span>Size</span>
-        <span className="text-foreground/80">{formatFileSize(asset.sizeBytes)}</span>
-        <span>Modified</span>
-        <span className="text-foreground/80">
-          {asset.modifiedAtUnixMs ? formatTimestamp(asset.modifiedAtUnixMs) : "n/a"}
-        </span>
-      </div>
-
+      ) : (
+        <p
+          className="min-w-0 flex-1 truncate font-code text-xs text-muted-foreground"
+          title={asset.fileName}
+        >
+          {asset.fileName}{" "}
+          <span className="text-muted-foreground/50">
+            • {formatFileSize(asset.sizeBytes)}
+          </span>
+        </p>
+      )}
       {!isRenaming && (
-        <div className="mt-auto flex items-center gap-1 border-t border-border/40 pt-3">
+        <div className="flex shrink-0 items-center gap-0.5">
           <Button
             size="xs"
             variant="ghost"
@@ -162,15 +169,80 @@ function DetailsPanel({
             disabled={isUploading}
             onBlur={() => setIsDeleting(false)}
             onClick={handleDelete}
-            title={isDeleting ? "Click again to confirm" : "Delete"}
           >
             <Trash2 className="size-2.5" />
-            {isDeleting ? "Confirm delete" : "Delete"}
+            {isDeleting ? "Confirm" : "Delete"}
           </Button>
         </div>
       )}
     </div>
   );
+}
+
+function PreviewBody({ fileName }: { fileName: string }) {
+  const [payload, setPayload] = useState<RendererPayload | null>(null);
+  const [isLoadingPayload, setIsLoadingPayload] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const renderer = pickRenderer(fileName);
+    setPayload(null);
+    setLoadError(null);
+    setIsLoadingPayload(true);
+    (async () => {
+      try {
+        if (renderer.payloadKind === "image") {
+          const mimeType = toMimeForExt(fileName);
+          const result = await invoke<SharedBinaryPayload>(
+            "shared_assets_read_binary",
+            { fileName },
+          );
+          if (cancelled) return;
+          setPayload({
+            kind: "image",
+            mimeType,
+            dataUrl: `data:${mimeType};base64,${result.dataBase64}`,
+            sizeBytes: result.sizeBytes,
+          });
+        } else {
+          const content = await invoke<string>("shared_assets_read_text", {
+            fileName,
+          });
+          if (cancelled) return;
+          setPayload({ kind: "text", content });
+        }
+      } catch (error) {
+        if (cancelled) return;
+        setLoadError(error instanceof Error ? error.message : String(error));
+      } finally {
+        if (!cancelled) setIsLoadingPayload(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [fileName]);
+
+  const renderer = pickRenderer(fileName);
+
+  if (isLoadingPayload) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="font-code text-xs text-muted-foreground/60">Loading…</p>
+      </div>
+    );
+  }
+  if (loadError) {
+    return (
+      <div className="flex h-full items-center justify-center px-4">
+        <p className="font-code text-xs text-destructive">{loadError}</p>
+      </div>
+    );
+  }
+  if (!payload) return null;
+
+  return <renderer.Component filePath={fileName} payload={payload} />;
 }
 
 export function SharedPage({
@@ -214,14 +286,12 @@ export function SharedPage({
     },
   });
 
-  // Reset paths when the assets list changes.
   const initialInputRef = useRef(preparedInput);
   useEffect(() => {
     if (initialInputRef.current === preparedInput) return;
     model.resetPaths(paths, { preparedInput });
   }, [model, paths, preparedInput]);
 
-  // Drop selection if the file goes away (e.g. after delete).
   useEffect(() => {
     if (!selectedFileName) return;
     if (!sharedAssets.some((a) => a.fileName === selectedFileName)) {
@@ -331,19 +401,27 @@ export function SharedPage({
               </div>
             </div>
 
-            {/* Right column: details */}
-            <div className="min-h-0 flex-1 overflow-auto">
+            {/* Right column: preview + actions */}
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               {selectedAsset ? (
-                <DetailsPanel
-                  asset={selectedAsset}
-                  isUploading={isUploading}
-                  onRename={onRename}
-                  onDelete={onDelete}
-                />
+                <>
+                  <ActionBar
+                    asset={selectedAsset}
+                    isUploading={isUploading}
+                    onRename={onRename}
+                    onDelete={onDelete}
+                  />
+                  <div className="min-h-0 flex-1 overflow-hidden">
+                    <PreviewBody
+                      key={selectedAsset.fileName}
+                      fileName={selectedAsset.fileName}
+                    />
+                  </div>
+                </>
               ) : (
                 <div className="flex h-full items-center justify-center">
                   <p className="font-code text-[11px] text-muted-foreground/50">
-                    Select a file to see details
+                    Select a file to preview
                   </p>
                 </div>
               )}
