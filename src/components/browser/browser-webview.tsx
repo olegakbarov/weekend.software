@@ -6,12 +6,21 @@ import {
   BROWSER_WEBVIEW_ROUTE_CHANGE_EVENT,
   closeInactiveEmbeddedBrowserWebviews,
   createEmbeddedBrowserWebview,
-  hideInactiveEmbeddedBrowserWebviews,
   type BrowserWebviewRouteChangePayload,
+  type BrowserWebviewPageLoadPayload,
   type EmbeddedBrowserWebviewHandle,
 } from "@/lib/embedded-browser-webview";
 import type { PlayState } from "@/lib/controller";
 import { planBrowserPaneVisibility } from "@/lib/browser-pane-webviews";
+import {
+  activateManagedBrowserWebview,
+  buildManagedBrowserWebviewCacheKey,
+  claimBrowserWebviewStartupCleanup,
+  clearManagedBrowserWebviewPageLoadHandler,
+  hasManagedBrowserWebview,
+  hideManagedBrowserWebviewsExcept,
+  showManagedBrowserWebview,
+} from "@/lib/browser-webview-manager";
 import {
   notifyPreviewCaptured,
   registerPreviewCapturer,
@@ -160,9 +169,11 @@ export function useBrowserWebview({
     string | null
   >(null);
   const [isGrabbing, setIsGrabbing] = useState(false);
+  const [activeWebviewRevision, setActiveWebviewRevision] = useState(0);
   const loadTimeoutRef = useRef<number | null>(null);
   const nativeWebviewHostRef = useRef<HTMLDivElement | null>(null);
-  const embeddedWebviewRef = useRef<EmbeddedBrowserWebviewHandle | null>(null);
+  const activeWebviewRef = useRef<EmbeddedBrowserWebviewHandle | null>(null);
+  const activationSequenceRef = useRef(0);
   const lastFilesystemEventVersionByProjectRef = useRef<Record<string, number>>(
     {}
   );
@@ -344,15 +355,15 @@ export function useBrowserWebview({
   ]);
 
   const goBack = useCallback(() => {
-    void embeddedWebviewRef.current?.goBack();
+    void activeWebviewRef.current?.goBack();
   }, []);
 
   const goForward = useCallback(() => {
-    void embeddedWebviewRef.current?.goForward();
+    void activeWebviewRef.current?.goForward();
   }, []);
 
   const toggleElementGrab = useCallback(() => {
-    const label = embeddedWebviewRef.current?.label;
+    const label = activeWebviewRef.current?.label;
     if (!label) return;
     const shouldEnable = !isGrabbing;
     setIsGrabbing(shouldEnable);
@@ -377,7 +388,7 @@ export function useBrowserWebview({
         outerHTML?: string;
       };
     }>("browser-element-grabbed", (event) => {
-      const activeLabel = embeddedWebviewRef.current?.label;
+      const activeLabel = activeWebviewRef.current?.label;
       if (!activeLabel || event.payload.label !== activeLabel) {
         return;
       }
@@ -393,7 +404,7 @@ export function useBrowserWebview({
     const unlisten = listen<BrowserWebviewRouteChangePayload>(
       BROWSER_WEBVIEW_ROUTE_CHANGE_EVENT,
       (event) => {
-        const activeLabel = embeddedWebviewRef.current?.label;
+        const activeLabel = activeWebviewRef.current?.label;
         if (!activeLabel || event.payload.webviewLabel !== activeLabel) {
           return;
         }
@@ -420,7 +431,7 @@ export function useBrowserWebview({
   // Cancel grab when leaving browser mode
   useEffect(() => {
     if (workspaceMode === "browser" || !isGrabbing) return;
-    const label = embeddedWebviewRef.current?.label;
+    const label = activeWebviewRef.current?.label;
     setIsGrabbing(false);
     if (!label) return;
     void invoke("browser_stop_element_grab", { label }).catch(() => undefined);
@@ -436,8 +447,9 @@ export function useBrowserWebview({
       return;
     }
 
-    setIsFrameLoading(true);
-    setFrameErrorMessage(null);
+    if (!isFrameLoading) {
+      return;
+    }
 
     if (isLocalDevUrl(navigationUrl)) {
       loadTimeoutRef.current = window.setTimeout(() => {
@@ -457,6 +469,7 @@ export function useBrowserWebview({
     clearLoadTimeout,
     displayRuntimeSurfaceUrl,
     frameVersion,
+    isFrameLoading,
     navigationUrl,
     projectKey,
   ]);
@@ -513,69 +526,119 @@ export function useBrowserWebview({
     reloadCurrentPage,
   ]);
 
-  // Native webview mount/unmount lifecycle
+  // One-shot orphan cleanup per renderer lifetime. This must not run on every
+  // BrowserPane mount because the native webview cache intentionally survives
+  // route churn.
+  useEffect(() => {
+    if (MOCK_MODE) return;
+    if (!claimBrowserWebviewStartupCleanup()) return;
+    void closeInactiveEmbeddedBrowserWebviews(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // On unmount, detach the current page-load callback. The managed native
+  // webview cache stays alive so returning to a running project can be instant.
+  useEffect(() => {
+    if (MOCK_MODE) return;
+    return () => {
+      activationSequenceRef.current += 1;
+      activeWebviewRef.current = null;
+    };
+  }, []);
+
+  // Attach/detach the active webview, creating it lazily. The cache is managed
+  // outside this hook so it can survive project-route remounts.
   useEffect(() => {
     if (MOCK_MODE) return;
 
     let disposed = false;
+    const activationId = activationSequenceRef.current + 1;
+    activationSequenceRef.current = activationId;
+    const cacheKey = buildManagedBrowserWebviewCacheKey(
+      projectKey,
+      frameVersion
+    );
 
-    const closeExisting = async (): Promise<void> => {
-      const existing = embeddedWebviewRef.current;
-      if (!existing) return;
-      embeddedWebviewRef.current = null;
-      await existing.close();
+    const handlePageLoad = (payload: BrowserWebviewPageLoadPayload): void => {
+      if (activationId !== activationSequenceRef.current) return;
+      if (payload.phase === "started") {
+        setIsFrameLoading(true);
+        return;
+      }
+      clearLoadTimeout();
+      console.info("[Browser] native webview page loaded", {
+        projectKey,
+        url: payload.url,
+        webviewLabel: payload.webviewLabel,
+      });
+      setIsFrameLoading(false);
+      setFrameErrorMessage(null);
+      onCurrentPageUrlChange(projectKey, payload.url);
+      onUrlInputDraftChange(projectKey, payload.url);
+      onAddressBarErrorChange(projectKey, null);
     };
 
-    const mountNativeWebview = async (): Promise<void> => {
-      await closeExisting();
-
-      if (!displayRuntimeSurfaceUrl) return;
+    const attach = async (): Promise<void> => {
       const hostElement = nativeWebviewHostRef.current;
-      if (!hostElement) return;
+      if (!displayRuntimeSurfaceUrl) {
+        activeWebviewRef.current = null;
+        setIsFrameLoading(false);
+        setFrameErrorMessage(null);
+        await hideManagedBrowserWebviewsExcept(null);
+        return;
+      }
+      if (!hostElement) {
+        activeWebviewRef.current = null;
+        return;
+      }
+
+      const hasCachedEntry = hasManagedBrowserWebview(cacheKey);
+      if (!hasCachedEntry) {
+        setIsFrameLoading(true);
+        setFrameErrorMessage(null);
+        await hideManagedBrowserWebviewsExcept(null);
+      }
 
       try {
         const nextLabel = buildEmbeddedBrowserWebviewLabel(
           projectKey,
           frameVersion
         );
-        const webview = await createEmbeddedBrowserWebview({
+        const activation = await activateManagedBrowserWebview({
+          cacheKey,
           container: hostElement,
-          label: nextLabel,
+          createHandle: () =>
+            createEmbeddedBrowserWebview({
+              container: hostElement,
+              label: nextLabel,
+              url: displayRuntimeSurfaceUrl,
+              onPageLoad: handlePageLoad,
+            }),
+          frameVersion,
+          isCurrent: () =>
+            !disposed && activationId === activationSequenceRef.current,
+          onPageLoad: handlePageLoad,
+          projectKey,
           url: displayRuntimeSurfaceUrl,
-          onPageLoad: (payload) => {
-            if (payload.phase === "started") {
-              setIsFrameLoading(true);
-              return;
-            }
-            clearLoadTimeout();
-            console.info("[Browser] native webview page loaded", {
-              projectKey,
-              url: payload.url,
-              webviewLabel: payload.webviewLabel,
-            });
-            setIsFrameLoading(false);
-            setFrameErrorMessage(null);
-            onCurrentPageUrlChange(projectKey, payload.url);
-            onUrlInputDraftChange(projectKey, payload.url);
-            onAddressBarErrorChange(projectKey, null);
-          },
         });
 
-        if (disposed) {
-          await webview.close();
+        if (disposed || activationId !== activationSequenceRef.current) {
           return;
         }
 
-        await closeInactiveEmbeddedBrowserWebviews(nextLabel);
-        if (disposed) {
-          await webview.close();
-          return;
+        activeWebviewRef.current = activation.entry.handle;
+        setActiveWebviewRevision((previous) => previous + 1);
+        const isLoadingAfterActivation = activation.created || activation.navigated;
+        if (isLoadingAfterActivation) {
+          setIsFrameLoading(true);
+          setFrameErrorMessage(null);
+        } else {
+          clearLoadTimeout();
+          setIsFrameLoading(false);
+          setFrameErrorMessage(null);
         }
-
-        embeddedWebviewRef.current = webview;
-        await webview.hide();
       } catch (error) {
-        if (disposed) return;
+        if (disposed || activationId !== activationSequenceRef.current) return;
         clearLoadTimeout();
         console.error("[Browser] native webview create failed", {
           projectKey,
@@ -591,11 +654,11 @@ export function useBrowserWebview({
       }
     };
 
-    void mountNativeWebview();
+    void attach();
 
     return () => {
       disposed = true;
-      void closeExisting();
+      clearManagedBrowserWebviewPageLoadHandler(cacheKey);
     };
   }, [
     clearLoadTimeout,
@@ -614,7 +677,15 @@ export function useBrowserWebview({
     let cancelled = false;
 
     const syncBrowserVisibility = async (): Promise<void> => {
-      const activeWebview = embeddedWebviewRef.current;
+      const activeWebview = activeWebviewRef.current;
+      const expectedLabel = buildEmbeddedBrowserWebviewLabel(
+        projectKey,
+        frameVersion
+      );
+      const activeCacheKey =
+        activeWebview?.label === expectedLabel
+          ? buildManagedBrowserWebviewCacheKey(projectKey, frameVersion)
+          : null;
       const visibilityPlan = planBrowserPaneVisibility({
         activeLabel: activeWebview?.label ?? null,
         shouldShowActivePane:
@@ -625,17 +696,13 @@ export function useBrowserWebview({
         if (visibilityPlan.hideActivePaneViaHandle) {
           await activeWebview?.hide();
         }
-        await hideInactiveEmbeddedBrowserWebviews(
-          visibilityPlan.inactivePaneExclusionLabel
-        );
+        await hideManagedBrowserWebviewsExcept(activeCacheKey);
         return;
       }
 
-      await hideInactiveEmbeddedBrowserWebviews(
-        visibilityPlan.inactivePaneExclusionLabel
-      );
+      await hideManagedBrowserWebviewsExcept(activeCacheKey);
       if (cancelled) return;
-      await embeddedWebviewRef.current?.show();
+      await showManagedBrowserWebview(activeCacheKey!);
     };
 
     void syncBrowserVisibility();
@@ -644,6 +711,7 @@ export function useBrowserWebview({
       cancelled = true;
     };
   }, [
+    activeWebviewRevision,
     displayRuntimeSurfaceUrl,
     frameErrorMessage,
     frameVersion,
@@ -672,7 +740,7 @@ export function useBrowserWebview({
   }, [onAddressBarErrorChange, projectKey]);
 
   const capturePreview = useCallback(async (): Promise<CapturePreviewResult> => {
-    const handle = embeddedWebviewRef.current;
+    const handle = activeWebviewRef.current;
     if (!handle) {
       return { ok: false, reason: "webview not mounted" };
     }

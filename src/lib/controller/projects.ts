@@ -260,6 +260,7 @@ export async function createProject(
   input: {
     name?: string;
     defaultAgentCommand?: string;
+    defaultAgentProfileId?: string;
     githubRepoUrl?: string;
     initialPrompt?: string;
     designSystem?: "weekend" | "none";
@@ -267,12 +268,14 @@ export async function createProject(
 ): Promise<string> {
   const normalizedName = input.name?.trim();
   const normalizedAgentCommand = input.defaultAgentCommand?.trim();
+  const normalizedAgentProfileId = input.defaultAgentProfileId?.trim();
   const normalizedGithubRepoUrl = input.githubRepoUrl?.trim();
   const normalizedInitialPrompt = input.initialPrompt?.trim();
 
   const createdPath = await invoke<string>("create_new_project", {
     name: normalizedName || undefined,
     defaultAgentCommand: normalizedAgentCommand || undefined,
+    defaultAgentProfileId: normalizedAgentProfileId || undefined,
     githubRepoUrl: normalizedGithubRepoUrl || undefined,
     initialPrompt: normalizedInitialPrompt || undefined,
     designSystem: input.designSystem ?? undefined,

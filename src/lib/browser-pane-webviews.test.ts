@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getInactiveBrowserPaneWebviewLabels,
+  insertBrowserWebviewCacheEntry,
   isBrowserPaneWebviewLabel,
   planBrowserPaneVisibility,
 } from "./browser-pane-webviews.ts";
@@ -59,4 +60,73 @@ test("planBrowserPaneVisibility shows the active pane and excludes it from inact
       showActivePaneViaHandle: true,
     }
   );
+});
+
+test("insertBrowserWebviewCacheEntry evicts the oldest entry when the cap is exceeded", () => {
+  type FakeHandle = { id: string };
+  const cache = new Map<string, FakeHandle>();
+  const evicted: FakeHandle[] = [];
+  const insert = (key: string): void =>
+    insertBrowserWebviewCacheEntry(cache, key, { id: key }, 5, (entry) => {
+      evicted.push(entry);
+    });
+
+  insert("a");
+  insert("b");
+  insert("c");
+  insert("d");
+  insert("e");
+  assert.equal(cache.size, 5);
+  assert.equal(evicted.length, 0);
+
+  insert("f");
+  assert.equal(cache.size, 5);
+  assert.deepEqual(
+    evicted.map((entry) => entry.id),
+    ["a"]
+  );
+  assert.deepEqual(Array.from(cache.keys()), ["b", "c", "d", "e", "f"]);
+});
+
+test("insertBrowserWebviewCacheEntry bumps recency on re-insert", () => {
+  type FakeHandle = { id: string };
+  const cache = new Map<string, FakeHandle>();
+  const evicted: FakeHandle[] = [];
+  const insert = (key: string, entry: FakeHandle): void =>
+    insertBrowserWebviewCacheEntry(cache, key, entry, 3, (e) => {
+      evicted.push(e);
+    });
+
+  insert("a", { id: "a" });
+  insert("b", { id: "b" });
+  insert("c", { id: "c" });
+
+  // Re-insert "a" - it should become the most recent, leaving "b" the oldest.
+  insert("a", cache.get("a")!);
+  insert("d", { id: "d" });
+
+  assert.deepEqual(
+    evicted.map((entry) => entry.id),
+    ["b"]
+  );
+  assert.deepEqual(Array.from(cache.keys()), ["c", "a", "d"]);
+});
+
+test("insertBrowserWebviewCacheEntry never evicts the just-inserted entry even at limit 0", () => {
+  type FakeHandle = { id: string };
+  const cache = new Map<string, FakeHandle>();
+  const evicted: FakeHandle[] = [];
+
+  insertBrowserWebviewCacheEntry(
+    cache,
+    "only",
+    { id: "only" },
+    0,
+    (entry) => {
+      evicted.push(entry);
+    }
+  );
+
+  assert.equal(cache.size, 1);
+  assert.equal(evicted.length, 0);
 });

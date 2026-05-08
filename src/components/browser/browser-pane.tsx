@@ -1,4 +1,4 @@
-import { Play } from "lucide-react";
+import { Loader2, Play } from "lucide-react";
 import {
   type FormEvent,
   type ReactNode,
@@ -8,12 +8,16 @@ import {
   useRef,
   useState,
 } from "react";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type {
   PlayState,
   ProjectConfigReadSnapshot,
   TerminalSessionDescriptor,
 } from "@/lib/controller";
+import {
+  buildManagedBrowserWebviewCacheKey,
+  getMostRecentManagedBrowserWebviewForProject,
+} from "@/lib/browser-webview-manager";
 import { loadProjectPreview, onPreviewCaptured } from "@/lib/project-preview";
 import { MOCK_MODE } from "@/lib/tauri-mock";
 import {
@@ -25,7 +29,7 @@ import {
 import {
   resolveBrowserRuntimeTarget,
 } from "./browser-runtime";
-import { BrowserToolbar, type BrowserSource } from "./browser-toolbar";
+import { BrowserToolbar } from "./browser-toolbar";
 import { useBrowserWebview } from "./browser-webview";
 
 type WorkspaceMode =
@@ -46,7 +50,6 @@ export function BrowserPane({
   workspaceMode,
   onWorkspaceModeChange,
   onPlayProject,
-  onStopProject,
   onRestartApp,
   playState,
   editorContent,
@@ -58,7 +61,6 @@ export function BrowserPane({
   onSelectTerminal,
   onCreateTerminal,
   onCreateAgentTerminal,
-  onRemoveTerminal,
   onOpenConfigFile,
   onElementGrabbed,
 }: {
@@ -73,7 +75,6 @@ export function BrowserPane({
     mode: "browser" | "editor" | "agent" | "settings" | "skills"
   ) => void;
   onPlayProject: () => void;
-  onStopProject: () => void;
   onRestartApp: () => void;
   playState: PlayState;
   editorContent?: ReactNode;
@@ -86,7 +87,6 @@ export function BrowserPane({
   onSelectTerminal: (terminalId: string) => void;
   onCreateTerminal: () => void;
   onCreateAgentTerminal: () => void;
-  onRemoveTerminal: (terminalId: string) => void;
   onOpenConfigFile: () => void;
   onElementGrabbed?: (data: {
     tag: string;
@@ -97,12 +97,13 @@ export function BrowserPane({
     outerHTML?: string;
   }) => void;
 }) {
-  const [browserSource, setBrowserSource] = useState<BrowserSource>("local");
-
   const [frameVersionByProject, setFrameVersionByProject] = useState<
     Record<string, number>
   >({});
-  const frameVersion = frameVersionByProject[projectKey] ?? 0;
+  const cachedProjectWebview =
+    getMostRecentManagedBrowserWebviewForProject(projectKey);
+  const frameVersion =
+    frameVersionByProject[projectKey] ?? cachedProjectWebview?.frameVersion ?? 0;
   const [navigationUrlByProject, setNavigationUrlByProject] = useState<
     Record<string, string>
   >({});
@@ -137,9 +138,17 @@ export function BrowserPane({
     ]
   );
   const configuredRuntimeUrl = browserTarget.url;
-  const storedNavigationUrl = navigationUrlByProject[projectKey] ?? null;
-  const storedCurrentPageUrl = currentPageUrlByProject[projectKey] ?? null;
-  const storedUrlInputDraft = urlInputDraftByProject[projectKey] ?? null;
+  const cachedFrameWebview =
+    cachedProjectWebview?.cacheKey ===
+    buildManagedBrowserWebviewCacheKey(projectKey, frameVersion)
+      ? cachedProjectWebview
+      : null;
+  const storedNavigationUrl =
+    navigationUrlByProject[projectKey] ?? cachedFrameWebview?.lastUrl ?? null;
+  const storedCurrentPageUrl =
+    currentPageUrlByProject[projectKey] ?? cachedFrameWebview?.lastUrl ?? null;
+  const storedUrlInputDraft =
+    urlInputDraftByProject[projectKey] ?? cachedFrameWebview?.lastUrl ?? null;
   const hasNavigationOriginMismatch =
     !!configuredRuntimeUrl &&
     !!storedNavigationUrl &&
@@ -401,12 +410,11 @@ export function BrowserPane({
       }));
     }
 
-    if (shouldHydrateNavigationUrl && !!storedNavigationUrl) {
-      setFrameVersionByProject((previous) => ({
-        ...previous,
-        [projectKey]: (previous[projectKey] ?? 0) + 1,
-      }));
-    }
+    // Note: previously we bumped `frameVersion` here when the hydrated
+    // navigation URL differed from the stored one. With navigate-in-place via
+    // the cache-aware lifecycle in `useBrowserWebview`, that bump is wasteful
+    // (it would force teardown and recreate). The URL change is now synced
+    // automatically through the new `navigate` path on the existing webview.
   }, [
     configuredRuntimeUrl,
     hasCrossProjectLocalDevMismatch,
@@ -493,13 +501,6 @@ export function BrowserPane({
         onSelectTerminal={onSelectTerminal}
         onCreateTerminal={onCreateTerminal}
         onCreateAgentTerminal={onCreateAgentTerminal}
-        onRemoveTerminal={onRemoveTerminal}
-        playState={playState}
-        onPlay={onPlayProject}
-        onStop={onStopProject}
-        hasHealthyRuntimeProcess={hasHealthyRuntimeProcess}
-        browserSource={browserSource}
-        onBrowserSourceChange={setBrowserSource}
         onOpenConfigFile={onOpenConfigFile}
       />
 
@@ -599,26 +600,45 @@ export function BrowserPane({
                   </div>
                 </div>
               ) : awakeningStatus ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4">
-                  <Button
-                    variant="success"
-                    size="lg"
-                    icon={Play}
-                    className="!h-11 min-w-[10rem] !px-6"
-                    loading={awakeningStatus.kind !== "button"}
+                <div className="absolute inset-0 flex items-center justify-center px-4">
+                  <button
+                    type="button"
+                    aria-label={
+                      awakeningStatus.kind === "text"
+                        ? awakeningStatus.message
+                        : "Start project"
+                    }
+                    aria-busy={awakeningStatus.kind !== "button"}
+                    disabled={awakeningStatus.kind !== "button"}
                     onClick={
                       awakeningStatus.kind === "button"
                         ? onPlayProject
                         : undefined
                     }
+                    className={cn(
+                      "group relative flex h-28 w-28 items-center justify-center rounded-full",
+                      "bg-gradient-to-b from-emerald-300 via-emerald-500 to-emerald-700",
+                      "shadow-[0_0_0_1.5px_rgba(15,23,42,0.85),0_0_0_4px_rgba(74,222,128,0.45),0_0_28px_rgba(34,197,94,0.45),0_10px_24px_-6px_rgba(0,0,0,0.5),inset_0_8px_16px_-8px_rgba(255,255,255,0.7),inset_0_-10px_18px_-8px_rgba(0,0,0,0.35),inset_0_0_0_1px_rgba(255,255,255,0.18)]",
+                      "transition-transform duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+                      "cursor-pointer hover:enabled:scale-[1.04] active:enabled:scale-[0.96]",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                      "disabled:cursor-default disabled:saturate-[.75]"
+                    )}
                   >
-                    start
-                  </Button>
-                  {awakeningStatus.kind !== "button" ? (
-                    <p className="font-code text-xs text-muted-foreground">
-                      {awakeningStatus.message}
-                    </p>
-                  ) : null}
+                    {awakeningStatus.kind === "button" ? (
+                      <Play
+                        aria-hidden
+                        className="h-12 w-12 translate-x-[1.5px] fill-white text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                        strokeWidth={1.25}
+                      />
+                    ) : (
+                      <Loader2
+                        aria-hidden
+                        className="h-10 w-10 animate-spin text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.45)]"
+                        strokeWidth={2.5}
+                      />
+                    )}
+                  </button>
                 </div>
               ) : null}
             </div>

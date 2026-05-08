@@ -118,10 +118,10 @@ flowchart LR
 - Installing a skill only updates local component state; there is no persistence, no project/global target directory, and no backend action.
 - The product currently signals “platform marketplace” UX without the underlying install/runtime model.
 
-5. Stop semantics are broader than runtime semantics.
+5. Stop semantics now follow runtime ownership.
 
-- `stopProject` intentionally removes all project terminal sessions, including user-created and agent sessions, not just play-spawned runtime processes.
-- That is simple operationally, but it makes the host app feel like a sealed appliance rather than a platform where the runtime lifecycle and user workspace lifecycle are distinct.
+- `stopProject` removes play-spawned runtime processes while keeping user-created and agent sessions alive.
+- Full project teardown still happens through delete/archive, where killing project sessions is expected.
 
 ## Strengths
 
@@ -187,9 +187,9 @@ The practical reading is:
 
 - Decide where project and global skills live, how install/uninstall works, how skills are discovered, and how the host app surfaces active skills to agent runtimes.
 
-5. Separate runtime stop from workspace teardown.
+5. Keep runtime stop separate from workspace teardown.
 
-- Stopping Play should normally stop play-spawned runtime processes first, while keeping user and agent shells alive unless the user explicitly asks for a full project shutdown.
+- Preserve the separation as new process roles and teardown actions are added.
 
 ## Verification
 

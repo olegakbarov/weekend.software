@@ -35,3 +35,35 @@ export function planBrowserPaneVisibility(args: {
       normalizedActiveLabel !== null && args.shouldShowActivePane,
   };
 }
+
+/**
+ * Insert `entry` at `key` in `cache`, evicting the oldest entries until the
+ * cache is no larger than `limit`. The eviction callback is invoked for each
+ * entry that is removed (oldest-first). This is the LRU policy used by the
+ * desktop browser pane to keep prior projects' webviews resident across
+ * project switches without unbounded memory growth.
+ *
+ * Semantics:
+ *  - If `key` already exists, it's first removed so the re-insert bumps its
+ *    LRU recency (Map iteration order = insertion order in JS).
+ *  - The current insertion is never evicted, even if `limit` is 0.
+ */
+export function insertBrowserWebviewCacheEntry<T>(
+  cache: Map<string, T>,
+  key: string,
+  entry: T,
+  limit: number,
+  onEvict: (entry: T) => void
+): void {
+  cache.delete(key);
+  cache.set(key, entry);
+  while (cache.size > Math.max(0, limit)) {
+    const oldestKey = cache.keys().next().value as string | undefined;
+    if (oldestKey === undefined || oldestKey === key) break;
+    const evicted = cache.get(oldestKey);
+    cache.delete(oldestKey);
+    if (evicted !== undefined) {
+      onEvict(evicted);
+    }
+  }
+}

@@ -16,6 +16,7 @@ export default defineConfig({
       entry: {
         index: resolve(__dirname, "src/index.ts"),
         registry: resolve(__dirname, "src/registry.ts"),
+        theme: resolve(__dirname, "src/theme/index.ts"),
       },
       formats: ["es"],
       cssFileName: "index",

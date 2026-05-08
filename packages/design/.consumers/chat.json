@@ -1,0 +1,29 @@
+{
+  "symbol": "Chat",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/chat.tsx",
+      "line": 214,
+      "props": [
+        "messages",
+        "streamingText",
+        "status",
+        "onSend",
+        "onAbort",
+        "emptyState",
+        "composerPlaceholder"
+      ]
+    }
+  ],
+  "propUsage": {
+    "composerPlaceholder": 1,
+    "emptyState": 1,
+    "messages": 1,
+    "onAbort": 1,
+    "onSend": 1,
+    "status": 1,
+    "streamingText": 1
+  },
+  "totalUsages": 1
+}

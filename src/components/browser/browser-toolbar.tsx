@@ -1,27 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import {
   Blocks,
   ChevronLeft,
   ChevronRight,
   Crosshair,
   FileCode2,
-  Monitor,
-  Play,
+  Plus,
   RefreshCw,
   Settings,
-  Square,
-  X,
 } from "lucide-react";
 import type { FormEvent } from "react";
 import {
   type ProcessEntrySnapshot,
   type ProcessRole,
-  type PlayState,
   type TerminalSessionDescriptor,
   terminalDisplayLabel,
 } from "@/lib/controller";
-
-export type BrowserSource = "local" | "web";
 
 type WorkspaceMode =
   | "browser"
@@ -104,7 +98,10 @@ function resolvedProcessRoleForSession(
   session: TerminalSessionDescriptor,
   configuredProcesses: ConfiguredProcessMap
 ): ProcessRole | null {
-  return configuredRoleForSession(session, configuredProcesses) ?? session.processRole;
+  return (
+    configuredRoleForSession(session, configuredProcesses) ??
+    session.processRole
+  );
 }
 
 function terminalGroupForSession(
@@ -116,22 +113,85 @@ function terminalGroupForSession(
     : "processes";
 }
 
-function processRoleLabel(role: ProcessRole | null): string {
-  if (role === "dev-server") return "dev server";
-  if (role === "service") return "service";
-  if (role === "agent") return "agent";
-  return "shell";
-}
+function TabStrip({
+  kind,
+  sessions,
+  activeTerminalId,
+  isActiveMode,
+  configuredProcesses,
+  onSelect,
+  onCreate,
+  disabled,
+}: {
+  kind: TerminalGroup;
+  sessions: TerminalSessionDescriptor[];
+  activeTerminalId: string | null;
+  isActiveMode: boolean;
+  configuredProcesses: ConfiguredProcessMap;
+  onSelect: (terminalId: string) => void;
+  onCreate: () => void;
+  disabled: boolean;
+}) {
+  const activeSession =
+    sessions.find((session) => session.terminalId === activeTerminalId) ?? null;
+  const isActiveGroup =
+    !!activeSession &&
+    terminalGroupForSession(activeSession, configuredProcesses) === kind &&
+    isActiveMode;
 
-function sessionDetailLabel(
-  session: TerminalSessionDescriptor,
-  configuredProcesses: ConfiguredProcessMap
-): string {
-  const foreground = session.foregroundProcessName?.trim();
-  if (foreground) return foreground;
-  if (session.status === "exited") return "exited";
-  return processRoleLabel(
-    resolvedProcessRoleForSession(session, configuredProcesses)
+  return (
+    <div
+      className={`flex min-w-0 items-center rounded-md border border-border/80 bg-background ${
+        isActiveGroup ? "ring-1 ring-foreground/10" : ""
+      }`}
+    >
+      <div className="flex h-8 min-w-0 flex-1 items-center gap-1 overflow-hidden px-1">
+        {sessions.length === 0 ? (
+          <span className="min-w-0 truncate px-1 font-vcr text-[11px] text-muted-foreground/60">
+            None
+          </span>
+        ) : (
+          sessions.map((session) => {
+            const active = session.terminalId === activeTerminalId && isActiveMode;
+            const sessionLabel = terminalDisplayLabel(session);
+            return (
+              <button
+                className={`group flex h-6 min-w-0 max-w-[8rem] items-center gap-1 rounded px-1.5 transition-colors ${
+                  active
+                    ? "bg-secondary/70 text-foreground"
+                    : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
+                }`}
+                disabled={disabled}
+                key={session.terminalId}
+                onClick={() => onSelect(session.terminalId)}
+                title={sessionLabel}
+                type="button"
+              >
+                <span className="min-w-0 truncate font-vcr text-[11px]">{sessionLabel}</span>
+                <span
+                  className={`size-1.5 shrink-0 rounded-full ${
+                    session.status === "alive"
+                      ? "bg-emerald-400"
+                      : "bg-muted-foreground/30"
+                  }`}
+                />
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      <button
+        aria-label={`New ${kind === "agents" ? "agent" : "process"} terminal`}
+        className="inline-flex h-8 w-8 shrink-0 items-center justify-center border-border/60 border-l text-muted-foreground transition-colors hover:text-foreground disabled:cursor-default disabled:opacity-45"
+        disabled={disabled}
+        onClick={onCreate}
+        title={`New ${kind === "agents" ? "agent" : "process"} terminal`}
+        type="button"
+      >
+        <Plus className="size-3.5" />
+      </button>
+    </div>
   );
 }
 
@@ -139,149 +199,64 @@ export function BrowserToolbar({
   workspaceMode,
   onWorkspaceModeChange,
   projectId,
-  // Address bar
   urlInputDraft,
   addressBarError,
   hasBrowserUrl,
   onAddressBarDraftChange,
   onNavigateFromAddressBar,
-  // Nav buttons
   onGoBack,
   onGoForward,
   onReloadCurrentPage,
-  // Grab
   isGrabbing,
   onToggleElementGrab,
-  // Terminal tabs
   terminalSessions,
   configuredProcesses,
   activeTerminalId,
   onSelectTerminal,
   onCreateTerminal,
   onCreateAgentTerminal,
-  onRemoveTerminal,
-  // Play
-  playState,
-  onPlay,
-  onStop,
-  hasHealthyRuntimeProcess,
-  // Browser source
-  browserSource,
-  onBrowserSourceChange,
-  onOpenConfigFile,
+  onOpenConfigFile: _onOpenConfigFile,
 }: {
   workspaceMode: WorkspaceMode;
   onWorkspaceModeChange: (
     mode: "browser" | "editor" | "agent" | "settings" | "skills"
   ) => void;
   projectId: string | null;
-  // Address bar
   urlInputDraft: string;
   addressBarError: string | null;
   hasBrowserUrl: boolean;
   onAddressBarDraftChange: (value: string) => void;
   onNavigateFromAddressBar: (event: FormEvent<HTMLFormElement>) => void;
-  // Nav buttons
   onGoBack: () => void;
   onGoForward: () => void;
   onReloadCurrentPage: () => void;
-  // Grab
   isGrabbing: boolean;
   onToggleElementGrab: () => void;
-  // Terminal tabs
   terminalSessions: TerminalSessionDescriptor[];
   configuredProcesses: ConfiguredProcessMap;
   activeTerminalId: string | null;
   onSelectTerminal: (terminalId: string) => void;
   onCreateTerminal: () => void;
   onCreateAgentTerminal: () => void;
-  onRemoveTerminal: (terminalId: string) => void;
-  // Play
-  playState: PlayState;
-  onPlay: () => void;
-  onStop: () => void;
-  hasHealthyRuntimeProcess: boolean;
-  // Browser source
-  browserSource: BrowserSource;
-  onBrowserSourceChange: (source: BrowserSource) => void;
   onOpenConfigFile: () => void;
 }) {
-  const isAppIdle = playState === "idle" || playState === "failed";
-  const isAppRunning = playState === "running";
-  const isAppStarting = playState === "starting";
-
   const isBrowserActive = workspaceMode === "browser";
-  const isTerminalActive = workspaceMode === "terminal";
-  const [openTerminalGroup, setOpenTerminalGroup] =
-    useState<TerminalGroup | null>(null);
-  const [pendingTerminalGroup, setPendingTerminalGroup] =
-    useState<TerminalGroup | null>(null);
-
+  const isTerminalActive =
+    workspaceMode === "terminal" || workspaceMode === "agent";
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { processSessions, agentSessions, activeTerminalSession } =
-    useMemo(() => {
-      const active =
-        terminalSessions.find(
-          (session) => session.terminalId === activeTerminalId
-        ) ?? null;
-      return {
-        processSessions: terminalSessions.filter(
-          (session) =>
-            terminalGroupForSession(session, configuredProcesses) ===
-            "processes"
-        ),
-        agentSessions: terminalSessions.filter(
-          (session) =>
-            terminalGroupForSession(session, configuredProcesses) === "agents"
-        ),
-        activeTerminalSession: active,
-      };
-    }, [activeTerminalId, configuredProcesses, terminalSessions]);
-
-  const openTerminalSessions =
-    openTerminalGroup === "agents" ? agentSessions : processSessions;
-  const openTerminalGroupLabel =
-    openTerminalGroup === "agents" ? "Agents" : "Processes";
-
-  useEffect(() => {
-    setOpenTerminalGroup(null);
-    setPendingTerminalGroup(null);
-  }, [projectId]);
-
-  useEffect(() => {
-    if (!openTerminalGroup) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpenTerminalGroup(null);
-      }
+  const { processSessions, agentSessions } = useMemo(() => {
+    return {
+      processSessions: terminalSessions.filter(
+        (session) =>
+          terminalGroupForSession(session, configuredProcesses) === "processes"
+      ),
+      agentSessions: terminalSessions.filter(
+        (session) =>
+          terminalGroupForSession(session, configuredProcesses) === "agents"
+      ),
     };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [openTerminalGroup]);
-
-  useEffect(() => {
-    if (!pendingTerminalGroup) return;
-    if (workspaceMode !== "terminal" && workspaceMode !== "agent") return;
-    setOpenTerminalGroup(pendingTerminalGroup);
-    setPendingTerminalGroup(null);
-  }, [pendingTerminalGroup, workspaceMode]);
-
-  useEffect(() => {
-    if (!openTerminalGroup) return;
-    if (workspaceMode === "terminal" || workspaceMode === "agent") return;
-    setOpenTerminalGroup(null);
-  }, [openTerminalGroup, workspaceMode]);
-
-  // Health indicator dot color
-  const healthDotColor = isAppRunning
-    ? hasHealthyRuntimeProcess
-      ? "bg-emerald-400"
-      : "bg-amber-400 animate-pulse"
-    : isAppStarting
-      ? "bg-amber-400 animate-pulse"
-      : "";
+  }, [configuredProcesses, terminalSessions]);
 
   const handleBrowserBarClick = () => {
     if (!isBrowserActive) {
@@ -290,278 +265,26 @@ export function BrowserToolbar({
     requestAnimationFrame(() => inputRef.current?.focus());
   };
 
-  const segBtnBase =
-    "inline-flex h-8 items-center justify-center transition-colors";
-  const segBtnActive = `${segBtnBase} bg-secondary/60 text-foreground`;
-  const segBtnInactive = `${segBtnBase} text-muted-foreground hover:text-foreground`;
-  const groupBtnBase =
-    "relative inline-flex h-8 w-[110px] shrink-0 items-center justify-center gap-1.5 px-2 font-sans text-[11px] font-medium tracking-normal transition-colors disabled:cursor-default disabled:opacity-45";
-
-  const terminalSessionsForGroup = (group: TerminalGroup) =>
-    group === "agents" ? agentSessions : processSessions;
-
-  const handleTerminalGroupClick = (group: TerminalGroup) => {
-    if (openTerminalGroup === group) {
-      setOpenTerminalGroup(null);
-      setPendingTerminalGroup(null);
-      return;
-    }
-
-    const sessions = terminalSessionsForGroup(group);
-    const targetSession =
-      sessions.find((session) => session.terminalId === activeTerminalId) ??
-      sessions.find((session) => session.status === "alive") ??
-      sessions[0] ??
-      null;
-    if (!targetSession) {
-      if (isBrowserActive) {
-        if (group === "agents") {
-          onCreateAgentTerminal();
-        } else {
-          onCreateTerminal();
-        }
-        setPendingTerminalGroup(group);
-        return;
-      }
-
-      setPendingTerminalGroup(null);
-      setOpenTerminalGroup(group);
-      return;
-    }
-
-    const activeGroup = activeTerminalSession
-      ? terminalGroupForSession(activeTerminalSession, configuredProcesses)
-      : null;
-    if (activeGroup !== group) {
-      onSelectTerminal(targetSession.terminalId);
-    }
-
-    if (isBrowserActive) {
-      setOpenTerminalGroup(null);
-      setPendingTerminalGroup(group);
-      return;
-    }
-
-    setPendingTerminalGroup(null);
-    setOpenTerminalGroup(group);
-  };
-
-  const renderTerminalGroupButton = (
-    group: TerminalGroup,
-    count: number
-  ) => {
-    const isOpen = openTerminalGroup === group;
-    const isGroupActive =
-      activeTerminalSession &&
-      terminalGroupForSession(activeTerminalSession, configuredProcesses) ===
-        group &&
-      (workspaceMode === "terminal" || workspaceMode === "agent");
-    const label = group === "agents" ? "AGENTS" : "PROCESSES";
-    const countLabel = count > 99 ? "99+" : String(count);
-
-    return (
-      <button
-        aria-label={group === "agents" ? "Agent terminals" : "Process terminals"}
-        aria-controls="browser-terminal-menu"
-        aria-expanded={isOpen}
-        className={
-          isOpen || isGroupActive
-            ? `${groupBtnBase} bg-secondary/60 text-foreground`
-            : `${groupBtnBase} text-muted-foreground hover:text-foreground`
-        }
-        disabled={!projectId}
-        onClick={() => handleTerminalGroupClick(group)}
-        title={group === "agents" ? "Agent terminals" : "Process terminals"}
-        type="button"
-      >
-        <span>{label}</span>
-        <span className="min-w-[0.6rem] text-center text-[10px] leading-none tabular-nums">
-          {countLabel}
-        </span>
-      </button>
-    );
-  };
+  const sideBtn =
+    "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground";
+  const sideBtnActive =
+    "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/60 text-foreground transition-colors";
 
   return (
-    <div className="relative h-12 shrink-0 border-border border-b bg-background">
+    <div className="relative h-12 shrink-0 border-b border-border bg-background">
       <div className="flex h-full items-center gap-2 px-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          {/* Segmented bar: Play/Stop, Local */}
-          <div className="flex shrink-0 items-center overflow-hidden rounded-md border border-border/80 bg-background">
-            {/* Play / Stop */}
-            {isAppIdle ? (
-              <button
-                className={`${segBtnInactive} w-8 disabled:opacity-50`}
-                disabled={!projectId}
-                onClick={onPlay}
-                title="Start app"
-                type="button"
-              >
-                <Play className="size-3.5" />
-              </button>
-            ) : (
-              <button
-                className={`${segBtnInactive} w-8`}
-                onClick={onStop}
-                title={
-                  isAppRunning && hasHealthyRuntimeProcess
-                    ? "Running (200 OK) — click to stop"
-                    : isAppStarting
-                      ? "Starting..."
-                      : "Running — click to stop"
-                }
-                type="button"
-              >
-                <span className="relative">
-                  <Square className="size-3" />
-                  {healthDotColor && (
-                    <span
-                      className={`absolute -right-1 -top-1 size-2 rounded-full ${healthDotColor}`}
-                    />
-                  )}
-                </span>
-              </button>
-            )}
-
-            <span className="h-4 w-px bg-border/60" />
-
-            {/* Local */}
-            <button
-              className={`${
-                isBrowserActive && browserSource === "local"
-                  ? segBtnActive
-                  : segBtnInactive
-              } w-8`}
-              onClick={() => {
-                onBrowserSourceChange("local");
-                if (!isBrowserActive) onWorkspaceModeChange("browser");
-              }}
-              title="Local dev server"
-              type="button"
-            >
-              <Monitor className="size-3.5" />
-            </button>
-          </div>
-
-          <div className="relative flex shrink-0 items-center overflow-visible rounded-md border border-border/80 bg-background">
-            {renderTerminalGroupButton("processes", processSessions.length)}
-            <span className="h-4 w-px bg-border/60" />
-            {renderTerminalGroupButton("agents", agentSessions.length)}
-            {openTerminalGroup ? (
-              <div
-                className="absolute left-0 top-full z-50 mt-1 w-[360px] rounded-md border border-border/70 bg-card/95 p-2 shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.35)]"
-                id="browser-terminal-menu"
-              >
-                <div className="mb-1 flex items-center justify-between gap-2">
-                  <p className="font-sans text-[11px] font-medium tracking-normal text-muted-foreground">
-                    {openTerminalGroupLabel.toUpperCase()}
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <button
-                      aria-label={`New ${openTerminalGroupLabel.toLowerCase().slice(0, -1)} terminal`}
-                      className="inline-flex h-6 min-w-6 items-center justify-center rounded px-1.5 font-code text-[13px] text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
-                      onClick={() => {
-                        if (openTerminalGroup === "agents") {
-                          onCreateAgentTerminal();
-                        } else {
-                          onCreateTerminal();
-                        }
-                      }}
-                      title={
-                        openTerminalGroup === "agents"
-                          ? "New agent terminal"
-                          : "New process terminal"
-                      }
-                      type="button"
-                    >
-                      +
-                    </button>
-                    <button
-                      aria-label="Close terminal menu"
-                      className="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
-                      onClick={() => setOpenTerminalGroup(null)}
-                      type="button"
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="max-h-56 overflow-y-auto rounded-md border border-border/70 bg-background p-1">
-                  {openTerminalSessions.length === 0 ? (
-                    <p className="px-2 py-3 font-code text-xs text-muted-foreground">
-                      No {openTerminalGroupLabel.toLowerCase()} yet.
-                    </p>
-                  ) : (
-                    openTerminalSessions.map((session) => {
-                      const isActive =
-                        activeTerminalId === session.terminalId &&
-                        (isTerminalActive || workspaceMode === "agent");
-                      const label = terminalDisplayLabel(session);
-                      const detail = sessionDetailLabel(
-                        session,
-                        configuredProcesses
-                      );
-
-                      return (
-                        <div
-                          className={`group flex h-9 items-center gap-1 rounded transition-colors ${
-                            isActive
-                              ? "bg-secondary/60"
-                              : "hover:bg-secondary/40"
-                          }`}
-                          key={session.terminalId}
-                        >
-                          <button
-                            className="flex min-w-0 flex-1 items-center gap-2 px-2 text-left"
-                            onClick={() => {
-                              onSelectTerminal(session.terminalId);
-                              setOpenTerminalGroup(null);
-                            }}
-                            onMouseDown={(event) => {
-                              if (event.button === 1) {
-                                event.preventDefault();
-                                onRemoveTerminal(session.terminalId);
-                              }
-                            }}
-                            title={label}
-                            type="button"
-                          >
-                            <span className="min-w-0 flex-1 truncate font-sans text-[11px] font-medium tracking-normal text-foreground">
-                              {label}
-                            </span>
-                            <span className="max-w-40 truncate font-code text-[11px] text-muted-foreground">
-                              {detail}
-                            </span>
-                          </button>
-                          <button
-                            aria-label={`Close ${label}`}
-                            className="mr-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-muted-foreground/40 opacity-0 transition-[opacity,color,background-color] hover:bg-background hover:text-destructive group-hover:opacity-100"
-                            onClick={() =>
-                              onRemoveTerminal(session.terminalId)
-                            }
-                            type="button"
-                          >
-                            <X className="size-3" />
-                          </button>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          {/* Browser bar */}
+        <div className="grid min-w-0 flex-1 grid-cols-3 gap-2">
           <div
-            className={`flex min-w-0 flex-1 items-center rounded-md border bg-background transition-opacity ${
+            className={`flex min-w-0 items-center rounded-md border bg-background transition-opacity ${
               addressBarError
                 ? "border-destructive/70"
                 : "border-border/80 focus-within:border-foreground/30"
-            } ${!isBrowserActive ? "cursor-pointer opacity-50 hover:opacity-70" : ""}`}
+            } ${
+              !isBrowserActive
+                ? "cursor-pointer opacity-50 hover:opacity-70"
+                : ""
+            }`}
             onClick={!isBrowserActive ? handleBrowserBarClick : undefined}
-            onKeyDown={undefined}
             role={!isBrowserActive ? "button" : undefined}
             tabIndex={!isBrowserActive ? 0 : undefined}
           >
@@ -614,7 +337,30 @@ export function BrowserToolbar({
               </div>
             </form>
           </div>
+
+          <TabStrip
+            kind="processes"
+            sessions={processSessions}
+            activeTerminalId={activeTerminalId}
+            isActiveMode={isTerminalActive}
+            configuredProcesses={configuredProcesses}
+            onSelect={onSelectTerminal}
+            onCreate={onCreateTerminal}
+            disabled={!projectId}
+          />
+
+          <TabStrip
+            kind="agents"
+            sessions={agentSessions}
+            activeTerminalId={activeTerminalId}
+            isActiveMode={isTerminalActive}
+            configuredProcesses={configuredProcesses}
+            onSelect={onSelectTerminal}
+            onCreate={onCreateAgentTerminal}
+            disabled={!projectId}
+          />
         </div>
+
         <div className="flex shrink-0 items-center gap-2">
           {isBrowserActive ? (
             <button
@@ -623,7 +369,7 @@ export function BrowserToolbar({
               className={
                 isGrabbing
                   ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-blue-500/60 bg-blue-500/10 text-blue-500 transition-colors hover:text-blue-400"
-                  : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground disabled:text-muted-foreground/25"
+                  : `${sideBtn} disabled:text-muted-foreground/25`
               }
               disabled={!hasBrowserUrl}
               onClick={onToggleElementGrab}
@@ -637,11 +383,7 @@ export function BrowserToolbar({
           <button
             aria-label="Files"
             aria-pressed={workspaceMode === "editor"}
-            className={
-              workspaceMode === "editor"
-                ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/60 text-foreground transition-colors"
-                : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground"
-            }
+            className={workspaceMode === "editor" ? sideBtnActive : sideBtn}
             disabled={!projectId}
             onClick={() => onWorkspaceModeChange("editor")}
             title="Files"
@@ -653,11 +395,7 @@ export function BrowserToolbar({
           <button
             aria-label="Skills"
             aria-pressed={workspaceMode === "skills"}
-            className={
-              workspaceMode === "skills"
-                ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/60 text-foreground transition-colors"
-                : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground"
-            }
+            className={workspaceMode === "skills" ? sideBtnActive : sideBtn}
             disabled={!projectId}
             onClick={() => onWorkspaceModeChange("skills")}
             title="Skills"
@@ -669,11 +407,7 @@ export function BrowserToolbar({
           <button
             aria-label="Project settings"
             aria-pressed={workspaceMode === "settings"}
-            className={
-              workspaceMode === "settings"
-                ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/60 text-foreground transition-colors"
-                : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground"
-            }
+            className={workspaceMode === "settings" ? sideBtnActive : sideBtn}
             disabled={!projectId}
             onClick={() => onWorkspaceModeChange("settings")}
             title="Project settings"

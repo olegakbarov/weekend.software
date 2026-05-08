@@ -51,6 +51,10 @@ export async function setupListeners(
     createdAt: number;
     playSpawned: boolean;
     processRole: ProcessRole | null;
+    agentProfileId: string | null;
+    agentInstanceId: string | null;
+    agentProvider: string | null;
+    agentSessionId: string | null;
   };
 
   const unlistenSessionChanged = await listen<SessionChangedPayload>(
@@ -63,6 +67,7 @@ export async function setupListeners(
       ctx.setState((previous) => {
         const existing = previous.terminalSessionsByProject[project] ?? [];
         const index = existing.findIndex((s) => s.terminalId === p.terminalId);
+        const previousDescriptor = index >= 0 ? existing[index] : null;
         const descriptor: TerminalSessionDescriptor = {
           terminalId: p.terminalId,
           project,
@@ -78,6 +83,10 @@ export async function setupListeners(
           createdAt: p.createdAt,
           playSpawned: p.playSpawned ?? false,
           processRole: p.processRole ?? null,
+          agentProfileId: p.agentProfileId ?? previousDescriptor?.agentProfileId ?? null,
+          agentInstanceId: p.agentInstanceId ?? previousDescriptor?.agentInstanceId ?? null,
+          agentProvider: p.agentProvider ?? previousDescriptor?.agentProvider ?? null,
+          agentSessionId: p.agentSessionId ?? previousDescriptor?.agentSessionId ?? null,
         };
 
         const updated =

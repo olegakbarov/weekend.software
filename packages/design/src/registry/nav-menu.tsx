@@ -176,10 +176,10 @@ const NavMenu = forwardRef<HTMLElement, NavMenuProps>(
                 className={`absolute ${shape.focusRing} pointer-events-none z-20 border border-[#6B97FF]`}
                 initial={false}
                 animate={{
-                  left: focusRect.left - 2,
-                  top: focusRect.top - 2,
-                  width: focusRect.width + 4,
-                  height: focusRect.height + 4,
+                  left: focusRect.left,
+                  top: focusRect.top,
+                  width: focusRect.width,
+                  height: focusRect.height,
                 }}
                 exit={{ opacity: 0, transition: { duration: 0.06 } }}
                 transition={{ ...springs.fast, opacity: { duration: 0.08 } }}

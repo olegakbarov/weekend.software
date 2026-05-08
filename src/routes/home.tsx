@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { HomePage } from "@/components/home/home-page";
 import type { CreateProjectInput } from "@/lib/controller";
+import { useWorkspaceState } from "@/hooks/use-workspace-state";
 
 export const Route = createFileRoute("/home")({
   component: HomeRoute,
@@ -9,6 +10,7 @@ export const Route = createFileRoute("/home")({
 
 function HomeRoute() {
   const { controller } = Route.useRouteContext();
+  const state = useWorkspaceState(controller);
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const navigate = Route.useNavigate();
 
@@ -35,6 +37,7 @@ function HomeRoute() {
 
   return (
     <HomePage
+      agentSettings={state.agentSettings}
       isCreatingProject={isCreatingProject}
       onCreateProject={createProject}
     />

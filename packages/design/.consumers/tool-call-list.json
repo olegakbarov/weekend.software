@@ -1,0 +1,24 @@
+{
+  "symbol": "ToolCallList",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/tool-call.tsx",
+      "line": 145,
+      "props": [
+        "items"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tool-call.tsx",
+      "line": 168,
+      "props": [
+        "items"
+      ]
+    }
+  ],
+  "propUsage": {
+    "items": 2
+  },
+  "totalUsages": 2
+}

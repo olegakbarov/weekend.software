@@ -3,6 +3,7 @@ import "@testing-library/react";
 // jsdom doesn't implement these — stub so components don't blow up under test.
 if (typeof Element !== "undefined") {
   Element.prototype.scrollIntoView ??= function () {};
+  Element.prototype.scrollTo ??= function () {};
   // jsdom 25 ships pointer-event listeners but not the constructor; without it,
   // testing-library's fireEvent silently downgrades to a generic Event and
   // strips clientX/pointerType etc. Provide a minimal PointerEvent polyfill.

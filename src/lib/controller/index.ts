@@ -3,6 +3,8 @@ import type { UnlistenFn } from "@tauri-apps/api/event";
 import { terminalRegistry } from "@/lib/terminal-registry";
 import { toErrorMessage } from "@/lib/utils/error";
 import {
+  type AgentLaunchMetadata,
+  type AgentSettings,
   type ControllerContext,
   type CreateProjectInput,
   type ProcessRole,
@@ -10,7 +12,12 @@ import {
   type TerminalSessionDescriptor,
   type WorkspaceControllerState,
 } from "./types";
-import { loadTerminalSessionsFromStorage, persistTerminalSessions } from "./persistence";
+import {
+  loadAgentSettingsFromStorage,
+  loadTerminalSessionsFromStorage,
+  persistAgentSettings,
+  persistTerminalSessions,
+} from "./persistence";
 import {
   type RuntimeInternals,
   appendRuntimeTelemetry,
@@ -63,6 +70,17 @@ import {
   buildPortlessCommand,
   resolvePortlessLaunchPlan,
 } from "./portless";
+import {
+  findAliveAgentSession,
+  shouldStopWithRuntimeLifecycle,
+} from "./terminal-lifecycle";
+import {
+  applyAgentLaunchStrategy,
+  createAgentInstanceId,
+  createAgentSessionId,
+  normalizeAgentSettings,
+  resolveProfileForProcess,
+} from "./agent-profiles";
 
 export type {
   PlayState,
@@ -74,9 +92,15 @@ export type {
   SharedAssetSnapshot,
   CreateProjectInput,
   DesignSystemChoice,
+  AgentLaunchMetadata,
+  AgentProfile,
+  AgentProvider,
+  AgentSessionIdStrategy,
+  AgentSettings,
   ProcessRole,
   TerminalSessionDescriptor,
   ProcessEntrySnapshot,
+  ProjectAgentsConfigSnapshot,
   PortlessLaunchPlan,
 } from "./types";
 
@@ -104,6 +128,7 @@ export function createWorkspaceController() {
     runtimeDebugError: null,
     runtimeTelemetryEvents: [],
     terminalSessionsByProject: loadTerminalSessionsFromStorage(),
+    agentSettings: loadAgentSettingsFromStorage(),
     playStateByProject: {},
     playErrorByProject: {},
     runtimeProcessHealthyByProject: {},
@@ -174,6 +199,26 @@ export function createWorkspaceController() {
   const refreshSharedAssets = () => refreshSharedAssetsImpl(ctx);
   const refreshSharedEnv = () => refreshSharedEnvImpl(ctx);
 
+  const updateAgentSettings = (agentSettings: AgentSettings): void => {
+    const normalized = normalizeAgentSettings(agentSettings);
+    ctx.setState((previous) => ({ ...previous, agentSettings: normalized }));
+    persistAgentSettings(normalized);
+  };
+
+  const createAgentLaunchMetadata = (
+    projectName: string,
+    profileId: string,
+    provider: AgentLaunchMetadata["provider"],
+    command: string | null,
+    shouldPreseedSessionId: boolean
+  ): AgentLaunchMetadata => ({
+    profileId,
+    instanceId: createAgentInstanceId(projectName, profileId),
+    provider,
+    sessionId: shouldPreseedSessionId ? createAgentSessionId() : null,
+    command,
+  });
+
   const stopProject = (project: string): void => {
     const projectName = project.trim();
     if (!projectName) return;
@@ -181,10 +226,9 @@ export function createWorkspaceController() {
     runtimeInternals.playStartTimestampByProject.delete(projectName);
     resetRuntimeUrlReadiness(runtimeInternals, projectName);
 
-    // Intentionally removes ALL sessions (play-spawned and user-created)
-    // to ensure a clean stop with no lingering processes.
     const sessions = state.terminalSessionsByProject[projectName] ?? [];
-    for (const session of sessions) {
+    const runtimeSessions = sessions.filter(shouldStopWithRuntimeLifecycle);
+    for (const session of runtimeSessions) {
       removeTerminalSessionImpl(ctx, runtimeInternals, session.terminalId);
     }
 
@@ -210,7 +254,8 @@ export function createWorkspaceController() {
 
     try {
       const sessions = state.terminalSessionsByProject[projectName] ?? [];
-      const playSpawnedSessions = sessions.filter((s) => s.playSpawned);
+      const existingAgentSession = findAliveAgentSession(sessions);
+      const playSpawnedSessions = sessions.filter(shouldStopWithRuntimeLifecycle);
       for (const session of playSpawnedSessions) {
         removeTerminalSessionImpl(ctx, runtimeInternals, session.terminalId);
       }
@@ -250,16 +295,49 @@ export function createWorkspaceController() {
         return null;
       }
 
-      let agentTerminalId: string | null = null;
+      let agentTerminalId = existingAgentSession?.terminalId ?? null;
       for (const [label, entry] of entries) {
         const role = entry.role as ProcessRole;
+        const profile =
+          role === "agent"
+            ? resolveProfileForProcess(
+                state.agentSettings,
+                entry,
+                label === "agent" ? configSnapshot?.agents?.default : null
+              )
+            : null;
+        const existingProfileSession = profile
+          ? sessions.find(
+              (session) =>
+                session.processRole === "agent" &&
+                session.status === "alive" &&
+                session.agentProfileId === profile.id
+            )
+          : null;
+        if (existingProfileSession) {
+          agentTerminalId ??= existingProfileSession.terminalId;
+          continue;
+        }
+
+        const agentLaunch = profile
+          ? createAgentLaunchMetadata(
+              projectName,
+              profile.id,
+              profile.provider,
+              entry.command,
+              profile.sessionIdStrategy === "preseed-uuid"
+            )
+          : undefined;
+
         const descriptor = createTerminalSessionImpl(ctx, projectName, label, {
           playSpawned: true,
           processRole: role,
+          agentLaunch,
         });
         await terminalRegistry.acquire(descriptor.terminalId, projectName, {
           playSpawned: true,
           processRole: role,
+          agentLaunch,
         });
         await terminalRegistry.openPty(descriptor.terminalId);
         const launchPlan =
@@ -277,7 +355,16 @@ export function createWorkspaceController() {
                 explicitAppPort
               )
             : entry.command;
-        terminalRegistry.sendCommand(descriptor.terminalId, commandToRun);
+        terminalRegistry.sendCommand(
+          descriptor.terminalId,
+          profile
+            ? applyAgentLaunchStrategy(
+                commandToRun,
+                profile,
+                agentLaunch?.sessionId ?? null
+              )
+            : commandToRun
+        );
 
         if (role === "agent") {
           agentTerminalId = descriptor.terminalId;
@@ -328,9 +415,7 @@ export function createWorkspaceController() {
 
     try {
       const sessions = state.terminalSessionsByProject[projectName] ?? [];
-      const appSessions = sessions.filter(
-        (s) => s.playSpawned && s.processRole !== "agent"
-      );
+      const appSessions = sessions.filter(shouldStopWithRuntimeLifecycle);
       for (const session of appSessions) {
         removeTerminalSessionImpl(ctx, runtimeInternals, session.terminalId);
       }
@@ -422,6 +507,10 @@ export function createWorkspaceController() {
         createdAt: number;
         playSpawned: boolean;
         processRole: ProcessRole | null;
+        agentProfileId: string | null;
+        agentInstanceId: string | null;
+        agentProvider: string | null;
+        agentSessionId: string | null;
       };
       const backendSessions = await invoke<BackendSessionInfo[]>(
         "terminal_get_all_sessions"
@@ -449,6 +538,10 @@ export function createWorkspaceController() {
             createdAt: s.createdAt,
             playSpawned: s.playSpawned ?? false,
             processRole: s.processRole ?? null,
+            agentProfileId: s.agentProfileId ?? null,
+            agentInstanceId: s.agentInstanceId ?? null,
+            agentProvider: s.agentProvider ?? null,
+            agentSessionId: s.agentSessionId ?? null,
           };
           if (!backendByProject[project]) {
             backendByProject[project] = [];
@@ -568,7 +661,11 @@ export function createWorkspaceController() {
     createTerminalSession: (
       project: string,
       label?: string,
-      opts?: { playSpawned?: boolean; processRole?: ProcessRole }
+      opts?: {
+        playSpawned?: boolean;
+        processRole?: ProcessRole;
+        agentLaunch?: AgentLaunchMetadata;
+      }
     ) => createTerminalSessionImpl(ctx, project, label, opts),
     removeTerminalSession: (terminalId: string) =>
       removeTerminalSessionImpl(ctx, runtimeInternals, terminalId),
@@ -590,5 +687,6 @@ export function createWorkspaceController() {
     refreshSharedEnv,
     updateSharedEnv: (env: Record<string, string>) =>
       updateSharedEnvImpl(ctx, env),
+    updateAgentSettings,
   };
 }

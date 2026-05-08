@@ -3,11 +3,14 @@ import {
   safeLocalStorageSetItem,
 } from "@/lib/utils/safe-local-storage";
 import {
+  type AgentSettings,
   type TerminalSessionDescriptor,
   type ProcessRole,
+  AGENT_SETTINGS_STORAGE_KEY,
   TERMINAL_SESSIONS_STORAGE_KEY,
   PROJECT_ORDER_STORAGE_KEY,
 } from "./types";
+import { normalizeAgentSettings } from "./agent-profiles";
 
 export function loadTerminalSessionsFromStorage(): Record<
   string,
@@ -66,6 +69,22 @@ export function loadTerminalSessionsFromStorage(): Record<
           label,
           playSpawned: typeof candidate.playSpawned === "boolean" ? candidate.playSpawned : false,
           processRole: typeof candidate.processRole === "string" ? candidate.processRole as ProcessRole : null,
+          agentProfileId:
+            typeof candidate.agentProfileId === "string"
+              ? candidate.agentProfileId
+              : null,
+          agentInstanceId:
+            typeof candidate.agentInstanceId === "string"
+              ? candidate.agentInstanceId
+              : null,
+          agentProvider:
+            typeof candidate.agentProvider === "string"
+              ? candidate.agentProvider
+              : null,
+          agentSessionId:
+            typeof candidate.agentSessionId === "string"
+              ? candidate.agentSessionId
+              : null,
         });
       }
       if (descriptors.length > 0) {
@@ -101,6 +120,23 @@ export function loadProjectOrderFromStorage(): string[] {
 
 export function persistProjectOrder(order: string[]): void {
   safeLocalStorageSetItem(PROJECT_ORDER_STORAGE_KEY, JSON.stringify(order));
+}
+
+export function loadAgentSettingsFromStorage(): AgentSettings {
+  const serialized = safeLocalStorageGetItem(AGENT_SETTINGS_STORAGE_KEY);
+  if (!serialized) return normalizeAgentSettings(null);
+  try {
+    return normalizeAgentSettings(JSON.parse(serialized) as unknown);
+  } catch {
+    return normalizeAgentSettings(null);
+  }
+}
+
+export function persistAgentSettings(settings: AgentSettings): void {
+  safeLocalStorageSetItem(
+    AGENT_SETTINGS_STORAGE_KEY,
+    JSON.stringify(normalizeAgentSettings(settings))
+  );
 }
 
 export function reconcileProjectOrder(

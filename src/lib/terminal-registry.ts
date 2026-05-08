@@ -3,54 +3,98 @@ import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import type { AgentLaunchMetadata } from "@/lib/controller/types";
 
-const DARK_THEME = {
-  foreground: "#d9dee7",
-  cursor: "#d9dee7",
-  black: "#15161e",
-  red: "#f7768e",
-  green: "#9ece6a",
-  yellow: "#e0af68",
-  blue: "#7aa2f7",
-  magenta: "#bb9af7",
-  cyan: "#7dcfff",
-  white: "#c0caf5",
-  brightBlack: "#414868",
-  brightRed: "#f7768e",
-  brightGreen: "#9ece6a",
-  brightYellow: "#e0af68",
-  brightBlue: "#7aa2f7",
-  brightMagenta: "#bb9af7",
-  brightCyan: "#7dcfff",
-  brightWhite: "#c0caf5",
-  selectionBackground: "#33467c",
-  selectionForeground: "#c0caf5",
-  background: "rgba(0, 0, 0, 0)",
+type XtermTheme = {
+  background: string;
+  foreground: string;
+  cursor: string;
+  cursorAccent: string;
+  selectionBackground: string;
+  selectionForeground: string;
+  black: string;
+  red: string;
+  green: string;
+  yellow: string;
+  blue: string;
+  magenta: string;
+  cyan: string;
+  white: string;
+  brightBlack: string;
+  brightRed: string;
+  brightGreen: string;
+  brightYellow: string;
+  brightBlue: string;
+  brightMagenta: string;
+  brightCyan: string;
+  brightWhite: string;
 };
 
-const LIGHT_THEME = {
-  foreground: "#2C2420",
-  cursor: "#2C2420",
-  black: "#2C2420",
+const TERM_TOKEN_KEYS: ReadonlyArray<[keyof XtermTheme, string]> = [
+  ["background", "--term-bg"],
+  ["foreground", "--term-fg"],
+  ["cursor", "--term-cursor"],
+  ["cursorAccent", "--term-cursor-accent"],
+  ["selectionBackground", "--term-selection-bg"],
+  ["selectionForeground", "--term-selection-fg"],
+  ["black", "--term-black"],
+  ["red", "--term-red"],
+  ["green", "--term-green"],
+  ["yellow", "--term-yellow"],
+  ["blue", "--term-blue"],
+  ["magenta", "--term-magenta"],
+  ["cyan", "--term-cyan"],
+  ["white", "--term-white"],
+  ["brightBlack", "--term-bright-black"],
+  ["brightRed", "--term-bright-red"],
+  ["brightGreen", "--term-bright-green"],
+  ["brightYellow", "--term-bright-yellow"],
+  ["brightBlue", "--term-bright-blue"],
+  ["brightMagenta", "--term-bright-magenta"],
+  ["brightCyan", "--term-bright-cyan"],
+  ["brightWhite", "--term-bright-white"],
+];
+
+// Fallback used during SSR / vitest where there's no document. Mirrors the
+// :root (Tokyo Day) defaults in packages/design/src/tokens.css so values
+// stay valid hex strings even when getComputedStyle isn't available.
+const FALLBACK_THEME: XtermTheme = {
+  background: "#fafafa",
+  foreground: "#171717",
+  cursor: "#171717",
+  cursorAccent: "#fafafa",
+  selectionBackground: "#e5e5e559",
+  selectionForeground: "#171717",
+  black: "#0f0f14",
   red: "#8c4351",
-  green: "#485e30",
+  green: "#33635c",
   yellow: "#8f5e15",
   blue: "#34548a",
   magenta: "#5a4a78",
   cyan: "#0f4b6e",
-  white: "#F5F0EB",
-  brightBlack: "#8A7F75",
-  brightRed: "#8c4351",
-  brightGreen: "#485e30",
-  brightYellow: "#8f5e15",
-  brightBlue: "#34548a",
-  brightMagenta: "#5a4a78",
-  brightCyan: "#0f4b6e",
-  brightWhite: "#2C2420",
-  selectionBackground: "#E84B8A40",
-  selectionForeground: "#2C2420",
-  background: "#F5F0EB",
+  white: "#565a6e",
+  brightBlack: "#a1a6c5",
+  brightRed: "#f52a65",
+  brightGreen: "#587539",
+  brightYellow: "#8c6c3e",
+  brightBlue: "#2e7de9",
+  brightMagenta: "#9854f1",
+  brightCyan: "#007197",
+  brightWhite: "#b4b4b9",
 };
+
+function readTerminalThemeFromCSS(): XtermTheme {
+  if (typeof document === "undefined" || typeof window === "undefined") {
+    return FALLBACK_THEME;
+  }
+  const styles = getComputedStyle(document.documentElement);
+  const out = { ...FALLBACK_THEME };
+  for (const [key, varName] of TERM_TOKEN_KEYS) {
+    const raw = styles.getPropertyValue(varName).trim();
+    if (raw) out[key] = raw;
+  }
+  return out;
+}
 
 type TerminalOutputPayload = {
   terminalId: string;
@@ -73,6 +117,7 @@ type ManagedTerminal = {
   pendingCommands: string[];
   playSpawned: boolean;
   processRole: string | null;
+  agentLaunch: AgentLaunchMetadata | null;
 };
 
 class TerminalRegistry {
@@ -82,7 +127,6 @@ class TerminalRegistry {
   private lastSeqByTerminal = new Map<string, number>();
   private globalUnlisten: UnlistenFn | null = null;
   private listenerSetupPromise: Promise<void> | null = null;
-  private currentTheme: "dark" | "light" = "dark";
 
   private isDebugEnabled(): boolean {
     if (typeof window === "undefined") return false;
@@ -166,6 +210,11 @@ class TerminalRegistry {
         size: { cols, rows },
         playSpawned: managed.playSpawned || undefined,
         processRole: managed.processRole || undefined,
+        agentProfileId: managed.agentLaunch?.profileId || undefined,
+        agentInstanceId: managed.agentLaunch?.instanceId || undefined,
+        agentProvider: managed.agentLaunch?.provider || undefined,
+        agentSessionId: managed.agentLaunch?.sessionId || undefined,
+        agentCommand: managed.agentLaunch?.command || undefined,
       });
 
     managed.ptyOpenPromise = open()
@@ -210,7 +259,11 @@ class TerminalRegistry {
   async acquire(
     terminalId: string,
     project: string,
-    opts?: { playSpawned?: boolean; processRole?: string }
+    opts?: {
+      playSpawned?: boolean;
+      processRole?: string;
+      agentLaunch?: AgentLaunchMetadata;
+    }
   ): Promise<void> {
     if (this.terminals.has(terminalId)) return;
 
@@ -230,14 +283,18 @@ class TerminalRegistry {
   private async acquireInternal(
     terminalId: string,
     project: string,
-    opts?: { playSpawned?: boolean; processRole?: string }
+    opts?: {
+      playSpawned?: boolean;
+      processRole?: string;
+      agentLaunch?: AgentLaunchMetadata;
+    }
   ): Promise<void> {
     await this.ensureGlobalListener();
 
     // Re-check after await in case another call completed first
     if (this.terminals.has(terminalId)) return;
 
-    const theme = this.currentTheme === "dark" ? DARK_THEME : LIGHT_THEME;
+    const theme = readTerminalThemeFromCSS();
     const terminal = new Terminal({
       allowTransparency: true,
       cursorBlink: true,
@@ -268,6 +325,7 @@ class TerminalRegistry {
       pendingCommands: [],
       playSpawned: opts?.playSpawned ?? false,
       processRole: opts?.processRole ?? null,
+      agentLaunch: opts?.agentLaunch ?? null,
     };
 
     const inputDisposable = terminal.onData((data) => {
@@ -463,9 +521,10 @@ class TerminalRegistry {
     }
   }
 
-  setTheme(mode: "dark" | "light"): void {
-    this.currentTheme = mode;
-    const theme = mode === "dark" ? DARK_THEME : LIGHT_THEME;
+  /** Re-read --term-* CSS tokens and apply the resulting palette to every
+   *  live terminal. Call this whenever the active theme changes. */
+  refreshTheme(): void {
+    const theme = readTerminalThemeFromCSS();
     for (const managed of this.terminals.values()) {
       managed.terminal.options.theme = theme;
       if (managed.opened) {
@@ -551,7 +610,7 @@ class TerminalRegistry {
 
 const TERMINAL_REGISTRY_GLOBAL_KEY = "__WEEKEND_TERMINAL_REGISTRY__";
 const TERMINAL_REGISTRY_VERSION_KEY = "__WEEKEND_TERMINAL_REGISTRY_VERSION__";
-const TERMINAL_REGISTRY_VERSION = 2;
+const TERMINAL_REGISTRY_VERSION = 3;
 
 type TerminalRegistryGlobalWindow = Window & {
   [TERMINAL_REGISTRY_GLOBAL_KEY]?: TerminalRegistry;

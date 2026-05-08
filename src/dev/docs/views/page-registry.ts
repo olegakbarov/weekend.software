@@ -3,6 +3,7 @@ import { PageAccordion } from "./pages/accordion";
 import { PageAudit } from "./pages/audit";
 import { PageBadge } from "./pages/badge";
 import { PageButton } from "./pages/button";
+import { PageChat } from "./pages/chat";
 import { PageChangelog } from "./pages/changelog";
 import { PageCheckboxRadio } from "./pages/checkbox-radio";
 import { PageColorPicker } from "./pages/color-picker";
@@ -16,7 +17,6 @@ import { PageIcons } from "./pages/icons";
 import { PageInput } from "./pages/input";
 import { PageInputCopy } from "./pages/input-copy";
 import { PageInputGroup } from "./pages/input-group";
-import { PageMobileDrawer } from "./pages/mobile-drawer";
 import { PageMotion } from "./pages/motion";
 import { PageNavMenu } from "./pages/nav-menu";
 import { PageRadii } from "./pages/radii";
@@ -31,6 +31,7 @@ import { PageTable } from "./pages/table";
 import { PageTabs } from "./pages/tabs";
 import { PageThinking } from "./pages/thinking";
 import { PageThinkingSteps } from "./pages/thinking-steps";
+import { PageToolCall } from "./pages/tool-call";
 import { PageTooltip } from "./pages/tooltip";
 import { PageTypography } from "./pages/typography";
 import { PageVoice } from "./pages/voice";
@@ -52,6 +53,7 @@ export const PAGE_REGISTRY: Record<string, ComponentType> = {
   accordion: PageAccordion,
   badge: PageBadge,
   button: PageButton,
+  chat: PageChat,
   "checkbox-radio": PageCheckboxRadio,
   "color-picker": PageColorPicker,
   combobox: PageCombobox,
@@ -61,7 +63,6 @@ export const PAGE_REGISTRY: Record<string, ComponentType> = {
   input: PageInput,
   "input-copy": PageInputCopy,
   "input-group": PageInputGroup,
-  "mobile-drawer": PageMobileDrawer,
   "nav-menu": PageNavMenu,
   select: PageSelect,
   sidebar: PageSidebar,
@@ -71,6 +72,7 @@ export const PAGE_REGISTRY: Record<string, ComponentType> = {
   tabs: PageTabs,
   thinking: PageThinking,
   "thinking-steps": PageThinkingSteps,
+  "tool-call": PageToolCall,
   tooltip: PageTooltip,
   // Reference
   icons: PageIcons,

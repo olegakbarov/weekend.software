@@ -1,0 +1,27 @@
+{
+  "symbol": "ChatComposer",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/chat.tsx",
+      "line": 246,
+      "props": [
+        "value",
+        "onValueChange",
+        "onSubmit",
+        "isStreaming",
+        "onAbort",
+        "placeholder"
+      ]
+    }
+  ],
+  "propUsage": {
+    "isStreaming": 1,
+    "onAbort": 1,
+    "onSubmit": 1,
+    "onValueChange": 1,
+    "placeholder": 1,
+    "value": 1
+  },
+  "totalUsages": 1
+}

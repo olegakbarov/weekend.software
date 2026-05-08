@@ -1,8 +1,36 @@
 export type ProcessRole = "dev-server" | "agent" | "service";
 
+export type AgentProvider = "claude-code" | "codex" | "custom";
+
+export type AgentSessionIdStrategy =
+  | "preseed-uuid"
+  | "hook-json"
+  | "stdout-json"
+  | "stdout-regex"
+  | "filesystem"
+  | "none";
+
+export type AgentProfile = {
+  id: string;
+  label: string;
+  provider: AgentProvider;
+  command: string;
+  sessionIdStrategy: AgentSessionIdStrategy;
+  resumeCommand?: string | null;
+};
+
+export type AgentSettings = {
+  profiles: AgentProfile[];
+  defaultProfileId: string;
+};
+
 export type ProcessEntrySnapshot = {
   command: string;
   role: ProcessRole;
+};
+
+export type ProjectAgentsConfigSnapshot = {
+  default?: string | null;
 };
 
 export type TerminalSessionDescriptor = {
@@ -17,6 +45,18 @@ export type TerminalSessionDescriptor = {
   createdAt: number;
   playSpawned: boolean;
   processRole: ProcessRole | null;
+  agentProfileId: string | null;
+  agentInstanceId: string | null;
+  agentProvider: AgentProvider | string | null;
+  agentSessionId: string | null;
+};
+
+export type AgentLaunchMetadata = {
+  profileId: string;
+  instanceId: string;
+  provider: AgentProvider | string;
+  sessionId: string | null;
+  command: string | null;
 };
 
 export function terminalDisplayLabel(desc: TerminalSessionDescriptor): string {
@@ -69,6 +109,7 @@ export type ProjectConfigReadSnapshot = {
   deployUrl?: string | null;
   startupCommands: string[];
   processes: Record<string, ProcessEntrySnapshot>;
+  agents?: ProjectAgentsConfigSnapshot | null;
   env: Record<string, string>;
   source: string;
   error: string | null;
@@ -85,6 +126,7 @@ export type DesignSystemChoice = "weekend" | "none";
 export type CreateProjectInput = {
   name?: string;
   defaultAgentCommand?: string;
+  defaultAgentProfileId?: string;
   githubRepoUrl?: string;
   initialPrompt?: string;
   designSystem?: DesignSystemChoice;
@@ -123,6 +165,7 @@ export type WorkspaceControllerState = {
   runtimeDebugError: string | null;
   runtimeTelemetryEvents: RuntimeTelemetryEvent[];
   terminalSessionsByProject: Record<string, TerminalSessionDescriptor[]>;
+  agentSettings: AgentSettings;
   playStateByProject: Record<string, PlayState>;
   playErrorByProject: Record<string, string | null>;
   runtimeProcessHealthyByProject: Record<string, boolean>;
@@ -144,6 +187,7 @@ export const PORTLESS_APP_PORT_MIN = 43000;
 export const PORTLESS_APP_PORT_MAX = 49999;
 export const TERMINAL_SESSIONS_STORAGE_KEY = "weekend.terminal-sessions-by-project.v1";
 export const PROJECT_ORDER_STORAGE_KEY = "weekend.project-order.v1";
+export const AGENT_SETTINGS_STORAGE_KEY = "weekend.agent-settings.v1";
 
 export function isUserProjectName(name: string): boolean {
   const trimmed = name.trim();

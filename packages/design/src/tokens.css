@@ -179,6 +179,33 @@
   --spring-moderate-ms: 160ms;
   --spring-slow-ms: 240ms;
   --ease-out-ui: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Terminal (xterm.js) ──────────────────────────────────────────
+     Chrome (bg/fg/cursor/selection) defers to existing tokens so any
+     theme tweak propagates automatically. ANSI 16 colors are overridden
+     per theme block below. Default palette is Tokyo Day (light). */
+  --term-bg: var(--background);
+  --term-fg: var(--foreground);
+  --term-cursor: var(--foreground);
+  --term-cursor-accent: var(--background);
+  --term-selection-bg: color-mix(in oklab, var(--ring) 35%, transparent);
+  --term-selection-fg: var(--foreground);
+  --term-black: #0f0f14;
+  --term-red: #8c4351;
+  --term-green: #33635c;
+  --term-yellow: #8f5e15;
+  --term-blue: #34548a;
+  --term-magenta: #5a4a78;
+  --term-cyan: #0f4b6e;
+  --term-white: #565a6e;
+  --term-bright-black: #a1a6c5;
+  --term-bright-red: #f52a65;
+  --term-bright-green: #587539;
+  --term-bright-yellow: #8c6c3e;
+  --term-bright-blue: #2e7de9;
+  --term-bright-magenta: #9854f1;
+  --term-bright-cyan: #007197;
+  --term-bright-white: #b4b4b9;
 }
 
 /* =====================================================================
@@ -297,6 +324,24 @@
   /* ColorPicker checkerboard — dark variant */
   --checker-a: #1f1f1f;
   --checker-b: #2a2a2a;
+
+  /* Terminal — Tokyo Night palette (paired with .dark / fluid-dark) */
+  --term-black: #15161e;
+  --term-red: #f7768e;
+  --term-green: #9ece6a;
+  --term-yellow: #e0af68;
+  --term-blue: #7aa2f7;
+  --term-magenta: #bb9af7;
+  --term-cyan: #7dcfff;
+  --term-white: #c0caf5;
+  --term-bright-black: #414868;
+  --term-bright-red: #f7768e;
+  --term-bright-green: #9ece6a;
+  --term-bright-yellow: #e0af68;
+  --term-bright-blue: #7aa2f7;
+  --term-bright-magenta: #bb9af7;
+  --term-bright-cyan: #7dcfff;
+  --term-bright-white: #c0caf5;
 
   color-scheme: dark;
 }
@@ -485,6 +530,24 @@ html.transitioning *::after {
   --font-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   --font-mono-ui: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-display: "VCR OSD Mono", monospace;
+
+  /* Terminal — Weekend brutalist palette (green ring, pink-free for high contrast on #000) */
+  --term-black: #1A1A1A;
+  --term-red: #F14D4C;
+  --term-green: #00BE83;
+  --term-yellow: #D9A514;
+  --term-blue: #6B97FF;
+  --term-magenta: #C683E2;
+  --term-cyan: #4ED9D9;
+  --term-white: #A7A7A7;
+  --term-bright-black: #4A4A4A;
+  --term-bright-red: #FF6B6A;
+  --term-bright-green: #2EE6A8;
+  --term-bright-yellow: #F5C13C;
+  --term-bright-blue: #8FB1FF;
+  --term-bright-magenta: #DDA0F0;
+  --term-bright-cyan: #6FE9E9;
+  --term-bright-white: #DEDEDE;
 }
 
 /* =====================================================================
@@ -577,6 +640,24 @@ html.transitioning *::after {
   --font-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   --font-mono-ui: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-display: "VCR OSD Mono", monospace;
+
+  /* Terminal — warm earthy palette tuned for cream paper (#F5F0EB) */
+  --term-black: #2C2420;
+  --term-red: #8c4351;
+  --term-green: #485e30;
+  --term-yellow: #8f5e15;
+  --term-blue: #34548a;
+  --term-magenta: #5a4a78;
+  --term-cyan: #0f4b6e;
+  --term-white: #F5F0EB;
+  --term-bright-black: #8A7F75;
+  --term-bright-red: #8c4351;
+  --term-bright-green: #485e30;
+  --term-bright-yellow: #8f5e15;
+  --term-bright-blue: #34548a;
+  --term-bright-magenta: #5a4a78;
+  --term-bright-cyan: #0f4b6e;
+  --term-bright-white: #2C2420;
 }
 
 /* =====================================================================
@@ -638,6 +719,24 @@ html.transitioning *::after {
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono-ui: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
   --font-display: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Terminal — Tokyo Day palette (mirrors :root fluid defaults) */
+  --term-black: #0f0f14;
+  --term-red: #8c4351;
+  --term-green: #33635c;
+  --term-yellow: #8f5e15;
+  --term-blue: #34548a;
+  --term-magenta: #5a4a78;
+  --term-cyan: #0f4b6e;
+  --term-white: #565a6e;
+  --term-bright-black: #a1a6c5;
+  --term-bright-red: #f52a65;
+  --term-bright-green: #587539;
+  --term-bright-yellow: #8c6c3e;
+  --term-bright-blue: #2e7de9;
+  --term-bright-magenta: #9854f1;
+  --term-bright-cyan: #007197;
+  --term-bright-white: #b4b4b9;
 }
 
 /* =====================================================================
@@ -709,4 +808,22 @@ html.transitioning *::after {
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono-ui: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
   --font-display: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Terminal — Tokyo Night palette */
+  --term-black: #15161e;
+  --term-red: #f7768e;
+  --term-green: #9ece6a;
+  --term-yellow: #e0af68;
+  --term-blue: #7aa2f7;
+  --term-magenta: #bb9af7;
+  --term-cyan: #7dcfff;
+  --term-white: #c0caf5;
+  --term-bright-black: #414868;
+  --term-bright-red: #f7768e;
+  --term-bright-green: #9ece6a;
+  --term-bright-yellow: #e0af68;
+  --term-bright-blue: #7aa2f7;
+  --term-bright-magenta: #bb9af7;
+  --term-bright-cyan: #7dcfff;
+  --term-bright-white: #c0caf5;
 }

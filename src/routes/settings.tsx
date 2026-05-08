@@ -56,6 +56,8 @@ function SettingsRoute() {
       logsError={logsError}
       isLogsRefreshing={isLogsRefreshing}
       onRefreshLogs={refreshLogs}
+      agentSettings={state.agentSettings}
+      onAgentSettingsChange={controller.updateAgentSettings}
     />
   );
 }

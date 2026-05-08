@@ -1,0 +1,60 @@
+/* =====================================================================
+   WEEKEND DESIGN — Tailwind v4 utility generators
+
+   This file contains the `@theme inline` block that drives Tailwind v4
+   utility classes (e.g. `bg-background`, `text-foreground`, `font-sans`,
+   `rounded-md`) for projects that adopt the design system end-to-end.
+
+   Pair with `tokens.css`:
+
+       @import "@weekend/design/tokens.css";
+       @import "@weekend/design/tailwind-theme.css";
+
+   The shell's own `src/styles.css` keeps an `@theme inline` block of its
+   own (with shell-specific overrides like the +2px text scale and tool
+   category colors). Tailwind v4 merges multiple `@theme` blocks, so a
+   project app that imports this file is unaffected by shell drift —
+   each app's CSS is independent.
+   ===================================================================== */
+
+@theme inline {
+  /* Map design tokens to Tailwind color utilities. The `var(--*)` names
+     are defined per-theme by `@weekend/design/tokens.css`'s six selector
+     blocks (`:root`, `.dark`, plus four `:root[data-theme="..."]`). */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Fonts */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo,
+    Consolas, monospace;
+
+  /* Radius scale */
+  --radius: 0.5rem;
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+}

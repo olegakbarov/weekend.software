@@ -34,3 +34,14 @@ export type { TextareaProps, TextareaVariant } from "./components/textarea";
 
 export { cn } from "./lib/cn";
 export type { IconComponent } from "./lib/icon";
+
+export {
+  DARK_THEMES,
+  DEFAULT_THEME,
+  isDarkTheme,
+  isThemeName,
+  THEME_NAMES,
+  ShellThemeBridge,
+  useShellTheme,
+} from "./theme";
+export type { ShellTheme, ShellThemeBridgeProps, ThemeName } from "./theme";

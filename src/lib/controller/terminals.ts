@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { terminalRegistry } from "@/lib/terminal-registry";
 import {
   type ControllerContext,
+  type AgentLaunchMetadata,
   type ProcessRole,
   type TerminalSessionDescriptor,
   makeTerminalId,
@@ -9,6 +10,12 @@ import {
 import { persistTerminalSessions } from "./persistence";
 import { reconcileProjectRuntimeState } from "./runtime";
 import type { RuntimeInternals } from "./runtime";
+import { findAliveAgentSession } from "./terminal-lifecycle";
+import {
+  createAgentInstanceId,
+  createAgentSessionId,
+  defaultAgentProfile,
+} from "./agent-profiles";
 
 export function generateUniqueTerminalName(
   existing: TerminalSessionDescriptor[],
@@ -38,7 +45,11 @@ export function createTerminalSession(
   ctx: ControllerContext,
   project: string,
   label?: string,
-  opts?: { playSpawned?: boolean; processRole?: ProcessRole }
+  opts?: {
+    playSpawned?: boolean;
+    processRole?: ProcessRole;
+    agentLaunch?: AgentLaunchMetadata;
+  }
 ): TerminalSessionDescriptor {
   const projectName = project.trim();
   const existing = ctx.getState().terminalSessionsByProject[projectName] ?? [];
@@ -61,6 +72,10 @@ export function createTerminalSession(
     createdAt: Date.now(),
     playSpawned: opts?.playSpawned ?? false,
     processRole: opts?.processRole ?? null,
+    agentProfileId: opts?.agentLaunch?.profileId ?? null,
+    agentInstanceId: opts?.agentLaunch?.instanceId ?? null,
+    agentProvider: opts?.agentLaunch?.provider ?? null,
+    agentSessionId: opts?.agentLaunch?.sessionId ?? null,
   };
 
   ctx.setState((previous) => {
@@ -132,10 +147,7 @@ export function getAgentTerminalId(
   project: string
 ): string | null {
   const sessions = ctx.getState().terminalSessionsByProject[project] ?? [];
-  const preferred =
-    sessions.find((s) => s.processRole === "agent" && s.status === "alive") ??
-    sessions.find((s) => s.processRole === "agent");
-  return preferred?.terminalId ?? null;
+  return findAliveAgentSession(sessions)?.terminalId ?? null;
 }
 
 export function ensureAgentTerminalSession(
@@ -150,11 +162,25 @@ export function ensureAgentTerminalSession(
   const existing = getAgentTerminalId(ctx, projectName);
   if (existing) return existing;
 
-  const descriptor = createTerminalSession(ctx, projectName, "agent", {
+  const profile = defaultAgentProfile(ctx.getState().agentSettings);
+  const sessionId =
+    profile.sessionIdStrategy === "preseed-uuid" ? createAgentSessionId() : null;
+  const agentLaunch = {
+    profileId: profile.id,
+    instanceId: createAgentInstanceId(projectName, profile.id),
+    provider: profile.provider,
+    sessionId,
+    command: null,
+  };
+  const descriptor = createTerminalSession(ctx, projectName, profile.label, {
     processRole: "agent",
+    agentLaunch,
   });
   void terminalRegistry
-    .acquire(descriptor.terminalId, projectName, { processRole: "agent" })
+    .acquire(descriptor.terminalId, projectName, {
+      processRole: "agent",
+      agentLaunch,
+    })
     .catch(() => undefined);
   return descriptor.terminalId;
 }

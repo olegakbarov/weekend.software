@@ -12,21 +12,15 @@ import { Combobox, type ComboboxItem } from "@weekend/design/registry";
 import { WeekendWordmark } from "@/components/branding/weekend-wordmark";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { CreateProjectInput, DesignSystemChoice } from "@/lib/controller";
+import type {
+  AgentSettings,
+  CreateProjectInput,
+  DesignSystemChoice,
+} from "@/lib/controller";
+import { defaultAgentProfile, findAgentProfile } from "@/lib/controller/agent-profiles";
 
 const MAX_TEXTAREA_HEIGHT = 240;
 const MIN_TEXTAREA_HEIGHT = 96;
-
-const AGENT_COMMAND_ITEMS: ReadonlyArray<ComboboxItem> = [
-  { value: "claude", label: "claude" },
-  {
-    value: "claude --dangerously-skip-permissions",
-    label: "claude --dangerously-skip-permissions",
-  },
-  { value: "codex", label: "codex" },
-];
-
-const DEFAULT_AGENT_COMMAND = AGENT_COMMAND_ITEMS[0]!.value;
 
 const DESIGN_SYSTEM_ITEMS: ReadonlyArray<ComboboxItem> = [
   { value: "weekend", label: "@weekend/design" },
@@ -66,16 +60,20 @@ function suggestNameFromGithub(url: string): string {
 }
 
 export function HomePage({
+  agentSettings,
   isCreatingProject,
   onCreateProject,
 }: {
+  agentSettings: AgentSettings;
   isCreatingProject: boolean;
   onCreateProject: (input: CreateProjectInput) => Promise<void>;
 }) {
   const [value, setValue] = useState("");
   const [name, setName] = useState("");
   const [nameTouched, setNameTouched] = useState(false);
-  const [agentCommand, setAgentCommand] = useState<string>(DEFAULT_AGENT_COMMAND);
+  const [agentProfileId, setAgentProfileId] = useState<string>(
+    agentSettings.defaultProfileId,
+  );
   const [designSystem, setDesignSystem] =
     useState<DesignSystemChoice>(DEFAULT_DESIGN_SYSTEM);
   const [error, setError] = useState<string | null>(null);
@@ -95,6 +93,20 @@ export function HomePage({
 
   const trimmedPrompt = value.trim();
   const trimmedName = name.trim().toLowerCase();
+  const agentProfile =
+    findAgentProfile(agentSettings, agentProfileId) ??
+    defaultAgentProfile(agentSettings);
+  const agentProfileItems: ReadonlyArray<ComboboxItem> = agentSettings.profiles.map(
+    (profile) => ({
+      value: profile.id,
+      label: profile.label,
+    }),
+  );
+
+  useEffect(() => {
+    if (findAgentProfile(agentSettings, agentProfileId)) return;
+    setAgentProfileId(agentSettings.defaultProfileId);
+  }, [agentProfileId, agentSettings]);
 
   useEffect(() => {
     if (nameTouched) return;
@@ -122,14 +134,15 @@ export function HomePage({
         name: trimmedName,
         githubRepoUrl: githubRepoUrl ?? undefined,
         initialPrompt: trimmedPrompt,
-        defaultAgentCommand: agentCommand.trim() || DEFAULT_AGENT_COMMAND,
+        defaultAgentCommand: agentProfile.command,
+        defaultAgentProfileId: agentProfile.id,
         designSystem,
       });
     } catch (createError) {
       setError(toErrorMessage(createError));
     }
   }, [
-    agentCommand,
+    agentProfile,
     canSubmit,
     designSystem,
     onCreateProject,
@@ -209,9 +222,9 @@ export function HomePage({
               <Combobox
                 variant="ghost"
                 disabled={isCreatingProject}
-                items={AGENT_COMMAND_ITEMS}
-                onChange={setAgentCommand}
-                value={agentCommand}
+                items={agentProfileItems}
+                onChange={setAgentProfileId}
+                value={agentProfile.id}
                 placeholder="agent"
                 popoverWidth={320}
                 className="h-7 font-code text-[11px] normal-case text-muted-foreground"

@@ -241,12 +241,10 @@ function WorkspaceRoute() {
         onSelectTerminal={projectActions.selectTerminal}
         onCreateTerminal={projectActions.createTerminal}
         onCreateAgentTerminal={projectActions.createAgentTerminal}
-        onRemoveTerminal={projectActions.removeTerminal}
         onOpenConfigFile={handleOpenConfigFile}
         onElementGrabbed={projectActions.elementGrabbed}
         onWorkspaceModeChange={projectActions.workspaceModeChange}
         onPlayProject={projectActions.playFromBrowser}
-        onStopProject={handleStopFromSettings}
         onRestartApp={projectActions.restartAppFromBrowser}
         playState={playState}
         projectConfigError={projectConfigError}

@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 139,
+      "line": 197,
       "props": [
         "className",
         "value"
@@ -12,7 +12,7 @@
     },
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 190,
+      "line": 247,
       "props": [
         "className",
         "value"
@@ -20,7 +20,15 @@
     },
     {
       "file": "src/components/settings/settings-page.tsx",
-      "line": 232,
+      "line": 396,
+      "props": [
+        "className",
+        "value"
+      ]
+    },
+    {
+      "file": "src/components/settings/settings-page.tsx",
+      "line": 438,
       "props": [
         "className",
         "value"
@@ -56,8 +64,8 @@
     }
   ],
   "propUsage": {
-    "className": 3,
-    "value": 7
+    "className": 4,
+    "value": 8
   },
-  "totalUsages": 7
+  "totalUsages": 8
 }

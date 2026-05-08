@@ -1,0 +1,41 @@
+{
+  "symbol": "ToolCall",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/tool-call.tsx",
+      "line": 80,
+      "props": [
+        "key",
+        "name",
+        "state",
+        "input",
+        "output",
+        "errorText",
+        "callId"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/tool-call.tsx",
+      "line": 114,
+      "props": [
+        "name",
+        "state",
+        "defaultOpen",
+        "input",
+        "output"
+      ]
+    }
+  ],
+  "propUsage": {
+    "callId": 1,
+    "defaultOpen": 1,
+    "errorText": 1,
+    "input": 2,
+    "key": 1,
+    "name": 2,
+    "output": 2,
+    "state": 2
+  },
+  "totalUsages": 2
+}

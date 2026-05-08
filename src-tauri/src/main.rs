@@ -65,6 +65,14 @@ struct TerminalSessionInfo {
     play_spawned: bool,
     #[serde(default)]
     process_role: Option<String>,
+    #[serde(default)]
+    agent_profile_id: Option<String>,
+    #[serde(default)]
+    agent_instance_id: Option<String>,
+    #[serde(default)]
+    agent_provider: Option<String>,
+    #[serde(default)]
+    agent_session_id: Option<String>,
 }
 
 /// Lock ordering: when both `sessions` and `session_info` are needed,
@@ -229,6 +237,13 @@ struct ProcessEntry {
     role: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "camelCase")]
+struct ProjectAgentsConfig {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    default: Option<String>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct ProjectConfig {
@@ -237,6 +252,8 @@ struct ProjectConfig {
     startup: ProjectStartupConfig,
     #[serde(default)]
     processes: Option<HashMap<String, ProcessEntry>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    agents: Option<ProjectAgentsConfig>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     env: Option<HashMap<String, String>>,
     #[serde(default)]
@@ -290,6 +307,7 @@ struct ProjectConfigReadSnapshot {
     deploy_url: Option<String>,
     startup_commands: Vec<String>,
     processes: HashMap<String, ProcessEntrySnapshot>,
+    agents: Option<ProjectAgentsConfig>,
     env: HashMap<String, String>,
     source: String,
     error: Option<String>,
@@ -301,6 +319,7 @@ struct ProjectConfigResolved {
     runtime: ProjectRuntimeConfig,
     startup_commands: Vec<String>,
     processes: HashMap<String, ProcessEntrySnapshot>,
+    agents: Option<ProjectAgentsConfig>,
     env: HashMap<String, String>,
     archived: bool,
 }
@@ -355,11 +374,14 @@ const VALID_THEMES: &[&str] = &["fluid", "fluid-dark", "weekend-dark", "weekend-
 const DEFAULT_THEME: &str = "fluid";
 const THEME_CONFIG_FILE_NAME: &str = "theme.json";
 
-const PROJECT_AGENT_GUIDANCE_POINTER: &str = r#"# Weekend Runtime
-
-This project is managed by Weekend.
-Read `.weekend/agent-runtime.md` for runtime, browser MCP, shared assets, and design system guidance.
-"#;
+// Sentinels for the Weekend-managed block inside user-owned CLAUDE.md / AGENTS.md
+// files. When a project already has one of these files (cloned repo, user-edited,
+// etc.) we append the runtime guidance between these markers; on subsequent
+// startups the block is refreshed in place without disturbing user content
+// outside the markers. Greenfield projects get the full guidance written
+// directly with no sentinels — see seed_agent_runtime_guidance_files.
+const WEEKEND_BLOCK_BEGIN: &str = "<!-- BEGIN weekend-managed -->";
+const WEEKEND_BLOCK_END: &str = "<!-- END weekend-managed -->";
 
 fn theme_config_path() -> Result<PathBuf, String> {
     Ok(weekend_root()?.join(THEME_CONFIG_FILE_NAME))
@@ -1670,6 +1692,7 @@ fn read_project_config_from_path(config_path: &Path) -> ProjectConfigLookup {
         },
         startup_commands,
         processes,
+        agents: parsed.agents,
         env: parsed.env.unwrap_or_default(),
         archived: parsed.archived,
     })
@@ -2135,6 +2158,7 @@ fn write_project_config(
     runtime_url: &str,
     startup_commands: &[String],
     processes: Option<&HashMap<String, ProcessEntrySnapshot>>,
+    agents: Option<&ProjectAgentsConfig>,
     env: Option<&HashMap<String, String>>,
     deploy_url: Option<&str>,
     archived: bool,
@@ -2167,6 +2191,7 @@ fn write_project_config(
                 })
                 .collect()
         }),
+        agents: agents.cloned(),
         env: env.filter(|e| !e.is_empty()).cloned(),
         archived,
         theme: preserved_theme,
@@ -2203,52 +2228,42 @@ fn resolve_project_theme_policy(project_name: &str) -> ProjectThemeConfig {
 
 /// JS that flips `<html data-theme>` AND `<html class="dark|light">`, so both
 /// the modern `[data-theme="..."]` cascade and the legacy `.dark`/`.light`
-/// anchors (Tailwind `dark:` variants, shadcn-style projects, hand-rolled
-/// designs like the home project) end up in lockstep. Persists the theme to
-/// BOTH `localStorage["weekend.theme"]` (modern, four named themes) and
-/// `localStorage["theme"]` (legacy "light"/"dark" convention) so a project's
-/// own no-FOUC bootstrap reads the shell's value on next mount. Fires a
-/// `weekend:theme` window event for projects that need imperative reactions
-/// (canvas, charts) on top of the CSS cascade. `__WEEKEND_SHELL_THEME__` is
-/// the live source of truth used by the MutationObserver guard installed by
-/// the preamble. The is-different checks prevent the observer from
-/// triggering itself when the same value is rewritten.
+/// anchors (Tailwind `dark:` variants) end up in lockstep. Sets
+/// `window.__WEEKEND_SHELL_THEME__` as the live source of truth for the
+/// `useShellTheme` hook in `@weekend/design`, and dispatches a
+/// `weekend:theme` window event so consumers re-render. The shell deliberately
+/// does NOT write `localStorage` — projects must observe via the bridge or
+/// the DOM, never persist their own theme. Is-different checks prevent the
+/// MutationObserver guard from triggering itself on no-op writes.
 fn theme_apply_script(theme: &str) -> String {
     // `theme` is always one of `VALID_THEMES`, so no escaping needed.
     let dark = matches!(theme, "fluid-dark" | "weekend-dark");
-    let legacy = if dark { "dark" } else { "light" };
     format!(
         "(function(){{try{{var t=\"{theme}\";window.__WEEKEND_SHELL_THEME__=t;\
 var r=document.documentElement;\
 if(r.dataset.theme!==t)r.dataset.theme=t;\
 if(r.classList.contains(\"dark\")!=={dark})r.classList.toggle(\"dark\",{dark});\
 if(r.classList.contains(\"light\")!=={light})r.classList.toggle(\"light\",{light});\
-try{{localStorage.setItem(\"weekend.theme\",t);}}catch(_){{}}\
-try{{localStorage.setItem(\"theme\",\"{legacy}\");}}catch(_){{}}\
 try{{window.dispatchEvent(new CustomEvent(\"weekend:theme\",{{detail:{{theme:t}}}}));}}catch(_){{}}\
 }}catch(_){{}}}})();",
         light = !dark,
     )
 }
 
-/// Defends against the project's own ThemeProvider re-applying a stale value
-/// on hydrate. The observer watches BOTH `data-theme` and `class` because
-/// projects use either anchor (or both): home rewrites `class`, while a
-/// `[data-theme]`-styled project rewrites `data-theme`. Idempotent via
-/// `__WEEKEND_THEME_GUARD__`. The is-different checks inside `apply` prevent
-/// the observer from triggering itself on its own writes.
+/// Defends against any other code re-applying a stale value on hydrate. The
+/// observer watches BOTH `data-theme` and `class` because projects style off
+/// either anchor (or both). Idempotent via `__WEEKEND_THEME_GUARD__`. The
+/// is-different checks inside the callback prevent the observer from
+/// triggering itself on its own writes.
 const THEME_GUARD_SCRIPT: &str = "(function(){\
 if(window.__WEEKEND_THEME_GUARD__)return;window.__WEEKEND_THEME_GUARD__=true;\
 try{var ob=new MutationObserver(function(){\
 var t=window.__WEEKEND_SHELL_THEME__;if(!t)return;\
 var dark=(t===\"fluid-dark\"||t===\"weekend-dark\");\
-var legacy=dark?\"dark\":\"light\";\
 var r=document.documentElement;\
 if(r.dataset.theme!==t)r.dataset.theme=t;\
 if(r.classList.contains(\"dark\")!==dark)r.classList.toggle(\"dark\",dark);\
-if(r.classList.contains(\"light\")!==!dark)r.classList.toggle(\"light\",!dark);\
-try{localStorage.setItem(\"weekend.theme\",t);}catch(_){}\
-try{localStorage.setItem(\"theme\",legacy);}catch(_){}});\
+if(r.classList.contains(\"light\")!==!dark)r.classList.toggle(\"light\",!dark);});\
 ob.observe(document.documentElement,{attributes:true,attributeFilter:[\"data-theme\",\"class\"]});\
 }catch(_){}})();";
 
@@ -2265,7 +2280,71 @@ fn theme_injection_preamble(project_name: &str) -> Option<String> {
     Some(format!("{apply}{THEME_GUARD_SCRIPT}"))
 }
 
-fn seed_agent_runtime_guidance_files(project_dir: &Path) -> Result<(), String> {
+/// Whether `seed_agent_runtime_guidance_files` is running for a freshly created
+/// project (`Create`) or refreshing an existing one (`Refresh` — app startup
+/// backfill, project rename, etc.).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SeedMode {
+    /// First-time creation. If CLAUDE.md / AGENTS.md don't exist yet (greenfield),
+    /// write the full guidance directly with no sentinels. If they do exist
+    /// (cloned repo with its own files), append a Weekend-managed block.
+    Create,
+    /// Subsequent run. Only refresh CLAUDE.md / AGENTS.md if they already
+    /// contain a managed block. Never inject the block into user-owned files
+    /// that haven't opted in by having the sentinels written previously.
+    Refresh,
+}
+
+/// Returns true if `path` exists and contains a Weekend-managed block — i.e.
+/// both `WEEKEND_BLOCK_BEGIN` and `WEEKEND_BLOCK_END` appear in the file.
+/// Used by Refresh mode to decide whether the file has opted into managed
+/// updates. Cheap; reads the file once.
+fn file_has_managed_block(path: &Path) -> bool {
+    match std::fs::read_to_string(path) {
+        Ok(contents) => {
+            contents.contains(WEEKEND_BLOCK_BEGIN) && contents.contains(WEEKEND_BLOCK_END)
+        }
+        Err(_) => false,
+    }
+}
+
+/// Ensure that `path` contains a Weekend-managed block whose body matches `body`.
+/// The caller is responsible for the "should this file be touched at all?"
+/// policy (see `seed_agent_runtime_guidance_files`); this function just
+/// performs the mutation.
+///
+/// Behavior to implement:
+/// - If the file does not exist: create it containing just the managed block.
+/// - If the file exists with `WEEKEND_BLOCK_BEGIN` … `WEEKEND_BLOCK_END`:
+///   replace the content between those markers with `body`. Content outside
+///   the markers is preserved exactly (whitespace, trailing newlines).
+/// - If the file exists without markers: append the managed block at the end,
+///   with a leading newline if the existing content doesn't end with one.
+/// - The block on disk should look like:
+///       <existing content>
+///       <BEGIN sentinel>
+///       <body>
+///       <END sentinel>
+///   Sentinels on their own lines; body separated by blank lines is fine.
+///
+/// Policy questions for the implementer:
+/// - Malformed input — file contains BEGIN with no matching END (or vice
+///   versa). Recommendation: treat as "no managed block present" and append a
+///   fresh one. Don't try to recover the partial structure; just log if
+///   helpful. Stomping the user's content between an orphaned BEGIN and EOF
+///   risks data loss.
+/// - Multiple BEGIN/END pairs. Recommendation: refresh the first pair and
+///   leave subsequent ones untouched.
+//
+// TODO(user): implement.
+fn upsert_managed_block(_path: &Path, _body: &str) -> Result<(), String> {
+    Err("upsert_managed_block not yet implemented".to_string())
+}
+
+fn seed_agent_runtime_guidance_files(
+    project_dir: &Path,
+    mode: SeedMode,
+) -> Result<(), String> {
     let weekend_dir = project_dir.join(PROJECT_WEEKEND_DIR_NAME);
     if weekend_dir.exists() && !weekend_dir.is_dir() {
         return Err(format!("{} must be a directory", weekend_dir.display()));
@@ -2273,6 +2352,8 @@ fn seed_agent_runtime_guidance_files(project_dir: &Path) -> Result<(), String> {
     std::fs::create_dir_all(&weekend_dir)
         .map_err(|error| format!("failed to create {}: {error}", weekend_dir.display()))?;
 
+    // .weekend/agent-runtime.md is fully host-owned: always overwritten so
+    // existing projects pick up evolving guidance on every app launch.
     let runtime_guidance_path = weekend_dir.join(PROJECT_AGENT_RUNTIME_GUIDANCE_FILE_NAME);
     std::fs::write(&runtime_guidance_path, PROJECT_AGENT_RUNTIME_GUIDANCE).map_err(|error| {
         format!(
@@ -2281,16 +2362,32 @@ fn seed_agent_runtime_guidance_files(project_dir: &Path) -> Result<(), String> {
         )
     })?;
 
-    let claude_path = project_dir.join(PROJECT_CLAUDE_FILE_NAME);
-    if !claude_path.exists() {
-        std::fs::write(&claude_path, PROJECT_AGENT_GUIDANCE_POINTER)
-            .map_err(|error| format!("failed to write {}: {error}", claude_path.display()))?;
-    }
-
-    let agents_path = project_dir.join(PROJECT_AGENTS_FILE_NAME);
-    if !agents_path.exists() {
-        std::fs::write(&agents_path, PROJECT_AGENT_GUIDANCE_POINTER)
-            .map_err(|error| format!("failed to write {}: {error}", agents_path.display()))?;
+    for file_name in [PROJECT_CLAUDE_FILE_NAME, PROJECT_AGENTS_FILE_NAME] {
+        let path = project_dir.join(file_name);
+        match mode {
+            SeedMode::Create => {
+                if path.exists() {
+                    // Cloned repo / user-supplied file: append the managed block
+                    // so guidance is discoverable without stomping existing content.
+                    upsert_managed_block(&path, PROJECT_AGENT_RUNTIME_GUIDANCE)?;
+                } else {
+                    // Greenfield: paste the full guidance verbatim. No sentinels —
+                    // the file becomes user-owned from this point and won't be
+                    // refreshed by future Refresh runs.
+                    std::fs::write(&path, PROJECT_AGENT_RUNTIME_GUIDANCE).map_err(|error| {
+                        format!("failed to write {}: {error}", path.display())
+                    })?;
+                }
+            }
+            SeedMode::Refresh => {
+                // Only refresh files that have explicitly opted in by carrying
+                // a managed block. Greenfield CLAUDE.md (full content, no
+                // sentinels) and pure user-owned files are left alone.
+                if file_has_managed_block(&path) {
+                    upsert_managed_block(&path, PROJECT_AGENT_RUNTIME_GUIDANCE)?;
+                }
+            }
+        }
     }
 
     seed_mcp_json(project_dir)?;
@@ -2311,6 +2408,41 @@ fn shell_single_quote(input: &str) -> String {
     }
     out.push('\'');
     out
+}
+
+fn write_agent_metadata_file(
+    project_dir: &Path,
+    terminal_id: &str,
+    project: &str,
+    agent_profile_id: Option<&str>,
+    agent_instance_id: &str,
+    agent_provider: Option<&str>,
+    agent_session_id: Option<&str>,
+    agent_command: Option<&str>,
+) -> Result<PathBuf, String> {
+    let metadata_dir = project_dir
+        .join(PROJECT_WEEKEND_DIR_NAME)
+        .join("agents");
+    std::fs::create_dir_all(&metadata_dir)
+        .map_err(|error| format!("failed to create {}: {error}", metadata_dir.display()))?;
+
+    let path = metadata_dir.join(format!("{agent_instance_id}.json"));
+    let payload = serde_json::json!({
+        "terminalId": terminal_id,
+        "project": project,
+        "profileId": agent_profile_id,
+        "instanceId": agent_instance_id,
+        "provider": agent_provider,
+        "sessionId": agent_session_id,
+        "command": agent_command,
+        "status": "starting",
+        "startedAt": now_unix_ms(),
+    });
+    let serialized = serde_json::to_string_pretty(&payload)
+        .map_err(|error| format!("failed to serialize agent metadata: {error}"))?;
+    std::fs::write(&path, format!("{serialized}\n"))
+        .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
+    Ok(path)
 }
 
 fn maybe_run_agent_autostart(project_dir: &Path, session: Arc<TerminalSession>) {
@@ -4427,6 +4559,7 @@ mod config_tests {
             &startup_commands,
             None,
             None,
+            None,
             Some("example.com/app"),
             false,
         )
@@ -4443,13 +4576,14 @@ mod config_tests {
             Some("https://example.com/app")
         );
     }
+
 }
 
 #[cfg(test)]
 mod mcp_config_tests {
     use super::{
         project_name_from_browser_webview_label, seed_agent_runtime_guidance_files,
-        seed_codex_config, seed_mcp_json, PROJECT_AGENT_RUNTIME_GUIDANCE_FILE_NAME,
+        seed_codex_config, seed_mcp_json, SeedMode, PROJECT_AGENT_RUNTIME_GUIDANCE_FILE_NAME,
         PROJECT_WEEKEND_DIR_NAME,
     };
     use serde_json::Value;
@@ -4536,14 +4670,18 @@ args = ["other.js"]
     }
 
     #[test]
-    fn seed_agent_runtime_guidance_preserves_user_owned_agent_files() {
-        let root = make_temp_project_dir("weekend-guidance-seed");
+    fn refresh_mode_leaves_user_owned_agent_files_untouched() {
+        // Refresh on a project whose CLAUDE.md / AGENTS.md were never written by
+        // Weekend (no sentinels) must not mutate them. The host-owned
+        // .weekend/agent-runtime.md and .mcp.json still get refreshed.
+        let root = make_temp_project_dir("weekend-guidance-refresh");
         let project_dir = root.join("rl-lab");
         std::fs::create_dir_all(&project_dir).expect("project dir");
         std::fs::write(project_dir.join("CLAUDE.md"), "# User Claude\n").expect("write claude");
         std::fs::write(project_dir.join("AGENTS.md"), "# User Agents\n").expect("write agents");
 
-        seed_agent_runtime_guidance_files(&project_dir).expect("seed guidance");
+        seed_agent_runtime_guidance_files(&project_dir, SeedMode::Refresh)
+            .expect("seed guidance");
         let claude = std::fs::read_to_string(project_dir.join("CLAUDE.md")).expect("read claude");
         let agents = std::fs::read_to_string(project_dir.join("AGENTS.md")).expect("read agents");
         let guidance = std::fs::read_to_string(
@@ -4566,6 +4704,28 @@ args = ["other.js"]
             Some("rl-lab")
         );
     }
+
+    #[test]
+    fn create_mode_writes_full_guidance_into_greenfield_agent_files() {
+        // Greenfield: CLAUDE.md / AGENTS.md don't exist. Create mode should
+        // write the full runtime guidance directly, with no sentinels.
+        let root = make_temp_project_dir("weekend-guidance-create-greenfield");
+        let project_dir = root.join("rl-lab");
+        std::fs::create_dir_all(&project_dir).expect("project dir");
+
+        seed_agent_runtime_guidance_files(&project_dir, SeedMode::Create)
+            .expect("seed guidance");
+        let claude = std::fs::read_to_string(project_dir.join("CLAUDE.md")).expect("read claude");
+        let agents = std::fs::read_to_string(project_dir.join("AGENTS.md")).expect("read agents");
+        let _ = std::fs::remove_dir_all(&root);
+
+        assert!(claude.contains("# Design System"));
+        assert!(claude.contains("@weekend/design"));
+        assert!(!claude.contains("BEGIN weekend-managed"));
+        assert!(agents.contains("# Design System"));
+        assert!(!agents.contains("BEGIN weekend-managed"));
+    }
+
 
     #[test]
     fn extracts_project_name_from_browser_label() {
@@ -4823,7 +4983,7 @@ fn backfill_mcp_configs() -> Result<(), String> {
 
         // Refresh host-owned guidance and MCP config without replacing user-owned
         // CLAUDE.md/AGENTS.md files.
-        if let Err(error) = seed_agent_runtime_guidance_files(&project_dir) {
+        if let Err(error) = seed_agent_runtime_guidance_files(&project_dir, SeedMode::Refresh) {
             log_backend(
                 "WARN",
                 format!(
@@ -5075,6 +5235,7 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                     &runtime_url,
                     &startup_commands,
                     procs.as_ref(),
+                    config.agents.as_ref(),
                     env_ref,
                     config.runtime.deploy_url.as_deref(),
                     config.archived,
@@ -5088,6 +5249,7 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                     &runtime_url,
                     &default_startup_commands(),
                     Some(&default_procs),
+                    None,
                     None,
                     None,
                     false,
@@ -5130,6 +5292,7 @@ fn backfill_existing_project_configs() -> Result<(), String> {
                         &runtime_url,
                         &startup_commands,
                         procs.as_ref(),
+                        parsed.agents.as_ref(),
                         parsed.env.as_ref(),
                         deploy_url.as_deref(),
                         parsed.archived,
@@ -5205,6 +5368,7 @@ fn create_new_project(
     app_handle: tauri::AppHandle,
     name: Option<String>,
     default_agent_command: Option<String>,
+    default_agent_profile_id: Option<String>,
     github_repo_url: Option<String>,
     initial_prompt: Option<String>,
     design_system: Option<String>,
@@ -5259,11 +5423,16 @@ fn create_new_project(
     let created_runtime_mode = ProjectRuntimeMode::Portless;
     let created_runtime_url = default_runtime_url_for_project_name(project_name);
     let default_processes = default_processes_map(&resolved_agent_command);
+    let default_agents = normalize_optional_string(default_agent_profile_id)
+        .map(|default| ProjectAgentsConfig {
+            default: Some(default),
+        });
     write_project_config(
         &candidate,
         &created_runtime_url,
         &default_startup_commands(),
         Some(&default_processes),
+        default_agents.as_ref(),
         None,
         None,
         false,
@@ -5305,7 +5474,7 @@ fn create_new_project(
             ),
         );
     }
-    seed_agent_runtime_guidance_files(&candidate)?;
+    seed_agent_runtime_guidance_files(&candidate, SeedMode::Create)?;
     if let Some(prompt) = normalize_optional_string(initial_prompt) {
         let prompt_path = candidate.join("PROMPT.md");
         std::fs::write(&prompt_path, prompt)
@@ -5563,6 +5732,7 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             deploy_url: config.runtime.deploy_url,
             startup_commands: config.startup_commands,
             processes: config.processes,
+            agents: config.agents,
             env: config.env,
             source: "project-config".to_string(),
             error: None,
@@ -5579,6 +5749,7 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             deploy_url: None,
             startup_commands: Vec::new(),
             processes: HashMap::new(),
+            agents: None,
             env: HashMap::new(),
             source: "missing".to_string(),
             error: None,
@@ -5595,6 +5766,7 @@ fn project_config_read(project: String) -> Result<ProjectConfigReadSnapshot, Str
             deploy_url: None,
             startup_commands: Vec::new(),
             processes: HashMap::new(),
+            agents: None,
             env: HashMap::new(),
             source: "invalid".to_string(),
             error: Some(error),
@@ -5667,12 +5839,21 @@ fn project_config_write(
         ProjectConfigLookup::Valid(config) => config.archived,
         _ => false,
     };
+    let resolved_agents = match &existing {
+        ProjectConfigLookup::Valid(config) => config.agents.clone(),
+        ProjectConfigLookup::Invalid(_) => std::fs::read_to_string(project_config_path(&project_dir))
+            .ok()
+            .and_then(|raw| serde_json::from_str::<ProjectConfig>(&raw).ok())
+            .and_then(|config| config.agents),
+        ProjectConfigLookup::Missing => None,
+    };
 
     write_project_config(
         &project_dir,
         &runtime_url,
         &resolved_startup_commands,
         resolved_processes.as_ref(),
+        resolved_agents.as_ref(),
         resolved_env.as_ref(),
         resolved_deploy_url.as_deref(),
         resolved_archived,
@@ -6059,6 +6240,7 @@ fn refresh_project_identity_files_after_rename(
                 &runtime_url,
                 &config.startup_commands,
                 processes.as_ref(),
+                config.agents.as_ref(),
                 env.as_ref(),
                 config.runtime.deploy_url.as_deref(),
                 config.archived,
@@ -6071,6 +6253,7 @@ fn refresh_project_identity_files_after_rename(
                 &default_runtime_url_for_project_name(new_name),
                 &default_startup_commands(),
                 Some(&default_processes),
+                None,
                 None,
                 None,
                 false,
@@ -6086,7 +6269,7 @@ fn refresh_project_identity_files_after_rename(
         }
     }
 
-    seed_agent_runtime_guidance_files(project_dir)
+    seed_agent_runtime_guidance_files(project_dir, SeedMode::Refresh)
 }
 
 #[tauri::command]
@@ -6469,6 +6652,11 @@ fn terminal_open<R: Runtime>(
     size: TerminalOpenSizeInput,
     play_spawned: Option<bool>,
     process_role: Option<String>,
+    agent_profile_id: Option<String>,
+    agent_instance_id: Option<String>,
+    agent_provider: Option<String>,
+    agent_session_id: Option<String>,
+    agent_command: Option<String>,
     terminal_state: State<'_, TerminalState>,
     app: AppHandle<R>,
 ) -> Result<(), String> {
@@ -6570,6 +6758,7 @@ fn terminal_open<R: Runtime>(
                 cmd.env("WEEKEND_BRIDGE_PORT_FILE", value);
             }
         }
+        cmd.env("WEEKEND_TERMINAL_ID", &terminal_id);
         if let Some(project_name) = project
             .as_deref()
             .map(str::trim)
@@ -6590,6 +6779,43 @@ fn terminal_open<R: Runtime>(
                 }
             }
             let project_dir = resolve_project_dir(project_name)?;
+            if process_role.as_deref() == Some("agent") {
+                if let Some(profile_id) = agent_profile_id.as_deref() {
+                    cmd.env("WEEKEND_AGENT_PROFILE_ID", profile_id);
+                    cmd.env("WEEKEND_AGENT_ID", profile_id);
+                }
+                if let Some(instance_id) = agent_instance_id.as_deref() {
+                    cmd.env("WEEKEND_AGENT_INSTANCE_ID", instance_id);
+                    match write_agent_metadata_file(
+                        &project_dir,
+                        &terminal_id,
+                        project_name,
+                        agent_profile_id.as_deref(),
+                        instance_id,
+                        agent_provider.as_deref(),
+                        agent_session_id.as_deref(),
+                        agent_command.as_deref(),
+                    ) {
+                        Ok(path) => {
+                            cmd.env("WEEKEND_AGENT_METADATA_FILE", path.display().to_string());
+                        }
+                        Err(error) => {
+                            log_backend(
+                                "WARN",
+                                format!(
+                                    "terminal_open project={project_name}: failed to write agent metadata ({error})"
+                                ),
+                            );
+                        }
+                    }
+                }
+                if let Some(provider) = agent_provider.as_deref() {
+                    cmd.env("WEEKEND_AGENT_PROVIDER", provider);
+                }
+                if let Some(session_id) = agent_session_id.as_deref() {
+                    cmd.env("WEEKEND_AGENT_SESSION_ID", session_id);
+                }
+            }
             let shared_env = match read_shared_env() {
                 Ok(env) => env,
                 Err(error) => {
@@ -6689,6 +6915,10 @@ fn terminal_open<R: Runtime>(
             created_at: now_unix_ms(),
             play_spawned: play_spawned.unwrap_or(false),
             process_role: process_role.clone(),
+            agent_profile_id: agent_profile_id.clone(),
+            agent_instance_id: agent_instance_id.clone(),
+            agent_provider: agent_provider.clone(),
+            agent_session_id: agent_session_id.clone(),
         };
 
         {
@@ -7110,6 +7340,24 @@ fn browser_history_navigate<R: Runtime>(
     webview
         .eval(script)
         .map_err(|e| format!("webview.eval failed: {e}"))
+}
+
+#[tauri::command]
+fn browser_navigate<R: Runtime>(
+    app: AppHandle<R>,
+    label: String,
+    url: String,
+) -> Result<(), String> {
+    if !label.starts_with("browser-pane:") {
+        return Err(format!("invalid browser webview label: {label}"));
+    }
+    let webview = app
+        .get_webview(&label)
+        .ok_or_else(|| format!("webview not found: {label}"))?;
+    let parsed = Url::parse(&url).map_err(|e| format!("invalid url '{url}': {e}"))?;
+    webview
+        .navigate(parsed)
+        .map_err(|e| format!("webview.navigate failed: {e}"))
 }
 
 #[tauri::command]
@@ -7807,6 +8055,7 @@ fn main() {
             terminal_set_custom_name,
             terminal_remove_session,
             browser_history_navigate,
+            browser_navigate,
             browser_close_stale_webviews,
             browser_probe_runtime_url,
             browser_push_event,

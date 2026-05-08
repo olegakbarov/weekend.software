@@ -1,0 +1,33 @@
+{
+  "symbol": "ChatMessage",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/chat.tsx",
+      "line": 75,
+      "props": [
+        "role"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/chat.tsx",
+      "line": 76,
+      "props": [
+        "role"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/chat.tsx",
+      "line": 79,
+      "props": [
+        "role",
+        "interrupted"
+      ]
+    }
+  ],
+  "propUsage": {
+    "interrupted": 1,
+    "role": 3
+  },
+  "totalUsages": 3
+}

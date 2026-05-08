@@ -171,12 +171,6 @@ const ROWS: ReadonlyArray<AuditRow> = [
     note: "Directional spring slide-in via framer-motion (post-B2).",
   },
   {
-    component: "MobileDrawer",
-    path: "src/registry/mobile-drawer.tsx",
-    status: "identical",
-    note: "Wave 1 corrected — was misclassified as EXTRA.",
-  },
-  {
     component: "NavItem",
     path: "src/registry/nav-item.tsx",
     status: "identical",

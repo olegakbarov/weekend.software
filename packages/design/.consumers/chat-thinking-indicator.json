@@ -1,0 +1,13 @@
+{
+  "symbol": "ChatThinkingIndicator",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/chat.tsx",
+      "line": 112,
+      "props": []
+    }
+  ],
+  "propUsage": {},
+  "totalUsages": 1
+}

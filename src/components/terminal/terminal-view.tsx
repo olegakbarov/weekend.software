@@ -9,7 +9,7 @@ export function TerminalView({
   terminalId: string;
   project: string;
 }) {
-  const { isDark } = useTheme();
+  const { activeTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -30,8 +30,8 @@ export function TerminalView({
   }, [terminalId, project]);
 
   useEffect(() => {
-    terminalRegistry.setTheme(isDark ? "dark" : "light");
-  }, [isDark]);
+    terminalRegistry.refreshTheme();
+  }, [activeTheme]);
 
   return (
     <div className="h-full min-h-0 w-full bg-transparent px-3 py-2">

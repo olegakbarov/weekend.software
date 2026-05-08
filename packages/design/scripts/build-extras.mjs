@@ -12,6 +12,10 @@ const dist = resolve(pkgRoot, "dist");
 await mkdir(resolve(dist, "fonts"), { recursive: true });
 await copyFile(resolve(pkgRoot, "src/tokens.css"), resolve(dist, "tokens.css"));
 await copyFile(
+  resolve(pkgRoot, "src/tailwind-theme.css"),
+  resolve(dist, "tailwind-theme.css"),
+);
+await copyFile(
   resolve(pkgRoot, "src/fonts/InterVariable.ttf"),
   resolve(dist, "fonts/InterVariable.ttf"),
 );
@@ -27,8 +31,10 @@ const distPkg = {
   exports: {
     ".": { types: "./index.d.ts", default: "./index.js" },
     "./registry": { types: "./registry.d.ts", default: "./registry.js" },
+    "./theme": { types: "./theme/index.d.ts", default: "./theme.js" },
     "./index.css": "./index.css",
     "./tokens.css": "./tokens.css",
+    "./tailwind-theme.css": "./tailwind-theme.css",
     "./fonts/*": "./fonts/*",
   },
   sideEffects: ["**/*.css"],

@@ -35,12 +35,17 @@ type Bounds = {
 
 export type EmbeddedBrowserWebviewHandle = {
   label: string;
+  attach: (container: HTMLElement) => Promise<void>;
   hide: () => Promise<void>;
   show: () => Promise<void>;
   captureScreenshot: () => Promise<string | null>;
   close: () => Promise<void>;
   goBack: () => Promise<void>;
   goForward: () => Promise<void>;
+  navigate: (url: string) => Promise<void>;
+  setPageLoadHandler: (
+    handler: ((payload: BrowserWebviewPageLoadPayload) => void) | null
+  ) => void;
 };
 
 export function buildEmbeddedBrowserWebviewLabel(
@@ -193,13 +198,15 @@ export async function createEmbeddedBrowserWebview({
   url: string;
   onPageLoad?: (payload: BrowserWebviewPageLoadPayload) => void;
 }): Promise<EmbeddedBrowserWebviewHandle> {
+  let activeContainer = container;
+  let activeOnPageLoad = onPageLoad ?? null;
   let unlistenPageLoad: UnlistenFn | null = null;
   if (onPageLoad) {
     unlistenPageLoad = await listen<BrowserWebviewPageLoadPayload>(
       BROWSER_WEBVIEW_PAGE_LOAD_EVENT,
       (event) => {
         if (event.payload.webviewLabel !== label) return;
-        onPageLoad(event.payload);
+        activeOnPageLoad?.(event.payload);
       }
     );
   }
@@ -254,7 +261,7 @@ export async function createEmbeddedBrowserWebview({
     try {
       do {
         syncQueued = false;
-        const nextBounds = readContainerBounds(container);
+        const nextBounds = readContainerBounds(activeContainer);
         if (!nextBounds || !boundsChanged(previousBounds, nextBounds)) {
           continue;
         }
@@ -308,8 +315,18 @@ export async function createEmbeddedBrowserWebview({
     await invoke("browser_history_navigate", { label, direction }).catch(() => undefined);
   };
 
+  const navigateTo = async (nextUrl: string): Promise<void> => {
+    if (closed) return;
+    await invoke("browser_navigate", { label, url: nextUrl }).catch(() => undefined);
+  };
+
   return {
     label,
+    attach: async (nextContainer: HTMLElement) => {
+      activeContainer = nextContainer;
+      previousBounds = null;
+      await syncBounds();
+    },
     hide: async () => {
       await setVisible(false);
     },
@@ -340,5 +357,9 @@ export async function createEmbeddedBrowserWebview({
     },
     goBack: () => historyNavigate("back"),
     goForward: () => historyNavigate("forward"),
+    navigate: (nextUrl: string) => navigateTo(nextUrl),
+    setPageLoadHandler: (handler) => {
+      activeOnPageLoad = handler;
+    },
   };
 }

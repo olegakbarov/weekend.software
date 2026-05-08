@@ -1,0 +1,13 @@
+{
+  "symbol": "ChatProgressBar",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/chat.tsx",
+      "line": 128,
+      "props": []
+    }
+  ],
+  "propUsage": {},
+  "totalUsages": 1
+}

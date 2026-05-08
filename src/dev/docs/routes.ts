@@ -36,6 +36,7 @@ export const ROUTES: ReadonlyArray<RouteGroup> = [
     group: "Components",
     items: [
       { id: "accordion", name: "Accordion", icon: "list" },
+      { id: "chat", name: "Chat", icon: "message", isNew: true },
       { id: "badge", name: "Badge", icon: "hash" },
       { id: "button", name: "Button", icon: "square" },
       { id: "checkbox-radio", name: "Checkbox & Radio", icon: "check" },
@@ -47,7 +48,6 @@ export const ROUTES: ReadonlyArray<RouteGroup> = [
       { id: "input", name: "Input", icon: "edit" },
       { id: "input-copy", name: "Input Copy", icon: "copy" },
       { id: "input-group", name: "Input Group", icon: "edit" },
-      { id: "mobile-drawer", name: "Mobile Drawer", icon: "panelLeft" },
       { id: "nav-menu", name: "Nav Menu", icon: "list" },
       { id: "select", name: "Select", icon: "chevronDown" },
       { id: "sidebar", name: "Sidebar", icon: "panelLeft" },
@@ -57,6 +57,7 @@ export const ROUTES: ReadonlyArray<RouteGroup> = [
       { id: "tabs", name: "Tabs", icon: "layout" },
       { id: "thinking", name: "Thinking indicator", icon: "sparkles" },
       { id: "thinking-steps", name: "Thinking Steps", icon: "sparkles" },
+      { id: "tool-call", name: "Tool Call", icon: "sliders", isNew: true },
       { id: "tooltip", name: "Tooltip", icon: "message" },
     ],
   },

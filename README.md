@@ -89,6 +89,9 @@ Weekend normalizes project config into this shape:
       "role": "agent"
     }
   },
+  "agents": {
+    "default": "claude"
+  },
   "archived": false
 }
 ```
@@ -98,6 +101,7 @@ Notes:
 - `runtime.mode` is currently `portless`.
 - `runtime.url` must point to a local address and is the URL loaded in the browser pane.
 - `processes` is what Play uses to launch work. A project with no configured processes cannot start.
+- `agents.default` stores the preferred global agent profile id for new/default agent launches.
 - Shared files are synced into each project at `./shared-assets/`.
 
 ## Browser MCP

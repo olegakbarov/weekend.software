@@ -111,8 +111,6 @@ export type { InputCopyProps } from "./registry/input-copy";
 export { InputField, InputGroup } from "./registry/input-group";
 export type { InputFieldProps, InputGroupProps } from "./registry/input-group";
 
-export { MobileDrawer } from "./registry/mobile-drawer";
-
 export { NavItem } from "./registry/nav-item";
 export type { NavItemProps } from "./registry/nav-item";
 
@@ -165,6 +163,50 @@ export type {
   TabPanelProps,
   TabsTriggerProps,
 } from "./registry/tabs";
+
+export { ToolCall } from "./registry/tool-call";
+export type { ToolCallProps, ToolCallState } from "./registry/tool-call";
+
+export { ToolCallList } from "./registry/tool-call-list";
+export type {
+  ToolCallListItem,
+  ToolCallListProps,
+} from "./registry/tool-call-list";
+
+export { ChatMessage } from "./registry/chat-message";
+export type {
+  ChatMessageProps,
+  ChatMessageRole,
+} from "./registry/chat-message";
+
+export { ChatMessageList } from "./registry/chat-message-list";
+export type {
+  ChatMessageListHandle,
+  ChatMessageListProps,
+} from "./registry/chat-message-list";
+
+export { ChatComposer } from "./registry/chat-composer";
+export type { ChatComposerProps } from "./registry/chat-composer";
+
+export { ChatThinkingIndicator } from "./registry/chat-thinking-indicator";
+export type { ChatThinkingIndicatorProps } from "./registry/chat-thinking-indicator";
+
+export { ChatProgressBar } from "./registry/chat-progress-bar";
+export type { ChatProgressBarProps } from "./registry/chat-progress-bar";
+
+export { Chat, defaultMarkdownRenderer } from "./registry/chat";
+export type {
+  ChatMessageItem,
+  ChatProps,
+  ChatRenderMarkdown,
+  ChatRenderMarkdownOptions,
+  ChatStatus,
+} from "./registry/chat";
+
+// Re-export Streamdown so consumers can use it directly when constructing a
+// custom <Chat renderMarkdown> or rendering Markdown elsewhere. Side-effect
+// CSS import (`streamdown/styles.css`) is bundled into chat.tsx already.
+export { Streamdown } from "streamdown";
 
 export {
   ThinkingStep,

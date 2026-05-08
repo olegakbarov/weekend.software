@@ -343,8 +343,8 @@ body {
 
 /* VCR font - for clickable/interactive items only. ALWAYS UPPERCASE */
 @utility font-vcr {
-  font-family: var(--font-vcr);
-  font-weight: 500;
+  font-family: "VCR OSD Mono", monospace;
+  font-weight: 400;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }

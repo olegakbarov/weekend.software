@@ -10,8 +10,16 @@ import { TabItem, TabPanel, Tabs, TabsList } from "@weekend/design/registry";
 import {
   type RuntimeDebugSnapshot,
   type RuntimeTelemetryEvent,
+  type AgentProfile,
+  type AgentProvider,
+  type AgentSettings,
 } from "@/lib/controller";
 import type { WeekendLogsSnapshot } from "@/components/logs/logs-page";
+import {
+  isBuiltInAgentProfile,
+  normalizeAgentSettings,
+  slugifyAgentProfileId,
+} from "@/lib/controller/agent-profiles";
 
 function formatTimestamp(unixMs: number): string {
   if (!Number.isFinite(unixMs) || unixMs <= 0) return "n/a";
@@ -88,6 +96,8 @@ export type SettingsPageProps = {
   logsError: string | null;
   isLogsRefreshing: boolean;
   onRefreshLogs: () => void;
+  agentSettings: AgentSettings;
+  onAgentSettingsChange: (settings: AgentSettings) => void;
 };
 
 const THEME_LABELS: Record<ThemeName, string> = {
@@ -101,6 +111,25 @@ const THEME_SEG_ITEMS: ReadonlyArray<SegItem<ThemeName>> = THEME_NAMES.map((t) =
   value: t,
   label: THEME_LABELS[t],
 }));
+
+const AGENT_PROVIDERS: ReadonlyArray<{ value: AgentProvider; label: string }> = [
+  { value: "claude-code", label: "Claude Code" },
+  { value: "codex", label: "Codex" },
+  { value: "custom", label: "Custom" },
+];
+
+function updateAgentProfile(
+  settings: AgentSettings,
+  profileId: string,
+  updater: (profile: AgentProfile) => AgentProfile
+): AgentSettings {
+  return normalizeAgentSettings({
+    ...settings,
+    profiles: settings.profiles.map((profile) =>
+      profile.id === profileId ? updater(profile) : profile
+    ),
+  });
+}
 
 export function SettingsPage({
   snapshot,
@@ -116,9 +145,37 @@ export function SettingsPage({
   logsError,
   isLogsRefreshing,
   onRefreshLogs,
+  agentSettings,
+  onAgentSettingsChange,
 }: SettingsPageProps) {
   const { activeTheme, setActiveTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState<"basic" | "logs" | "advanced">("basic");
+  const [activeTab, setActiveTab] = useState<"basic" | "agents" | "logs" | "advanced">("basic");
+
+  const addAgentProfile = () => {
+    let suffix = agentSettings.profiles.length + 1;
+    let id = `custom-${suffix}`;
+    const usedIds = new Set(agentSettings.profiles.map((profile) => profile.id));
+    while (usedIds.has(id)) {
+      suffix += 1;
+      id = `custom-${suffix}`;
+    }
+    onAgentSettingsChange(
+      normalizeAgentSettings({
+        ...agentSettings,
+        profiles: [
+          ...agentSettings.profiles,
+          {
+            id,
+            label: "Custom agent",
+            provider: "custom",
+            command: "agent",
+            sessionIdStrategy: "none",
+            resumeCommand: null,
+          },
+        ],
+      })
+    );
+  };
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden p-6">
@@ -127,10 +184,11 @@ export function SettingsPage({
       <Tabs
         className="mt-4 min-h-0 flex-1"
         value={activeTab}
-        onValueChange={(v) => setActiveTab(v as "basic" | "logs" | "advanced")}
+        onValueChange={(v) => setActiveTab(v as "basic" | "agents" | "logs" | "advanced")}
       >
         <TabsList>
           <TabItem value="basic" label="Basic" />
+          <TabItem value="agents" label="Agents" />
           <TabItem value="logs" label="Logs" />
           <TabItem value="advanced" label="Advanced" />
         </TabsList>
@@ -182,6 +240,154 @@ export function SettingsPage({
                 onChange={onShowArchivedAppsChange}
                 ariaLabel="Show Archived Apps"
               />
+            </div>
+          </div>
+        </TabPanel>
+
+        <TabPanel className="mt-4 overflow-auto" value="agents">
+          <div className="space-y-3">
+            <div className="rounded border border-border/70 bg-background/60 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-code text-xs text-foreground">Agent Profiles</p>
+                  <p className="font-code text-[11px] text-muted-foreground">
+                    Profiles define launch and resume semantics for agent terminals.
+                  </p>
+                </div>
+                <Button
+                  className="h-7 px-2 font-code text-[10px]"
+                  onClick={addAgentProfile}
+                  size="sm"
+                  variant="ghost"
+                >
+                  Add
+                </Button>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {agentSettings.profiles.map((profile) => {
+                  const isDefault = profile.id === agentSettings.defaultProfileId;
+                  const builtIn = isBuiltInAgentProfile(profile.id);
+                  return (
+                    <div
+                      key={profile.id}
+                      className="grid gap-2 rounded border border-border/60 bg-card p-2 md:grid-cols-[minmax(120px,1fr)_150px_minmax(180px,1.5fr)_150px_auto]"
+                    >
+                      <input
+                        className="h-8 min-w-0 rounded border border-border/60 bg-background px-2 font-code text-[11px] text-foreground outline-none"
+                        value={profile.label}
+                        onChange={(event) =>
+                          onAgentSettingsChange(
+                            updateAgentProfile(agentSettings, profile.id, (current) => ({
+                              ...current,
+                              label: event.target.value,
+                              id: builtIn
+                                ? current.id
+                                : slugifyAgentProfileId(event.target.value) || current.id,
+                            }))
+                          )
+                        }
+                        aria-label={`${profile.label} label`}
+                      />
+                      <select
+                        className="h-8 rounded border border-border/60 bg-background px-2 font-code text-[11px] text-foreground outline-none"
+                        value={profile.provider}
+                        onChange={(event) =>
+                          onAgentSettingsChange(
+                            updateAgentProfile(agentSettings, profile.id, (current) => ({
+                              ...current,
+                              provider: event.target.value as AgentProvider,
+                              sessionIdStrategy:
+                                event.target.value === "claude-code"
+                                  ? "preseed-uuid"
+                                  : event.target.value === "codex"
+                                    ? "hook-json"
+                                    : current.sessionIdStrategy,
+                            }))
+                          )
+                        }
+                        aria-label={`${profile.label} provider`}
+                      >
+                        {AGENT_PROVIDERS.map((provider) => (
+                          <option key={provider.value} value={provider.value}>
+                            {provider.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        className="h-8 min-w-0 rounded border border-border/60 bg-background px-2 font-code text-[11px] text-foreground outline-none"
+                        value={profile.command}
+                        onChange={(event) =>
+                          onAgentSettingsChange(
+                            updateAgentProfile(agentSettings, profile.id, (current) => ({
+                              ...current,
+                              command: event.target.value,
+                            }))
+                          )
+                        }
+                        aria-label={`${profile.label} command`}
+                      />
+                      <select
+                        className="h-8 rounded border border-border/60 bg-background px-2 font-code text-[11px] text-foreground outline-none"
+                        value={profile.sessionIdStrategy}
+                        onChange={(event) =>
+                          onAgentSettingsChange(
+                            updateAgentProfile(agentSettings, profile.id, (current) => ({
+                              ...current,
+                              sessionIdStrategy: event.target.value as AgentProfile["sessionIdStrategy"],
+                            }))
+                          )
+                        }
+                        aria-label={`${profile.label} session id strategy`}
+                      >
+                        <option value="preseed-uuid">preseed uuid</option>
+                        <option value="hook-json">hook json</option>
+                        <option value="stdout-json">stdout json</option>
+                        <option value="stdout-regex">stdout regex</option>
+                        <option value="filesystem">filesystem</option>
+                        <option value="none">none</option>
+                      </select>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          className="h-7 px-2 font-code text-[10px]"
+                          onClick={() =>
+                            onAgentSettingsChange({
+                              ...agentSettings,
+                              defaultProfileId: profile.id,
+                            })
+                          }
+                          size="sm"
+                          variant={isDefault ? "secondary" : "ghost"}
+                        >
+                          Default
+                        </Button>
+                        {!builtIn ? (
+                          <Button
+                            className="h-7 px-2 font-code text-[10px] text-destructive"
+                            onClick={() =>
+                              onAgentSettingsChange(
+                                normalizeAgentSettings({
+                                  ...agentSettings,
+                                  profiles: agentSettings.profiles.filter(
+                                    (candidate) => candidate.id !== profile.id
+                                  ),
+                                  defaultProfileId: isDefault
+                                    ? agentSettings.profiles[0]?.id
+                                    : agentSettings.defaultProfileId,
+                                })
+                              )
+                            }
+                            size="sm"
+                            variant="ghost"
+                          >
+                            Remove
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </TabPanel>
