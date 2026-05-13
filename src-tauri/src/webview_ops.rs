@@ -139,12 +139,7 @@ pub fn eval_js_with_result<R: Runtime>(
         );
     }
 
-    let request_id_literal = serde_json::to_string(&request_id)
-        .map_err(|e| format!("failed to serialize request id: {e}"))?;
-    let callback_token_literal = serde_json::to_string(&callback_token)
-        .map_err(|e| format!("failed to serialize callback token: {e}"))?;
-
-    let wrapper = build_eval_wrapper(script, &request_id_literal, &callback_token_literal);
+    let wrapper = build_eval_wrapper(script, &request_id, &callback_token)?;
 
     if let Err(error) = webview.eval(&wrapper) {
         cleanup_pending(&bridge_state.pending_evals, &request_id);
@@ -204,100 +199,10 @@ fn describe_bridge_state(label: &str, bridge_state: &BridgeState) -> String {
 
 fn build_eval_wrapper(
     script: &str,
-    request_id_literal: &str,
-    callback_token_literal: &str,
-) -> String {
-    format!(
-        r#"(async function() {{
-  const __weekend_request_id = {request_id_literal};
-  const __weekend_callback_token = {callback_token_literal};
-  const __weekend_sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  const __weekend_has_low_level_ipc = () => {{
-    const i = window.__TAURI_INTERNALS__;
-    return Boolean(
-      i &&
-      typeof i.ipc === "function" &&
-      typeof i.transformCallback === "function" &&
-      typeof i.unregisterCallback === "function"
-    );
-  }};
-  const __weekend_wait_for_ipc = async (timeoutMs = 2000) => {{
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() <= deadline) {{
-      if (
-        window.__TAURI_INTERNALS__ &&
-        (
-          typeof window.__TAURI_INTERNALS__.invoke === "function" ||
-          __weekend_has_low_level_ipc()
-        )
-      ) {{
-        return;
-      }}
-      await __weekend_sleep(25);
-    }}
-    throw new Error("Tauri IPC bridge unavailable");
-  }};
-  const __weekend_invoke = async (cmd, payload) => {{
-    const i = window.__TAURI_INTERNALS__;
-    if (i && typeof i.invoke === "function") {{
-      try {{
-        return await i.invoke(cmd, payload);
-      }} catch (__weekend_invoke_err) {{
-        if (!__weekend_has_low_level_ipc()) {{
-          throw __weekend_invoke_err;
-        }}
-      }}
-    }}
-    if (!__weekend_has_low_level_ipc()) {{
-      throw new Error("Tauri low-level IPC unavailable");
-    }}
-    return await new Promise((resolve, reject) => {{
-      const callback = i.transformCallback((response) => {{
-        try {{ i.unregisterCallback(error); }} catch (_) {{}}
-        resolve(response);
-      }}, true);
-      const error = i.transformCallback((invokeError) => {{
-        try {{ i.unregisterCallback(callback); }} catch (_) {{}}
-        reject(invokeError);
-      }}, true);
-      try {{
-        i.ipc({{
-          cmd,
-          callback,
-          error,
-          payload
-        }});
-      }} catch (sendError) {{
-        try {{
-          i.unregisterCallback(callback);
-          i.unregisterCallback(error);
-        }} catch (_) {{}}
-        reject(sendError);
-      }}
-    }});
-  }};
-  const __weekend_send = async (payload) => {{
-    await __weekend_wait_for_ipc();
-    await __weekend_invoke("browser_eval_result", {{
-      requestId: __weekend_request_id,
-      callbackToken: __weekend_callback_token,
-      payload: JSON.stringify(payload),
-    }});
-  }};
-  try {{
-    let __weekend_result = await (async function() {{ {user_script} }})();
-    if (__weekend_result === undefined) __weekend_result = null;
-    await __weekend_send({{ ok: true, value: __weekend_result }});
-}} catch (__weekend_err) {{
-    try {{
-      await __weekend_send({{ ok: false, error: String(__weekend_err) }});
-    }} catch (__weekend_send_err) {{
-      console.error("[Weekend Software] eval callback failed", __weekend_send_err);
-    }}
-  }}
-}})()"#,
-        user_script = script,
-    )
+    request_id: &str,
+    callback_token: &str,
+) -> Result<String, String> {
+    crate::js::eval_with_result(script, request_id, callback_token)
 }
 
 fn cleanup_pending(pending_evals: &PendingEvalMap, request_id: &str) {
@@ -315,10 +220,9 @@ pub fn navigate_webview<R: Runtime>(
         .get_webview(label)
         .ok_or_else(|| format!("webview not found: {label}"))?;
 
-    let url_literal =
-        serde_json::to_string(url).map_err(|e| format!("failed to serialize URL: {e}"))?;
+    let script = crate::js::navigate_webview(url)?;
     webview
-        .eval(format!("window.location.href = {url_literal}"))
+        .eval(script)
         .map_err(|e| format!("navigate failed: {e}"))
 }
 
@@ -338,7 +242,7 @@ mod tests {
 
     #[test]
     fn eval_wrapper_uses_camel_case_callback_fields() {
-        let wrapper = build_eval_wrapper("return 1 + 1;", "\"req-1\"", "\"cb-1\"");
+        let wrapper = build_eval_wrapper("return 1 + 1;", "req-1", "cb-1").expect("wrapper");
         assert!(wrapper.contains("requestId: __weekend_request_id"));
         assert!(wrapper.contains("callbackToken: __weekend_callback_token"));
         assert!(!wrapper.contains("request_id: __weekend_request_id"));

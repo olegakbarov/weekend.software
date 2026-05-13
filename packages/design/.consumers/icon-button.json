@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/editor/project-editor-pane.tsx",
-      "line": 526,
+      "line": 609,
       "props": [
         "icon",
         "label",
@@ -14,7 +14,7 @@
     },
     {
       "file": "src/components/editor/project-editor-pane.tsx",
-      "line": 532,
+      "line": 615,
       "props": [
         "icon",
         "label",

@@ -1,60 +1,7 @@
-import { useCallback } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { SharedPage } from "@/components/shared/shared-page";
-import { useWorkspaceState } from "@/hooks/use-workspace-state";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/shared")({
-  component: SharedRoute,
+  beforeLoad: () => {
+    throw redirect({ to: "/settings", search: { tab: "shared" } });
+  },
 });
-
-function SharedRoute() {
-  const { controller } = Route.useRouteContext();
-  const state = useWorkspaceState(controller);
-
-  const refreshSharedAssets = useCallback(() => {
-    void controller.refreshSharedAssets().catch(() => undefined);
-  }, [controller]);
-
-  const handleUploadSharedAssets = useCallback(
-    async (files: File[]) => {
-      await controller.uploadSharedAssets(files);
-    },
-    [controller],
-  );
-
-  const handleRenameSharedAsset = useCallback(
-    async (fileName: string, newFileName: string) => {
-      await controller.renameSharedAsset(fileName, newFileName);
-    },
-    [controller],
-  );
-
-  const handleDeleteSharedAsset = useCallback(
-    async (fileName: string) => {
-      await controller.deleteSharedAsset(fileName);
-    },
-    [controller],
-  );
-
-  const handleUpdateSharedEnv = useCallback(
-    async (env: Record<string, string>) => {
-      await controller.updateSharedEnv(env);
-    },
-    [controller],
-  );
-
-  return (
-    <SharedPage
-      sharedAssets={state.sharedAssets}
-      sharedAssetsError={state.sharedAssetsError}
-      isLoading={state.sharedAssetsLoading}
-      isUploading={state.sharedAssetsUploading}
-      onRefresh={refreshSharedAssets}
-      onUpload={handleUploadSharedAssets}
-      onRename={handleRenameSharedAsset}
-      onDelete={handleDeleteSharedAsset}
-      sharedEnv={state.sharedEnv}
-      onUpdateSharedEnv={handleUpdateSharedEnv}
-    />
-  );
-}

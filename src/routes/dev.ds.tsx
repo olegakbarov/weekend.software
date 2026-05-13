@@ -42,7 +42,8 @@ function DesignSystemRoute() {
 
   return (
     <div
-      className="relative h-full w-full overflow-auto bg-background"
+      className="ds-docs-root relative h-full w-full overflow-auto bg-background"
+      data-ds-docs-root=""
       onClick={handleAnchorIntercept}
     >
       <DocsApp theme={activeTheme} onCycleTheme={cycleTheme} />

@@ -3,6 +3,15 @@
   "tier": "registry",
   "consumers": [
     {
+      "file": "src/components/editor/project-editor-pane.tsx",
+      "line": 574,
+      "props": [
+        "className",
+        "value",
+        "onValueChange"
+      ]
+    },
+    {
       "file": "src/components/settings/settings-page.tsx",
       "line": 184,
       "props": [
@@ -35,10 +44,10 @@
     }
   ],
   "propUsage": {
-    "className": 1,
+    "className": 2,
     "defaultValue": 2,
-    "onValueChange": 2,
-    "value": 2
+    "onValueChange": 3,
+    "value": 3
   },
-  "totalUsages": 4
+  "totalUsages": 5
 }

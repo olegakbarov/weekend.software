@@ -33,6 +33,23 @@ pub enum BridgeRequest {
         label: String,
         config: crate::event_buffer::ObserverConfig,
     },
+    #[serde(rename = "terminal_spawn")]
+    TerminalSpawn {
+        project: Option<String>,
+        command: Option<String>,
+        display_name: Option<String>,
+    },
+    #[serde(rename = "terminal_write")]
+    TerminalWrite { terminal_id: String, input: String },
+    #[serde(rename = "terminal_read")]
+    TerminalRead {
+        terminal_id: String,
+        since_seq: Option<u64>,
+    },
+    #[serde(rename = "terminal_list")]
+    TerminalList { project: Option<String> },
+    #[serde(rename = "terminal_kill")]
+    TerminalKill { terminal_id: String },
 }
 
 #[derive(Debug, Deserialize)]

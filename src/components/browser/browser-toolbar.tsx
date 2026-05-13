@@ -1,29 +1,26 @@
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import {
-  Blocks,
-  ChevronLeft,
-  ChevronRight,
   Crosshair,
   FileCode2,
   Plus,
   RefreshCw,
   Settings,
+  X,
 } from "lucide-react";
-import type { FormEvent } from "react";
 import {
   type ProcessEntrySnapshot,
   type ProcessRole,
   type TerminalSessionDescriptor,
   terminalDisplayLabel,
 } from "@/lib/controller";
+import { formatBrowserAddressDisplay } from "./browser-url-utils";
 
 type WorkspaceMode =
   | "browser"
   | "editor"
   | "agent"
   | "terminal"
-  | "settings"
-  | "skills";
+  | "settings";
 
 type TerminalGroup = "processes" | "agents";
 
@@ -113,83 +110,103 @@ function terminalGroupForSession(
     : "processes";
 }
 
-function TabStrip({
-  kind,
-  sessions,
+function TerminalTabStrip({
+  processSessions,
+  agentSessions,
   activeTerminalId,
   isActiveMode,
-  configuredProcesses,
   onSelect,
-  onCreate,
+  onRemove,
+  onCreateProcess,
+  onCreateAgent,
   disabled,
 }: {
-  kind: TerminalGroup;
-  sessions: TerminalSessionDescriptor[];
+  processSessions: TerminalSessionDescriptor[];
+  agentSessions: TerminalSessionDescriptor[];
   activeTerminalId: string | null;
   isActiveMode: boolean;
-  configuredProcesses: ConfiguredProcessMap;
   onSelect: (terminalId: string) => void;
-  onCreate: () => void;
+  onRemove: (terminalId: string) => void;
+  onCreateProcess: () => void;
+  onCreateAgent: () => void;
   disabled: boolean;
 }) {
-  const activeSession =
-    sessions.find((session) => session.terminalId === activeTerminalId) ?? null;
-  const isActiveGroup =
-    !!activeSession &&
-    terminalGroupForSession(activeSession, configuredProcesses) === kind &&
-    isActiveMode;
+  const renderTab = (session: TerminalSessionDescriptor) => {
+    const active = session.terminalId === activeTerminalId && isActiveMode;
+    const sessionLabel = terminalDisplayLabel(session);
+    return (
+      <div
+        className={`group inline-flex h-8 min-w-0 max-w-[11rem] items-center border-r border-border/60 transition-colors ${
+          active
+            ? "bg-secondary/60 text-foreground"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+        key={session.terminalId}
+      >
+        <button
+          className="inline-flex h-full min-w-0 flex-1 items-center pr-2 pl-8 text-[11px] disabled:cursor-default disabled:opacity-45"
+          disabled={disabled}
+          onClick={() => onSelect(session.terminalId)}
+          title={sessionLabel}
+          type="button"
+        >
+          <span className="min-w-0 truncate leading-none">
+            {sessionLabel.toUpperCase()}
+          </span>
+        </button>
+        <button
+          aria-label={`Close ${sessionLabel}`}
+          className="mr-2 inline-flex size-4 shrink-0 items-center justify-center rounded-sm text-muted-foreground/70 opacity-0 transition-opacity hover:bg-foreground/10 hover:text-foreground focus:opacity-100 group-hover:opacity-100 disabled:cursor-default"
+          disabled={disabled}
+          onClick={() => onRemove(session.terminalId)}
+          title="Close"
+          type="button"
+        >
+          <X className="size-2.5" />
+        </button>
+      </div>
+    );
+  };
+
+  const createBtnClass =
+    "inline-flex h-8 shrink-0 items-center gap-1 border-l border-border/60 px-2.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-default disabled:opacity-45";
+
+  const totalSessions = processSessions.length + agentSessions.length;
 
   return (
-    <div
-      className={`flex min-w-0 items-center rounded-md border border-border/80 bg-background ${
-        isActiveGroup ? "ring-1 ring-foreground/10" : ""
-      }`}
-    >
-      <div className="flex h-8 min-w-0 flex-1 items-center gap-1 overflow-hidden px-1">
-        {sessions.length === 0 ? (
-          <span className="min-w-0 truncate px-1 font-vcr text-[11px] text-muted-foreground/60">
-            None
-          </span>
-        ) : (
-          sessions.map((session) => {
-            const active = session.terminalId === activeTerminalId && isActiveMode;
-            const sessionLabel = terminalDisplayLabel(session);
-            return (
-              <button
-                className={`group flex h-6 min-w-0 max-w-[8rem] items-center gap-1 rounded px-1.5 transition-colors ${
-                  active
-                    ? "bg-secondary/70 text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
-                }`}
-                disabled={disabled}
-                key={session.terminalId}
-                onClick={() => onSelect(session.terminalId)}
-                title={sessionLabel}
-                type="button"
-              >
-                <span className="min-w-0 truncate font-vcr text-[11px]">{sessionLabel}</span>
-                <span
-                  className={`size-1.5 shrink-0 rounded-full ${
-                    session.status === "alive"
-                      ? "bg-emerald-400"
-                      : "bg-muted-foreground/30"
-                  }`}
-                />
-              </button>
-            );
-          })
-        )}
-      </div>
-
+    <div className="flex min-w-0 items-center rounded-md border border-border/80 bg-background font-vcr">
+      {totalSessions === 0 ? (
+        <span className="flex h-8 shrink-0 items-center px-2.5 text-[11px] text-muted-foreground/60">
+          None
+        </span>
+      ) : (
+        <>
+          {processSessions.map(renderTab)}
+          {agentSessions.map(renderTab)}
+        </>
+      )}
+      <div className="min-w-0 flex-1" />
       <button
-        aria-label={`New ${kind === "agents" ? "agent" : "process"} terminal`}
-        className="inline-flex h-8 w-8 shrink-0 items-center justify-center border-border/60 border-l text-muted-foreground transition-colors hover:text-foreground disabled:cursor-default disabled:opacity-45"
+        aria-label="New terminal"
+        className={createBtnClass}
         disabled={disabled}
-        onClick={onCreate}
-        title={`New ${kind === "agents" ? "agent" : "process"} terminal`}
+        onClick={onCreateProcess}
+        title="New terminal"
         type="button"
       >
-        <Plus className="size-3.5" />
+        <Plus className="size-3" />
+        <span className="leading-none">TERMINAL</span>
+      </button>
+      <button
+        aria-label="New agent"
+        className={createBtnClass}
+        disabled={disabled}
+        onClick={onCreateAgent}
+        title="New agent"
+        type="button"
+      >
+        <Plus className="size-3" />
+        <span className="leading-none">AGENT</span>
       </button>
     </div>
   );
@@ -200,12 +217,7 @@ export function BrowserToolbar({
   onWorkspaceModeChange,
   projectId,
   urlInputDraft,
-  addressBarError,
   hasBrowserUrl,
-  onAddressBarDraftChange,
-  onNavigateFromAddressBar,
-  onGoBack,
-  onGoForward,
   onReloadCurrentPage,
   isGrabbing,
   onToggleElementGrab,
@@ -213,22 +225,18 @@ export function BrowserToolbar({
   configuredProcesses,
   activeTerminalId,
   onSelectTerminal,
+  onRemoveTerminal,
   onCreateTerminal,
   onCreateAgentTerminal,
   onOpenConfigFile: _onOpenConfigFile,
 }: {
   workspaceMode: WorkspaceMode;
   onWorkspaceModeChange: (
-    mode: "browser" | "editor" | "agent" | "settings" | "skills"
+    mode: "browser" | "editor" | "agent" | "settings"
   ) => void;
   projectId: string | null;
   urlInputDraft: string;
-  addressBarError: string | null;
   hasBrowserUrl: boolean;
-  onAddressBarDraftChange: (value: string) => void;
-  onNavigateFromAddressBar: (event: FormEvent<HTMLFormElement>) => void;
-  onGoBack: () => void;
-  onGoForward: () => void;
   onReloadCurrentPage: () => void;
   isGrabbing: boolean;
   onToggleElementGrab: () => void;
@@ -236,6 +244,7 @@ export function BrowserToolbar({
   configuredProcesses: ConfiguredProcessMap;
   activeTerminalId: string | null;
   onSelectTerminal: (terminalId: string) => void;
+  onRemoveTerminal: (terminalId: string) => void;
   onCreateTerminal: () => void;
   onCreateAgentTerminal: () => void;
   onOpenConfigFile: () => void;
@@ -243,7 +252,6 @@ export function BrowserToolbar({
   const isBrowserActive = workspaceMode === "browser";
   const isTerminalActive =
     workspaceMode === "terminal" || workspaceMode === "agent";
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const { processSessions, agentSessions } = useMemo(() => {
     return {
@@ -262,8 +270,12 @@ export function BrowserToolbar({
     if (!isBrowserActive) {
       onWorkspaceModeChange("browser");
     }
-    requestAnimationFrame(() => inputRef.current?.focus());
   };
+
+  const displayAddress = useMemo(
+    () => formatBrowserAddressDisplay(urlInputDraft) || "browser:/",
+    [urlInputDraft]
+  );
 
   const sideBtn =
     "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground";
@@ -273,13 +285,9 @@ export function BrowserToolbar({
   return (
     <div className="relative h-12 shrink-0 border-b border-border bg-background">
       <div className="flex h-full items-center gap-2 px-3">
-        <div className="grid min-w-0 flex-1 grid-cols-3 gap-2">
+        <div className="grid min-w-0 flex-1 grid-cols-[1fr_2fr] gap-3">
           <div
-            className={`flex min-w-0 items-center rounded-md border bg-background transition-opacity ${
-              addressBarError
-                ? "border-destructive/70"
-                : "border-border/80 focus-within:border-foreground/30"
-            } ${
+            className={`flex min-w-0 items-center rounded-md border border-border/80 bg-background transition-opacity ${
               !isBrowserActive
                 ? "cursor-pointer opacity-50 hover:opacity-70"
                 : ""
@@ -288,43 +296,35 @@ export function BrowserToolbar({
             role={!isBrowserActive ? "button" : undefined}
             tabIndex={!isBrowserActive ? 0 : undefined}
           >
-            <form
-              className="flex min-w-0 flex-1 items-center"
-              onSubmit={onNavigateFromAddressBar}
+            <button
+              aria-label="Files"
+              aria-pressed={workspaceMode === "editor"}
+              className={`inline-flex h-8 shrink-0 items-center gap-1.5 border-border/60 border-r px-2.5 font-vcr text-[11px] transition-colors disabled:cursor-default disabled:opacity-45 ${
+                workspaceMode === "editor"
+                  ? "bg-secondary/60 text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              disabled={!projectId}
+              onClick={(event) => {
+                event.stopPropagation();
+                onWorkspaceModeChange("editor");
+              }}
+              title="Files"
+              type="button"
             >
-              <input
-                ref={inputRef}
-                aria-invalid={addressBarError ? true : undefined}
-                className="h-8 min-w-0 flex-1 bg-transparent px-2 font-code text-xs text-foreground outline-none placeholder:text-muted-foreground/60"
-                onChange={(event) =>
-                  onAddressBarDraftChange(event.target.value)
-                }
-                onClick={!isBrowserActive ? handleBrowserBarClick : undefined}
-                placeholder="Enter URL and press Enter"
-                readOnly={!isBrowserActive}
-                spellCheck={false}
-                tabIndex={!isBrowserActive ? -1 : undefined}
-                value={urlInputDraft}
-              />
+              <FileCode2 className="size-3.5" />
+              <span className="leading-none">FILES</span>
+            </button>
+            <div
+              className="flex min-w-0 flex-1 items-center"
+            >
+              <span
+                className="flex h-8 min-w-0 flex-1 items-center truncate px-2 font-code text-xs text-foreground/80"
+                title={urlInputDraft}
+              >
+                {displayAddress}
+              </span>
               <div className="flex shrink-0 items-center gap-0.5 pr-1">
-                <button
-                  className="rounded p-1 text-muted-foreground/50 transition-colors hover:text-foreground disabled:text-muted-foreground/25"
-                  disabled={!hasBrowserUrl}
-                  onClick={onGoBack}
-                  title="Back"
-                  type="button"
-                >
-                  <ChevronLeft className="size-3.5" />
-                </button>
-                <button
-                  className="rounded p-1 text-muted-foreground/50 transition-colors hover:text-foreground disabled:text-muted-foreground/25"
-                  disabled={!hasBrowserUrl}
-                  onClick={onGoForward}
-                  title="Forward"
-                  type="button"
-                >
-                  <ChevronRight className="size-3.5" />
-                </button>
                 <button
                   className="rounded p-1 text-muted-foreground/50 transition-colors hover:text-foreground disabled:text-muted-foreground/25"
                   disabled={!hasBrowserUrl}
@@ -332,78 +332,41 @@ export function BrowserToolbar({
                   title="Reload"
                   type="button"
                 >
-                  <RefreshCw className="size-3" />
+                  <RefreshCw className="size-3.5" />
+                </button>
+                <button
+                  aria-label="Grab element"
+                  aria-pressed={isGrabbing}
+                  className={
+                    isGrabbing
+                      ? "rounded bg-blue-500/10 p-1 text-blue-500 transition-colors hover:text-blue-400"
+                      : "rounded p-1 text-muted-foreground/50 transition-colors hover:text-foreground disabled:text-muted-foreground/25"
+                  }
+                  disabled={!isBrowserActive || !hasBrowserUrl}
+                  onClick={onToggleElementGrab}
+                  title={isGrabbing ? "Stop grabbing element" : "Grab element"}
+                  type="button"
+                >
+                  <Crosshair className="size-3.5" />
                 </button>
               </div>
-            </form>
+            </div>
           </div>
 
-          <TabStrip
-            kind="processes"
-            sessions={processSessions}
+          <TerminalTabStrip
+            processSessions={processSessions}
+            agentSessions={agentSessions}
             activeTerminalId={activeTerminalId}
             isActiveMode={isTerminalActive}
-            configuredProcesses={configuredProcesses}
             onSelect={onSelectTerminal}
-            onCreate={onCreateTerminal}
-            disabled={!projectId}
-          />
-
-          <TabStrip
-            kind="agents"
-            sessions={agentSessions}
-            activeTerminalId={activeTerminalId}
-            isActiveMode={isTerminalActive}
-            configuredProcesses={configuredProcesses}
-            onSelect={onSelectTerminal}
-            onCreate={onCreateAgentTerminal}
+            onRemove={onRemoveTerminal}
+            onCreateProcess={onCreateTerminal}
+            onCreateAgent={onCreateAgentTerminal}
             disabled={!projectId}
           />
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {isBrowserActive ? (
-            <button
-              aria-label="Grab element"
-              aria-pressed={isGrabbing}
-              className={
-                isGrabbing
-                  ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-blue-500/60 bg-blue-500/10 text-blue-500 transition-colors hover:text-blue-400"
-                  : `${sideBtn} disabled:text-muted-foreground/25`
-              }
-              disabled={!hasBrowserUrl}
-              onClick={onToggleElementGrab}
-              title={isGrabbing ? "Stop grabbing element" : "Grab element"}
-              type="button"
-            >
-              <Crosshair className="size-3.5" />
-            </button>
-          ) : null}
-
-          <button
-            aria-label="Files"
-            aria-pressed={workspaceMode === "editor"}
-            className={workspaceMode === "editor" ? sideBtnActive : sideBtn}
-            disabled={!projectId}
-            onClick={() => onWorkspaceModeChange("editor")}
-            title="Files"
-            type="button"
-          >
-            <FileCode2 className="size-3.5" />
-          </button>
-
-          <button
-            aria-label="Skills"
-            aria-pressed={workspaceMode === "skills"}
-            className={workspaceMode === "skills" ? sideBtnActive : sideBtn}
-            disabled={!projectId}
-            onClick={() => onWorkspaceModeChange("skills")}
-            title="Skills"
-            type="button"
-          >
-            <Blocks className="size-3.5" />
-          </button>
-
           <button
             aria-label="Project settings"
             aria-pressed={workspaceMode === "settings"}

@@ -62,7 +62,12 @@ export function SidebarProjectList() {
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className={cn("min-h-0 flex-1 space-y-px overflow-y-auto overflow-x-hidden", "py-1")}>
+      <div
+        className={cn(
+          "sidebar-edge-scrollbar min-h-0 flex-1 space-y-px overflow-y-auto overflow-x-hidden",
+          "pb-1 pt-3",
+        )}
+      >
         <SortableContext
           items={data.projects}
           strategy={verticalListSortingStrategy}

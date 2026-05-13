@@ -249,11 +249,8 @@ fn dispatch_request<R: Runtime + 'static>(
             ebs.set_observer_config(label, config.clone());
 
             // Eval configure() into the webview so observers activate immediately
-            match serde_json::to_string(config) {
-                Ok(config_json) => {
-                    let script = format!(
-                        "if (window.__WEEKEND_BRIDGE__) {{ window.__WEEKEND_BRIDGE__.configure({config_json}); }}"
-                    );
+            match crate::js::configure_observers(config) {
+                Ok(script) => {
                     let webview = app.get_webview(label);
                     match webview {
                         Some(wv) => {
@@ -276,6 +273,29 @@ fn dispatch_request<R: Runtime + 'static>(
                     message: format!("failed to serialize config: {e}"),
                 },
             }
+        }
+        BridgeRequest::TerminalSpawn {
+            project,
+            command,
+            display_name,
+        } => crate::bridge_terminal_spawn(
+            app,
+            project.clone(),
+            command.clone(),
+            display_name.clone(),
+        ),
+        BridgeRequest::TerminalWrite { terminal_id, input } => {
+            crate::bridge_terminal_write(app, terminal_id, input)
+        }
+        BridgeRequest::TerminalRead {
+            terminal_id,
+            since_seq,
+        } => crate::bridge_terminal_read(app, terminal_id, *since_seq),
+        BridgeRequest::TerminalList { project } => {
+            crate::bridge_terminal_list(app, project.clone())
+        }
+        BridgeRequest::TerminalKill { terminal_id } => {
+            crate::bridge_terminal_kill(app, terminal_id)
         }
     };
 

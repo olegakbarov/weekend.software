@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BrowserPane } from "@/components/browser/browser-pane";
 import { ProjectEditorPane } from "@/components/editor/project-editor-pane";
 import { ProjectSettingsPage } from "@/components/settings/project-settings-page";
-import { ProjectSkillsPage } from "@/components/skills/project-skills-page";
 import { TerminalView } from "@/components/terminal/terminal-view";
 import { useProjectActions } from "@/hooks/use-project-actions";
 import { useVimMode } from "@/hooks/use-vim-mode";
@@ -13,11 +12,12 @@ import {
   isTerminalOwnedByProject,
   type WorkspaceSearch,
 } from "@/lib/workspace-navigation";
+import type { ProjectThemeConfigSnapshot } from "@/lib/controller";
 
 export const Route = createFileRoute("/workspace/$project")({
   validateSearch: (search: Record<string, unknown>): WorkspaceSearch => {
     const view = search.view as string | undefined;
-    const validViews = ["browser", "editor", "terminal", "settings", "skills"];
+    const validViews = ["browser", "editor", "terminal", "settings"];
     return {
       view: validViews.includes(view ?? "") ? (view as WorkspaceSearch["view"]) : "browser",
       terminalId: (search.terminalId as string) ?? undefined,
@@ -142,14 +142,6 @@ function WorkspaceRoute() {
     [controller]
   );
 
-  const handlePlayFromSettings = useCallback(async () => {
-    await projectActions.playFromSettings();
-  }, [projectActions]);
-
-  const handleStopFromSettings = useCallback(() => {
-    projectActions.stop();
-  }, [projectActions]);
-
   const handleUpdateEnv = useCallback(
     async (env: Record<string, string>) => {
       await controller.updateProjectConfig(project, { env });
@@ -160,6 +152,13 @@ function WorkspaceRoute() {
   const handleUpdateDeployUrl = useCallback(
     async (deployUrl: string | null) => {
       await controller.updateProjectConfig(project, { deployUrl });
+    },
+    [controller, project]
+  );
+
+  const handleUpdateTheme = useCallback(
+    async (theme: ProjectThemeConfigSnapshot) => {
+      await controller.updateProjectConfig(project, { theme });
     },
     [controller, project]
   );
@@ -175,7 +174,6 @@ function WorkspaceRoute() {
   const workspaceMode = useMemo(() => {
     if (view === "editor") return "editor" as const;
     if (view === "settings") return "settings" as const;
-    if (view === "skills") return "skills" as const;
     if (view === "terminal") {
       return activeTerminalSession?.processRole === "agent"
         ? ("agent" as const)
@@ -209,36 +207,30 @@ function WorkspaceRoute() {
             onProjectTreeMutated={handleProjectTreeMutated}
             project={project}
             projectTree={projectTree}
+            filesystemEventVersion={filesystemEventVersion}
             requestedFilePath={selectedEditorFilePath}
             onSelectedFilePathChange={handleSelectedFilePathChange}
-          />
-        }
-        skillsContent={
-          <ProjectSkillsPage
-            project={project}
-            controller={controller}
+            onCommitChanges={projectActions.commitCurrentChanges}
           />
         }
         settingsContent={
           <ProjectSettingsPage
             project={project}
-            configPath={projectConfigSnapshot?.configPath ?? null}
+            controller={controller}
             projectConfigSnapshot={projectConfigSnapshot}
-            playState={playState}
-            playError={state.playErrorByProject[project] ?? null}
-            onPlayProject={handlePlayFromSettings}
-            onStopProject={handleStopFromSettings}
             isArchivingProject={projectActions.isArchivingProject}
             onArchiveProject={projectActions.archiveProject}
             isDeletingProject={projectActions.isDeletingProject}
             onDeleteProject={projectActions.deleteProject}
             onUpdateEnv={handleUpdateEnv}
             onUpdateDeployUrl={handleUpdateDeployUrl}
+            onUpdateTheme={handleUpdateTheme}
           />
         }
         terminalSessions={state.terminalSessionsByProject[project] ?? []}
         activeTerminalId={activeTerminalId ?? null}
         onSelectTerminal={projectActions.selectTerminal}
+        onRemoveTerminal={projectActions.removeTerminal}
         onCreateTerminal={projectActions.createTerminal}
         onCreateAgentTerminal={projectActions.createAgentTerminal}
         onOpenConfigFile={handleOpenConfigFile}

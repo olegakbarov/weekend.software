@@ -1,4 +1,4 @@
-import { Terminal as TerminalIcon, X } from "lucide-react";
+import { Bot, Terminal as TerminalIcon, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { type TerminalSessionDescriptor, terminalDisplayLabel } from "@/lib/controller";
 
@@ -75,15 +75,27 @@ export function TerminalItem({
         }}
         type="button"
       >
-        <TerminalIcon
-          className={`size-3 shrink-0 ${
-            isActive
-              ? "animate-pulse text-foreground"
-              : session.status === "exited"
-                ? "opacity-30"
-                : "opacity-50"
-          }`}
-        />
+        {session.processRole === "agent-spawned" ? (
+          <Bot
+            className={`size-3 shrink-0 ${
+              isActive
+                ? "animate-pulse text-foreground"
+                : session.status === "exited"
+                  ? "opacity-30"
+                  : "opacity-50"
+            }`}
+          />
+        ) : (
+          <TerminalIcon
+            className={`size-3 shrink-0 ${
+              isActive
+                ? "animate-pulse text-foreground"
+                : session.status === "exited"
+                  ? "opacity-30"
+                  : "opacity-50"
+            }`}
+          />
+        )}
         <span className="truncate">{terminalDisplayLabel(session)}</span>
       </button>
       <button

@@ -1,25 +1,27 @@
-import { useState } from "react";
+import { Check } from "lucide-react";
 import {
   THEME_NAMES,
   type ThemeName,
 } from "@/components/theme/theme-provider";
 import { useTheme } from "@/components/theme/use-theme";
 import { Button } from "@/components/ui/button";
-import { Seg, type SegItem, Switch } from "@weekend/design";
-import { TabItem, TabPanel, Tabs, TabsList } from "@weekend/design/registry";
+import { Switch } from "@weekend/design";
 import {
   type RuntimeDebugSnapshot,
   type RuntimeTelemetryEvent,
   type AgentProfile,
   type AgentProvider,
   type AgentSettings,
+  type SharedAssetSnapshot,
 } from "@/lib/controller";
 import type { WeekendLogsSnapshot } from "@/components/logs/logs-page";
+import { SharedPage } from "@/components/shared/shared-page";
 import {
   isBuiltInAgentProfile,
   normalizeAgentSettings,
   slugifyAgentProfileId,
 } from "@/lib/controller/agent-profiles";
+import type { SettingsTab } from "@/components/settings/settings-tabs";
 
 function formatTimestamp(unixMs: number): string {
   if (!Number.isFinite(unixMs) || unixMs <= 0) return "n/a";
@@ -83,6 +85,7 @@ function formatRuntimeTelemetryDump(events: RuntimeTelemetryEvent[]): string {
 }
 
 export type SettingsPageProps = {
+  activeTab: SettingsTab;
   snapshot: RuntimeDebugSnapshot | null;
   error: string | null;
   isRefreshing: boolean;
@@ -98,19 +101,61 @@ export type SettingsPageProps = {
   onRefreshLogs: () => void;
   agentSettings: AgentSettings;
   onAgentSettingsChange: (settings: AgentSettings) => void;
+  sharedAssets: SharedAssetSnapshot[];
+  sharedAssetsError: string | null;
+  isSharedLoading: boolean;
+  isSharedUploading: boolean;
+  onRefreshShared: () => void;
+  onUploadShared: (files: File[]) => Promise<void>;
+  onRenameShared: (fileName: string, newFileName: string) => Promise<void>;
+  onDeleteShared: (fileName: string) => Promise<void>;
+  sharedEnv: Record<string, string>;
+  onUpdateSharedEnv: (env: Record<string, string>) => Promise<void>;
 };
 
-const THEME_LABELS: Record<ThemeName, string> = {
-  fluid: "Fluid · light",
-  "fluid-dark": "Fluid · dark",
-  "weekend-dark": "Weekend · dark",
-  "weekend-paper": "Weekend · paper",
+type ThemePreview = {
+  label: string;
+  bg: string;
+  fg: string;
+  muted: string;
+  primary: string;
+  border: string;
 };
 
-const THEME_SEG_ITEMS: ReadonlyArray<SegItem<ThemeName>> = THEME_NAMES.map((t) => ({
-  value: t,
-  label: THEME_LABELS[t],
-}));
+const THEME_PREVIEWS: Record<ThemeName, ThemePreview> = {
+  fluid: {
+    label: "Fluid · light",
+    bg: "#fafafa",
+    fg: "#171717",
+    muted: "#e5e5e5",
+    primary: "#171717",
+    border: "#e5e5e5",
+  },
+  "fluid-dark": {
+    label: "Fluid · dark",
+    bg: "#171717",
+    fg: "#f5f5f5",
+    muted: "#404040",
+    primary: "#f5f5f5",
+    border: "#404040",
+  },
+  "weekend-dark": {
+    label: "Weekend · dark",
+    bg: "#000000",
+    fg: "#A7A7A7",
+    muted: "#2D2D2D",
+    primary: "#DEDEDE",
+    border: "#2D2D2D",
+  },
+  "weekend-paper": {
+    label: "Weekend · paper",
+    bg: "#F5F0EB",
+    fg: "#2C2420",
+    muted: "#D8D0C8",
+    primary: "#2C2420",
+    border: "#D8D0C8",
+  },
+};
 
 const AGENT_PROVIDERS: ReadonlyArray<{ value: AgentProvider; label: string }> = [
   { value: "claude-code", label: "Claude Code" },
@@ -132,6 +177,7 @@ function updateAgentProfile(
 }
 
 export function SettingsPage({
+  activeTab,
   snapshot,
   error,
   isRefreshing,
@@ -147,9 +193,18 @@ export function SettingsPage({
   onRefreshLogs,
   agentSettings,
   onAgentSettingsChange,
+  sharedAssets,
+  sharedAssetsError,
+  isSharedLoading,
+  isSharedUploading,
+  onRefreshShared,
+  onUploadShared,
+  onRenameShared,
+  onDeleteShared,
+  sharedEnv,
+  onUpdateSharedEnv,
 }: SettingsPageProps) {
   const { activeTheme, setActiveTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState<"basic" | "agents" | "logs" | "advanced">("basic");
 
   const addAgentProfile = () => {
     let suffix = agentSettings.profiles.length + 1;
@@ -179,22 +234,8 @@ export function SettingsPage({
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden p-6">
-      <h1 className="font-code text-sm text-foreground">Settings</h1>
-
-      <Tabs
-        className="mt-4 min-h-0 flex-1"
-        value={activeTab}
-        onValueChange={(v) => setActiveTab(v as "basic" | "agents" | "logs" | "advanced")}
-      >
-        <TabsList>
-          <TabItem value="basic" label="Basic" />
-          <TabItem value="agents" label="Agents" />
-          <TabItem value="logs" label="Logs" />
-          <TabItem value="advanced" label="Advanced" />
-        </TabsList>
-
-        {/* ── Basic ── */}
-        <TabPanel className="mt-4 overflow-auto" value="basic">
+      {activeTab === "basic" ? (
+        <div className="min-h-0 flex-1 overflow-auto">
           <div className="space-y-3">
             {/* Theme */}
             <div className="rounded border border-border/70 bg-background/60 px-3 py-2.5">
@@ -204,12 +245,78 @@ export function SettingsPage({
                   Pick the active theme. Applies across all windows.
                 </p>
               </div>
-              <Seg
-                items={THEME_SEG_ITEMS}
-                value={activeTheme}
-                onChange={(next: ThemeName) => setActiveTheme(next)}
-                variant="subtle"
-              />
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {THEME_NAMES.map((name) => {
+                  const t = THEME_PREVIEWS[name];
+                  const isActive = activeTheme === name;
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => setActiveTheme(name)}
+                      aria-pressed={isActive}
+                      className={
+                        "group relative flex flex-col overflow-hidden rounded border text-left outline-none transition-all duration-150 " +
+                        (isActive
+                          ? "border-foreground ring-2 ring-foreground/50 ring-offset-2 ring-offset-background shadow-md"
+                          : "border-border/70 opacity-70 hover:border-foreground/40 hover:opacity-100")
+                      }
+                    >
+                      {isActive ? (
+                        <span
+                          aria-hidden
+                          className="absolute right-1.5 top-1.5 z-10 flex size-4 items-center justify-center rounded-full shadow-sm"
+                          style={{ background: t.primary, color: t.bg }}
+                        >
+                          <Check className="size-3" strokeWidth={3} />
+                        </span>
+                      ) : null}
+                      <div
+                        className="flex h-12 items-center gap-2 px-2.5"
+                        style={{
+                          background: t.bg,
+                          borderBottom: `1px solid ${t.border}`,
+                        }}
+                      >
+                        <span
+                          aria-hidden
+                          className="size-3 shrink-0 rounded-full"
+                          style={{ background: t.primary }}
+                        />
+                        <div className="flex min-w-0 flex-1 flex-col gap-1">
+                          <span
+                            aria-hidden
+                            className="block h-1 w-3/4 rounded-full"
+                            style={{ background: t.fg }}
+                          />
+                          <span
+                            aria-hidden
+                            className="block h-1 w-1/2 rounded-full"
+                            style={{ background: t.muted }}
+                          />
+                        </div>
+                      </div>
+                      <div
+                        className={
+                          "px-2.5 py-1.5 transition-colors " +
+                          (isActive ? "bg-foreground/[0.04]" : "")
+                        }
+                      >
+                        <p
+                          className={
+                            "font-code text-[11px] " +
+                            (isActive
+                              ? "font-medium text-foreground"
+                              : "text-muted-foreground")
+                          }
+                        >
+                          {t.label}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Vim Mode */}
@@ -242,9 +349,11 @@ export function SettingsPage({
               />
             </div>
           </div>
-        </TabPanel>
+        </div>
+      ) : null}
 
-        <TabPanel className="mt-4 overflow-auto" value="agents">
+      {activeTab === "agents" ? (
+        <div className="min-h-0 flex-1 overflow-auto">
           <div className="space-y-3">
             <div className="rounded border border-border/70 bg-background/60 p-3">
               <div className="flex items-center justify-between gap-3">
@@ -390,10 +499,28 @@ export function SettingsPage({
               </div>
             </div>
           </div>
-        </TabPanel>
+        </div>
+      ) : null}
 
-        {/* ── Logs ── */}
-        <TabPanel className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden" value="logs">
+      {activeTab === "shared" ? (
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <SharedPage
+            sharedAssets={sharedAssets}
+            sharedAssetsError={sharedAssetsError}
+            isLoading={isSharedLoading}
+            isUploading={isSharedUploading}
+            onRefresh={onRefreshShared}
+            onUpload={onUploadShared}
+            onRename={onRenameShared}
+            onDelete={onDeleteShared}
+            sharedEnv={sharedEnv}
+            onUpdateSharedEnv={onUpdateSharedEnv}
+          />
+        </div>
+      ) : null}
+
+      {activeTab === "logs" ? (
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="flex min-h-0 flex-1 flex-col rounded border border-border/70 bg-background/60 p-3">
             <div className="flex items-center justify-between">
               <p className="font-code text-[11px] text-muted-foreground">
@@ -432,10 +559,11 @@ export function SettingsPage({
               </div>
             </div>
           </div>
-        </TabPanel>
+        </div>
+      ) : null}
 
-        {/* ── Advanced ── */}
-        <TabPanel className="mt-4 overflow-auto" value="advanced">
+      {activeTab === "advanced" ? (
+        <div className="min-h-0 flex-1 overflow-auto">
           <div className="space-y-3">
             {/* Runtime Debug */}
             <div className="space-y-2 rounded border border-border/70 bg-background/60 p-3">
@@ -484,8 +612,8 @@ export function SettingsPage({
               </pre>
             </div>
           </div>
-        </TabPanel>
-      </Tabs>
+        </div>
+      ) : null}
     </section>
   );
 }

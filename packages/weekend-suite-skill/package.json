@@ -1,0 +1,6 @@
+{
+  "name": "@weekend/suite-skill",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Claude Code skill seeded into Weekend projects"
+}

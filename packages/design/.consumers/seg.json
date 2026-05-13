@@ -3,6 +3,17 @@
   "tier": "core",
   "consumers": [
     {
+      "file": "src/components/browser/browser-toolbar.tsx",
+      "line": 156,
+      "props": [
+        "variant",
+        "items",
+        "value",
+        "onChange",
+        "className"
+      ]
+    },
+    {
       "file": "src/components/settings/settings-page.tsx",
       "line": 207,
       "props": [
@@ -33,10 +44,11 @@
     }
   ],
   "propUsage": {
-    "items": 3,
-    "onChange": 3,
-    "value": 3,
-    "variant": 2
+    "className": 1,
+    "items": 4,
+    "onChange": 4,
+    "value": 4,
+    "variant": 3
   },
-  "totalUsages": 3
+  "totalUsages": 4
 }

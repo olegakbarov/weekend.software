@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 use std::io::{self, BufRead, Write};
 
 const PROTOCOL_VERSION: &str = "2024-11-05";
-const SERVER_NAME: &str = "weekend-browser";
+const SERVER_NAME: &str = "weekend";
 const SERVER_VERSION: &str = "0.2.0";
 
 pub fn run_stdio_server() -> Result<(), String> {
@@ -137,7 +137,7 @@ fn handle_tools_call(id: &Option<Value>, message: &Value, client: &mut BridgeCli
         .map(|v| v.to_string())
         .unwrap_or_else(|| "0".to_string());
 
-    // Normalize label and resolve defaults when omitted.
+    // Normalize browser labels and resolve defaults when omitted.
     let mut arguments = arguments;
     let normalized_label = arguments
         .get("label")
@@ -146,7 +146,7 @@ fn handle_tools_call(id: &Option<Value>, message: &Value, client: &mut BridgeCli
         .filter(|label| !label.is_empty())
         .map(ToOwned::to_owned);
 
-    if tool_name != "browser_list_webviews" {
+    if tool_needs_browser_label(tool_name) {
         match normalized_label {
             Some(label) => {
                 if let Some(obj) = arguments.as_object_mut() {
@@ -199,6 +199,10 @@ fn handle_tools_call(id: &Option<Value>, message: &Value, client: &mut BridgeCli
         },
         Err(e) => make_tool_result(id, true, &format!("bridge communication error: {e}")),
     }
+}
+
+fn tool_needs_browser_label(tool_name: &str) -> bool {
+    tool_name.starts_with("browser_") && tool_name != "browser_list_webviews"
 }
 
 /// Resolve the default webview label for tool calls that don't specify one.
@@ -289,7 +293,16 @@ fn make_tool_result(id: &Option<Value>, is_error: bool, text: &str) -> Value {
 
 #[cfg(test)]
 mod tests {
-    use super::select_default_label;
+    use super::{select_default_label, tool_needs_browser_label};
+
+    #[test]
+    fn only_browser_tools_require_default_webview_label_resolution() {
+        assert!(tool_needs_browser_label("browser_snapshot"));
+        assert!(tool_needs_browser_label("browser_eval_js"));
+        assert!(!tool_needs_browser_label("browser_list_webviews"));
+        assert!(!tool_needs_browser_label("weekend_terminal_list"));
+        assert!(!tool_needs_browser_label("weekend_terminal_spawn"));
+    }
 
     #[test]
     fn selects_project_matched_label_when_available() {

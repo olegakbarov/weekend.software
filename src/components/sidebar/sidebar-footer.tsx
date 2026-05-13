@@ -1,4 +1,4 @@
-import { Plus, Settings, FolderSync, Palette, ArrowLeft } from "lucide-react";
+import { Plus, Settings, Palette, ArrowLeft, BookOpenText } from "lucide-react";
 import { useSidebarData, useSidebarActions } from "@/components/sidebar/sidebar-context";
 import { FooterIconButton } from "@/components/sidebar/footer-icon-button";
 import { cn } from "@/lib/utils";
@@ -6,15 +6,19 @@ import { cn } from "@/lib/utils";
 export function SidebarFooter() {
   const data = useSidebarData();
   const actions = useSidebarActions();
-  const isDocsMode = data.currentRoute === "dev-ds";
+  const isBackMode =
+    data.currentRoute === "dev-ds" ||
+    data.currentRoute === "docs" ||
+    data.currentRoute === "settings";
 
   return (
     <div className="flex shrink-0 items-center justify-between border-border/40 border-t px-2 py-1">
-      {isDocsMode ? (
+      {isBackMode ? (
         <button
           className={cn(
-            "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 font-vcr text-[11px] uppercase tracking-wide leading-none transition-colors",
-            "text-muted-foreground hover:bg-muted hover:text-foreground",
+            "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 font-vcr text-[11px] uppercase tracking-wide leading-none",
+            "text-muted-foreground/80 transition-[background-color,color,transform] duration-100 hover:bg-muted/60 hover:text-foreground active:scale-[0.96]",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/70",
           )}
           onClick={actions.onOpenHome}
           title="Back"
@@ -26,8 +30,9 @@ export function SidebarFooter() {
       ) : (
         <button
           className={cn(
-            "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 font-vcr text-[11px] uppercase tracking-wide leading-none transition-colors",
-            "text-muted-foreground hover:bg-muted hover:text-foreground",
+            "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 font-vcr text-[11px] uppercase tracking-wide leading-none",
+            "text-muted-foreground/80 transition-[background-color,color,transform] duration-100 hover:bg-muted/60 hover:text-foreground active:scale-[0.96]",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/70",
           )}
           onClick={actions.onOpenHome}
           title="New project"
@@ -39,10 +44,10 @@ export function SidebarFooter() {
       )}
       <div className="flex items-center gap-0.5">
         <FooterIconButton
-          active={data.currentRoute === "shared"}
-          icon={<FolderSync className="size-3.5" />}
-          onClick={actions.onOpenShared}
-          title="Shared"
+          active={data.currentRoute === "docs"}
+          icon={<BookOpenText className="size-3.5" />}
+          onClick={actions.onOpenDocs}
+          title="Docs"
         />
         <FooterIconButton
           active={data.currentRoute === "dev-ds"}

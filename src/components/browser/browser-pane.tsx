@@ -1,6 +1,5 @@
 import { Loader2, Play } from "lucide-react";
 import {
-  type FormEvent,
   type ReactNode,
   useCallback,
   useEffect,
@@ -23,7 +22,6 @@ import { MOCK_MODE } from "@/lib/tauri-mock";
 import {
   buildBrowserSurfaceUrl,
   isCrossProjectLocalDevUrl,
-  normalizeNavigableUrl,
   shouldHydrateBrowserValueFromConfiguredRuntime,
 } from "./browser-url-utils";
 import {
@@ -37,8 +35,7 @@ type WorkspaceMode =
   | "editor"
   | "agent"
   | "terminal"
-  | "settings"
-  | "skills";
+  | "settings";
 
 export function BrowserPane({
   projectKey,
@@ -54,11 +51,11 @@ export function BrowserPane({
   playState,
   editorContent,
   settingsContent,
-  skillsContent,
   agentContent,
   terminalSessions,
   activeTerminalId,
   onSelectTerminal,
+  onRemoveTerminal,
   onCreateTerminal,
   onCreateAgentTerminal,
   onOpenConfigFile,
@@ -72,19 +69,19 @@ export function BrowserPane({
   projectConfigError: string | null;
   workspaceMode: WorkspaceMode;
   onWorkspaceModeChange: (
-    mode: "browser" | "editor" | "agent" | "settings" | "skills"
+    mode: "browser" | "editor" | "agent" | "settings"
   ) => void;
   onPlayProject: () => void;
   onRestartApp: () => void;
   playState: PlayState;
   editorContent?: ReactNode;
   settingsContent?: ReactNode;
-  skillsContent?: ReactNode;
   agentContent?: ReactNode;
   // Terminal tabs
   terminalSessions: TerminalSessionDescriptor[];
   activeTerminalId: string | null;
   onSelectTerminal: (terminalId: string) => void;
+  onRemoveTerminal: (terminalId: string) => void;
   onCreateTerminal: () => void;
   onCreateAgentTerminal: () => void;
   onOpenConfigFile: () => void;
@@ -112,9 +109,6 @@ export function BrowserPane({
   >({});
   const [urlInputDraftByProject, setUrlInputDraftByProject] = useState<
     Record<string, string>
-  >({});
-  const [addressBarErrorByProject, setAddressBarErrorByProject] = useState<
-    Record<string, string | null>
   >({});
   const previousProjectKeyRef = useRef<string | null>(null);
 
@@ -183,7 +177,6 @@ export function BrowserPane({
         ? navigationUrl ?? ""
         : storedUrlInputDraft ?? currentPageUrl ?? ""
       : "";
-  const addressBarError = addressBarErrorByProject[projectKey] ?? null;
   const isEmbeddedBrowserAvailable = !MOCK_MODE;
 
   const effectiveNavigationUrl = navigationUrl;
@@ -209,13 +202,6 @@ export function BrowserPane({
   const onUrlInputDraftChange = useCallback(
     (pk: string, url: string) => {
       setUrlInputDraftByProject((prev) => ({ ...prev, [pk]: url }));
-    },
-    []
-  );
-
-  const onAddressBarErrorChange = useCallback(
-    (pk: string, error: string | null) => {
-      setAddressBarErrorByProject((prev) => ({ ...prev, [pk]: error }));
     },
     []
   );
@@ -246,8 +232,6 @@ export function BrowserPane({
     startupProbeErrorMessage,
     displayRuntimeSurfaceUrl,
     isGrabbing,
-    goBack,
-    goForward,
     toggleElementGrab,
     reloadCurrentPage,
     nativeWebviewHostRef,
@@ -263,64 +247,10 @@ export function BrowserPane({
     filesystemEventVersion,
     onCurrentPageUrlChange,
     onUrlInputDraftChange,
-    onAddressBarErrorChange,
     onNavigationUrlChange,
     onFrameVersionIncrement,
     onElementGrabbed,
   });
-
-  // --- Address bar handlers ---
-
-  const updateAddressBarDraft = useCallback(
-    (nextAddress: string) => {
-      setUrlInputDraftByProject((previous) => ({
-        ...previous,
-        [projectKey]: nextAddress,
-      }));
-      setAddressBarErrorByProject((previous) => ({
-        ...previous,
-        [projectKey]: null,
-      }));
-    },
-    [projectKey]
-  );
-
-  const navigateFromAddressBar = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-
-      const normalizedUrl = normalizeNavigableUrl(urlInputDraft);
-      if (!normalizedUrl) {
-        setAddressBarErrorByProject((previous) => ({
-          ...previous,
-          [projectKey]: "Invalid URL.",
-        }));
-        return;
-      }
-
-      setAddressBarErrorByProject((previous) => ({
-        ...previous,
-        [projectKey]: null,
-      }));
-      setNavigationUrlByProject((previous) => ({
-        ...previous,
-        [projectKey]: normalizedUrl,
-      }));
-      setCurrentPageUrlByProject((previous) => ({
-        ...previous,
-        [projectKey]: normalizedUrl,
-      }));
-      setUrlInputDraftByProject((previous) => ({
-        ...previous,
-        [projectKey]: normalizedUrl,
-      }));
-      setFrameVersionByProject((previous) => ({
-        ...previous,
-        [projectKey]: (previous[projectKey] ?? 0) + 1,
-      }));
-    },
-    [projectKey, urlInputDraft]
-  );
 
   // --- Preserve the active page when switching between projects ---
 
@@ -403,13 +333,6 @@ export function BrowserPane({
       }));
     }
 
-    if (hasCrossProjectLocalDevMismatch) {
-      setAddressBarErrorByProject((previous) => ({
-        ...previous,
-        [projectKey]: null,
-      }));
-    }
-
     // Note: previously we bumped `frameVersion` here when the hydrated
     // navigation URL differed from the stored one. With navigate-in-place via
     // the cache-aware lifecycle in `useBrowserWebview`, that bump is wasteful
@@ -486,12 +409,7 @@ export function BrowserPane({
         onWorkspaceModeChange={onWorkspaceModeChange}
         projectId={projectKey}
         urlInputDraft={effectiveUrlInputDraft}
-        addressBarError={addressBarError}
         hasBrowserUrl={hasBrowserUrl}
-        onAddressBarDraftChange={updateAddressBarDraft}
-        onNavigateFromAddressBar={navigateFromAddressBar}
-        onGoBack={goBack}
-        onGoForward={goForward}
         onReloadCurrentPage={reloadCurrentPage}
         isGrabbing={isGrabbing}
         onToggleElementGrab={toggleElementGrab}
@@ -499,6 +417,7 @@ export function BrowserPane({
         configuredProcesses={projectConfigSnapshot?.processes ?? {}}
         activeTerminalId={activeTerminalId}
         onSelectTerminal={onSelectTerminal}
+        onRemoveTerminal={onRemoveTerminal}
         onCreateTerminal={onCreateTerminal}
         onCreateAgentTerminal={onCreateAgentTerminal}
         onOpenConfigFile={onOpenConfigFile}
@@ -537,14 +456,6 @@ export function BrowserPane({
             <div className="flex h-full items-center justify-center">
               <p className="font-code text-sm text-muted-foreground/50">
                 Project settings
-              </p>
-            </div>
-          )
-        ) : workspaceMode === "skills" ? (
-          skillsContent ?? (
-            <div className="flex h-full items-center justify-center">
-              <p className="font-code text-sm text-muted-foreground/50">
-                Project skills
               </p>
             </div>
           )
@@ -642,14 +553,6 @@ export function BrowserPane({
                 </div>
               ) : null}
             </div>
-
-            {addressBarError ? (
-              <div className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rounded border border-destructive/50 bg-background/90 px-2 py-1">
-                <p className="font-code text-[13px] text-destructive">
-                  {addressBarError}
-                </p>
-              </div>
-            ) : null}
           </>
         )}
       </div>

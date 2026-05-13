@@ -313,6 +313,92 @@ pub fn tool_definitions() -> Vec<Value> {
                 }
             }
         }),
+        json!({
+            "name": "weekend_terminal_spawn",
+            "description": "Spawn a new terminal session in Weekend, optionally typing a command into it after the shell starts. Returns the terminal_id you'll use for subsequent reads/writes/kills. NOTE: when `command` is provided, it is typed into the shell ~500ms after spawn (to let the shell render its prompt), so the first weekend_terminal_read call may return empty until the command's output arrives — poll with the returned next_seq.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "project": {
+                        "type": "string",
+                        "description": "Project name. If omitted, opens in Weekend's default working directory."
+                    },
+                    "command": {
+                        "type": "string",
+                        "description": "Initial command to type into the shell. If omitted, just opens an empty shell. The command is typed as if the user typed it (a trailing carriage return is added by Weekend); include any shell syntax the agent wants (pipes, env vars, etc.)."
+                    },
+                    "displayName": {
+                        "type": "string",
+                        "description": "Friendly label shown in the Weekend UI tab strip."
+                    }
+                }
+            }
+        }),
+        json!({
+            "name": "weekend_terminal_write",
+            "description": "Send input to a terminal's stdin (the PTY's writer). Use this to type commands into an already-spawned terminal, send Ctrl-C as `\\x03`, or pipe text into a running prompt. Append `\\r` to execute a typed line.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "terminalId": {
+                        "type": "string",
+                        "description": "Terminal id returned by weekend_terminal_spawn (or from weekend_terminal_list)."
+                    },
+                    "input": {
+                        "type": "string",
+                        "description": "Raw bytes to write to the PTY. Not trimmed — control characters like `\\x03` (Ctrl-C) and `\\r` (Enter) are passed through verbatim."
+                    }
+                },
+                "required": ["terminalId", "input"]
+            }
+        }),
+        json!({
+            "name": "weekend_terminal_read",
+            "description": "Drain new output lines from a terminal since the last seq you saw. Each terminal retains the most recent 2000 lines of output. Use sinceSeq=0 on first call to get current buffer; pass back the returned next_seq on subsequent calls to read incrementally. If `truncated` is true, you missed lines because the buffer evicted them.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "terminalId": {
+                        "type": "string",
+                        "description": "Terminal id to read from."
+                    },
+                    "sinceSeq": {
+                        "type": "integer",
+                        "description": "Return lines with seq > sinceSeq. Default 0 (full retained buffer).",
+                        "default": 0,
+                        "minimum": 0
+                    }
+                },
+                "required": ["terminalId"]
+            }
+        }),
+        json!({
+            "name": "weekend_terminal_list",
+            "description": "List Weekend terminal sessions (including ones the user opened manually and ones spawned by agents). Optionally filter by project. Returns each session's id, status, role, and current foreground process name.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "project": {
+                        "type": "string",
+                        "description": "Project name to filter by. If omitted, lists all sessions across projects."
+                    }
+                }
+            }
+        }),
+        json!({
+            "name": "weekend_terminal_kill",
+            "description": "Forcibly terminate a terminal session, killing its PTY child process and removing it from Weekend. Use this to clean up agent-spawned terminals when done. Unlike closing a terminal in the UI (which only detaches the renderer), this actually kills the process.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "terminalId": {
+                        "type": "string",
+                        "description": "Terminal id to kill."
+                    }
+                },
+                "required": ["terminalId"]
+            }
+        }),
     ]
 }
 
@@ -876,6 +962,97 @@ return {{
             json!({
                 "id": call_id,
                 "request": { "type": "drain_events", "label": label, "since_seq": since_seq }
+            })
+        }
+        "weekend_terminal_spawn" => {
+            let project = arguments
+                .get("project")
+                .and_then(|v| v.as_str())
+                .map(str::trim)
+                .filter(|s| !s.is_empty());
+            let command = arguments.get("command").and_then(|v| v.as_str());
+            let display_name = arguments
+                .get("displayName")
+                .and_then(|v| v.as_str())
+                .map(str::trim)
+                .filter(|s| !s.is_empty());
+            json!({
+                "id": call_id,
+                "request": {
+                    "type": "terminal_spawn",
+                    "project": project,
+                    "command": command,
+                    "display_name": display_name
+                }
+            })
+        }
+        "weekend_terminal_write" => {
+            let terminal_id = arguments
+                .get("terminalId")
+                .and_then(|v| v.as_str())
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .ok_or("missing required parameter: terminalId")?;
+            let input = arguments
+                .get("input")
+                .and_then(|v| v.as_str())
+                .ok_or("missing required parameter: input")?;
+            json!({
+                "id": call_id,
+                "request": {
+                    "type": "terminal_write",
+                    "terminal_id": terminal_id,
+                    "input": input
+                }
+            })
+        }
+        "weekend_terminal_read" => {
+            let terminal_id = arguments
+                .get("terminalId")
+                .and_then(|v| v.as_str())
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .ok_or("missing required parameter: terminalId")?;
+            let since_seq = arguments
+                .get("sinceSeq")
+                .and_then(|v| v.as_i64())
+                .map(|n| n.max(0));
+            json!({
+                "id": call_id,
+                "request": {
+                    "type": "terminal_read",
+                    "terminal_id": terminal_id,
+                    "since_seq": since_seq
+                }
+            })
+        }
+        "weekend_terminal_list" => {
+            let project = arguments
+                .get("project")
+                .and_then(|v| v.as_str())
+                .map(str::trim)
+                .filter(|s| !s.is_empty());
+            json!({
+                "id": call_id,
+                "request": {
+                    "type": "terminal_list",
+                    "project": project
+                }
+            })
+        }
+        "weekend_terminal_kill" => {
+            let terminal_id = arguments
+                .get("terminalId")
+                .and_then(|v| v.as_str())
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .ok_or("missing required parameter: terminalId")?;
+            json!({
+                "id": call_id,
+                "request": {
+                    "type": "terminal_kill",
+                    "terminal_id": terminal_id
+                }
             })
         }
         _ => return Err(format!("unknown tool: {tool_name}")),

@@ -82,6 +82,26 @@ export type {
 export { Combobox } from "./registry/combobox";
 export type { ComboboxItem, ComboboxProps } from "./registry/combobox";
 
+export { DiffAnchors } from "./registry/diff-anchors";
+export type {
+  DiffAnchor,
+  DiffAnchorStatus,
+  DiffAnchorsProps,
+} from "./registry/diff-anchors";
+
+export { DiffStack } from "./registry/diff-stack";
+export type {
+  DiffStackHandle,
+  DiffStackItem,
+  DiffStackProps,
+} from "./registry/diff-stack";
+
+export { SplitDiffViewer, diffsThemedTokens } from "./registry/split-diff-viewer";
+export type {
+  DiffsThemeType,
+  SplitDiffViewerProps,
+} from "./registry/split-diff-viewer";
+
 export {
   Dialog,
   DialogClose,
@@ -232,6 +252,47 @@ export type {
 
 export { Tooltip, TooltipPortalContainer } from "./registry/tooltip";
 export type { TooltipProps, TooltipSide } from "./registry/tooltip";
+
+export {
+  Test,
+  TestDuration,
+  TestError,
+  TestErrorMessage,
+  TestErrorStack,
+  TestName,
+  TestResults,
+  TestResultsContent,
+  TestResultsDuration,
+  TestResultsHeader,
+  TestResultsProgress,
+  TestResultsSummary,
+  TestStatus,
+  TestSuite,
+  TestSuiteContent,
+  TestSuiteName,
+  TestSuiteStats,
+} from "./registry/test-results";
+export type {
+  TestCaseStatus,
+  TestDurationProps,
+  TestErrorMessageProps,
+  TestErrorProps,
+  TestErrorStackProps,
+  TestNameProps,
+  TestProps,
+  TestResultsContentProps,
+  TestResultsDurationProps,
+  TestResultsHeaderProps,
+  TestResultsProgressProps,
+  TestResultsProps,
+  TestResultsSummaryProps,
+  TestRunSummary,
+  TestStatusProps,
+  TestSuiteContentProps,
+  TestSuiteNameProps,
+  TestSuiteProps,
+  TestSuiteStatsProps,
+} from "./registry/test-results";
 
 // File tree primitive — React API from @pierre/trees.
 // The `<FileTree>` component renders inside a shadow root, so no CSS import is

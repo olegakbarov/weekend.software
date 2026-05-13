@@ -1,0 +1,28 @@
+{
+  "symbol": "TestSuiteName",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 76,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 99,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 131,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 142,
+      "props": []
+    }
+  ],
+  "propUsage": {},
+  "totalUsages": 4
+}

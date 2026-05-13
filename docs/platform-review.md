@@ -22,7 +22,7 @@ flowchart LR
     Backend["Rust/Tauri backend<br/>projects, files, terminals, bridge"]
     Browser["Embedded browser pane<br/>native webviews"]
     Terminals["PTY terminal manager"]
-    Bridge["TCP browser bridge<br/>+ event buffer"]
+    Bridge["TCP MCP bridge<br/>+ event buffer"]
     SharedRoot["Global shared files<br/>~/.weekend/shared-assets"]
     SkillsUI["Skills page<br/>mock catalog only"]
 
@@ -52,7 +52,7 @@ flowchart LR
   Terminals -->|"spawn + env inject"| Agent
   Config -->|"runtime.url + processes"| Dev
   Dev -->|"served through portless"| Browser
-  Seed -->|"WEEKEND_PROJECT + weekend-browser MCP"| Agent
+  Seed -->|"WEEKEND_PROJECT + weekend MCP"| Agent
   Agent -->|"MCP over stdio"| Bridge
   Bridge -->|"eval, snapshot, click, observe"| Browser
   Browser -->|"element grab / page events"| UI
@@ -68,7 +68,7 @@ flowchart LR
 2. Workspace orchestration
 
 - The React workspace route composes browser, editor, settings, and terminal panes around a single focused project.
-- The workspace controller is the frontend orchestrator; the Tauri backend is the system of record for projects, files, terminals, and browser bridge state.
+- The workspace controller is the frontend orchestrator; the Tauri backend is the system of record for projects, files, terminals, and MCP bridge state.
 
 3. Runtime launch
 
@@ -78,7 +78,7 @@ flowchart LR
 4. Agent/browser loop
 
 - Project terminals get `WEEKEND_PROJECT`, bridge token/path, and runtime env injected by the host app.
-- The seeded `.mcp.json` and `.codex/config.toml` point supported agent CLIs at the bundled `weekend-browser-mcp` sidecar.
+- The seeded `.mcp.json` and `.codex/config.toml` point supported agent CLIs at the bundled `weekend-mcp` sidecar.
 - The sidecar resolves the correct project/browser context and talks back to the host app over a local TCP bridge.
 
 5. Shared files
@@ -154,7 +154,7 @@ Weekend is strongest as a vertical product:
 
 - local AI web-dev workspace
 - managed runtime launcher
-- visible browser + MCP bridge
+- visible browser + Weekend MCP bridge
 - project-scoped terminals
 
 Weekend is weaker as a platform because its core contracts are still host-defined and host-enforced:

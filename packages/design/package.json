@@ -30,14 +30,17 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@pierre/diffs": "^1.0.6",
     "@pierre/trees": "^1.0.0-beta.3",
     "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.0",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-slider": "^1.3.6",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@tanstack/react-virtual": "^3.13.24",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.0",
@@ -46,18 +49,26 @@
     "tailwind-merge": "^2.5.0"
   },
   "peerDependencies": {
-    "react": "^18.3.0 || ^19.0.0",
-    "react-dom": "^18.3.0 || ^19.0.0",
-    "@tabler/icons-react": "^3.0.0",
-    "@phosphor-icons/react": "^2.0.0",
+    "@hugeicons/core-free-icons": "^1.0.0",
     "@hugeicons/react": "^1.0.0",
-    "@hugeicons/core-free-icons": "^1.0.0"
+    "@phosphor-icons/react": "^2.0.0",
+    "@tabler/icons-react": "^3.0.0",
+    "react": "^18.3.0 || ^19.0.0",
+    "react-dom": "^18.3.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
-    "@tabler/icons-react": { "optional": true },
-    "@phosphor-icons/react": { "optional": true },
-    "@hugeicons/react": { "optional": true },
-    "@hugeicons/core-free-icons": { "optional": true }
+    "@tabler/icons-react": {
+      "optional": true
+    },
+    "@phosphor-icons/react": {
+      "optional": true
+    },
+    "@hugeicons/react": {
+      "optional": true
+    },
+    "@hugeicons/core-free-icons": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@testing-library/react": "^16.0.0",

@@ -5,7 +5,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BINARY_NAME="weekend-browser-mcp"
+BINARY_NAME="weekend-mcp"
 
 # CI sets SKIP_SIDECAR=1 when the sidecar was already built for cross-compilation
 if [ "${SKIP_SIDECAR:-}" = "1" ]; then

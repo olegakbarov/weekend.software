@@ -53,13 +53,13 @@ function readWeekendServerConfig(projectRoot) {
   }
 
   const parsed = JSON.parse(readFileSync(mcpPath, "utf8"));
-  const server = parsed?.mcpServers?.["weekend-browser"];
+  const server = parsed?.mcpServers?.weekend;
   if (!server || typeof server !== "object") {
-    throw new Error(`missing mcpServers.weekend-browser in ${mcpPath}`);
+    throw new Error(`missing mcpServers.weekend in ${mcpPath}`);
   }
 
   if (typeof server.command !== "string" || server.command.trim() === "") {
-    throw new Error(`invalid weekend-browser command in ${mcpPath}`);
+    throw new Error(`invalid weekend MCP command in ${mcpPath}`);
   }
 
   return {
@@ -151,7 +151,7 @@ async function main() {
   });
 
   child.on("exit", (code, signal) => {
-    const detail = `weekend-browser-mcp exited code=${code ?? "null"} signal=${signal ?? "null"}`;
+    const detail = `weekend-mcp exited code=${code ?? "null"} signal=${signal ?? "null"}`;
     for (const { reject, timer } of pending.values()) {
       clearTimeout(timer);
       reject(new Error(`${detail}\n${stderr.join("")}`.trim()));

@@ -4,20 +4,33 @@ import {
   type KeyboardEvent,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import { ArrowRight } from "lucide-react";
 import { Combobox, type ComboboxItem } from "@weekend/design/registry";
-import { WeekendWordmark } from "@/components/branding/weekend-wordmark";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
   AgentSettings,
   CreateProjectInput,
+  DeployChoice,
   DesignSystemChoice,
 } from "@/lib/controller";
 import { defaultAgentProfile, findAgentProfile } from "@/lib/controller/agent-profiles";
+import { deployManifestFor } from "@/lib/controller/deploy-manifests";
+import {
+  getPreset,
+  listPresets,
+  resolveManifest,
+} from "@/lib/controller/presets";
+import type { PresetManifest, PresetSummary } from "@/lib/controller/types";
+import {
+  CredsDrawer,
+  type CredsDrawerSection,
+  manifestFieldsValid,
+} from "./creds-drawer";
 
 const MAX_TEXTAREA_HEIGHT = 240;
 const MIN_TEXTAREA_HEIGHT = 96;
@@ -28,6 +41,16 @@ const DESIGN_SYSTEM_ITEMS: ReadonlyArray<ComboboxItem> = [
 ];
 
 const DEFAULT_DESIGN_SYSTEM: DesignSystemChoice = "weekend";
+
+const DEPLOY_ITEMS: ReadonlyArray<ComboboxItem> = [
+  { value: "none", label: "no deploy" },
+  { value: "cloudflare", label: "cloudflare" },
+  { value: "vercel", label: "vercel" },
+];
+
+const DEFAULT_DEPLOY: DeployChoice = "none";
+
+const PRESET_NONE = "none";
 
 const PROJECT_NAME_RE = /^[a-z0-9][a-z0-9_-]*$/;
 
@@ -59,14 +82,26 @@ function suggestNameFromGithub(url: string): string {
   return slugify(match?.[2] ?? "") || "project";
 }
 
+export type CreateProjectFromPresetInput = {
+  presetId: string;
+  name: string;
+  fieldValues: Record<string, string>;
+  initialPrompt: string;
+  defaultAgentProfileId: string;
+  defaultAgentCommand: string;
+  additionalFileWrites?: Record<string, string>;
+};
+
 export function HomePage({
   agentSettings,
   isCreatingProject,
   onCreateProject,
+  onCreateFromPreset,
 }: {
   agentSettings: AgentSettings;
   isCreatingProject: boolean;
   onCreateProject: (input: CreateProjectInput) => Promise<void>;
+  onCreateFromPreset: (input: CreateProjectFromPresetInput) => Promise<void>;
 }) {
   const [value, setValue] = useState("");
   const [name, setName] = useState("");
@@ -76,6 +111,19 @@ export function HomePage({
   );
   const [designSystem, setDesignSystem] =
     useState<DesignSystemChoice>(DEFAULT_DESIGN_SYSTEM);
+  const [deploy, setDeploy] = useState<DeployChoice>(DEFAULT_DEPLOY);
+  const [presetId, setPresetId] = useState<string>(PRESET_NONE);
+  const [presetSummaries, setPresetSummaries] = useState<PresetSummary[]>([]);
+  const [presetManifestById, setPresetManifestById] = useState<
+    Record<string, PresetManifest>
+  >({});
+  const [presetFieldValues, setPresetFieldValues] = useState<
+    Record<string, string>
+  >({});
+  const [deployFieldValues, setDeployFieldValues] = useState<
+    Record<string, string>
+  >({});
+  const [presetLoadError, setPresetLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -91,6 +139,40 @@ export function HomePage({
     el.style.height = `${next}px`;
   }, [value]);
 
+  useEffect(() => {
+    let cancelled = false;
+    listPresets()
+      .then((result) => {
+        if (cancelled) return;
+        setPresetSummaries(result);
+      })
+      .catch((listError) => {
+        if (cancelled) return;
+        setPresetLoadError(toErrorMessage(listError));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (presetId === PRESET_NONE) return;
+    if (presetManifestById[presetId]) return;
+    let cancelled = false;
+    getPreset(presetId)
+      .then((manifest) => {
+        if (cancelled) return;
+        setPresetManifestById((prev) => ({ ...prev, [presetId]: manifest }));
+      })
+      .catch((manifestError) => {
+        if (cancelled) return;
+        setPresetLoadError(toErrorMessage(manifestError));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [presetId, presetManifestById]);
+
   const trimmedPrompt = value.trim();
   const trimmedName = name.trim().toLowerCase();
   const agentProfile =
@@ -103,22 +185,78 @@ export function HomePage({
     }),
   );
 
+  const presetItems: ReadonlyArray<ComboboxItem> = useMemo(
+    () => [
+      { value: PRESET_NONE, label: "no preset" },
+      ...presetSummaries.map((summary) => ({
+        value: summary.id,
+        label: summary.name,
+      })),
+    ],
+    [presetSummaries],
+  );
+
+  const activeManifest =
+    presetId === PRESET_NONE ? null : presetManifestById[presetId] ?? null;
+  const activeDeployManifest = useMemo(
+    () => deployManifestFor(deploy),
+    [deploy],
+  );
+
+  const drawerSections: CredsDrawerSection[] = useMemo(() => {
+    const out: CredsDrawerSection[] = [];
+    if (activeManifest) {
+      out.push({
+        manifest: activeManifest,
+        values: presetFieldValues,
+        onChange: setPresetFieldValues,
+      });
+    }
+    if (activeDeployManifest) {
+      out.push({
+        manifest: activeDeployManifest,
+        values: deployFieldValues,
+        onChange: setDeployFieldValues,
+      });
+    }
+    return out;
+  }, [activeManifest, activeDeployManifest, presetFieldValues, deployFieldValues]);
+
   useEffect(() => {
     if (findAgentProfile(agentSettings, agentProfileId)) return;
     setAgentProfileId(agentSettings.defaultProfileId);
   }, [agentProfileId, agentSettings]);
 
   useEffect(() => {
+    if (presetId !== PRESET_NONE) return;
     if (nameTouched) return;
     const url = extractGithubUrl(trimmedPrompt);
     if (url) {
       setName(suggestNameFromGithub(url));
     }
-  }, [nameTouched, trimmedPrompt]);
+  }, [nameTouched, presetId, trimmedPrompt]);
+
+  useEffect(() => {
+    setPresetFieldValues({});
+  }, [presetId]);
+
+  useEffect(() => {
+    setDeployFieldValues({});
+  }, [deploy]);
 
   const nameValid = PROJECT_NAME_RE.test(trimmedName);
+  const presetFieldsOk = activeManifest
+    ? manifestFieldsValid(activeManifest, presetFieldValues)
+    : true;
+  const deployFieldsOk = activeDeployManifest
+    ? manifestFieldsValid(activeDeployManifest, deployFieldValues)
+    : true;
   const canSubmit =
-    !isCreatingProject && trimmedPrompt.length > 0 && nameValid;
+    !isCreatingProject &&
+    trimmedPrompt.length > 0 &&
+    nameValid &&
+    (presetId === PRESET_NONE || (activeManifest != null && presetFieldsOk)) &&
+    deployFieldsOk;
 
   const handleNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
@@ -127,9 +265,24 @@ export function HomePage({
 
   const submit = useCallback(async () => {
     if (!canSubmit) return;
-    const githubRepoUrl = extractGithubUrl(trimmedPrompt);
     setError(null);
+    const deployFileWrites = activeDeployManifest
+      ? resolveManifest(activeDeployManifest, deployFieldValues).fileWrites
+      : {};
     try {
+      if (presetId !== PRESET_NONE && activeManifest) {
+        await onCreateFromPreset({
+          presetId,
+          name: trimmedName,
+          fieldValues: presetFieldValues,
+          initialPrompt: trimmedPrompt,
+          defaultAgentProfileId: agentProfile.id,
+          defaultAgentCommand: agentProfile.command,
+          additionalFileWrites: deployFileWrites,
+        });
+        return;
+      }
+      const githubRepoUrl = extractGithubUrl(trimmedPrompt);
       await onCreateProject({
         name: trimmedName,
         githubRepoUrl: githubRepoUrl ?? undefined,
@@ -137,15 +290,25 @@ export function HomePage({
         defaultAgentCommand: agentProfile.command,
         defaultAgentProfileId: agentProfile.id,
         designSystem,
+        deploy,
+        fileWrites:
+          Object.keys(deployFileWrites).length > 0 ? deployFileWrites : undefined,
       });
     } catch (createError) {
       setError(toErrorMessage(createError));
     }
   }, [
+    activeDeployManifest,
+    activeManifest,
     agentProfile,
     canSubmit,
+    deploy,
+    deployFieldValues,
     designSystem,
+    onCreateFromPreset,
     onCreateProject,
+    presetFieldValues,
+    presetId,
     trimmedName,
     trimmedPrompt,
   ]);
@@ -162,17 +325,28 @@ export function HomePage({
     }
   };
 
+  const promptPlaceholder =
+    presetId !== PRESET_NONE
+      ? "describe the app to build on this preset…"
+      : "describe what you want to build…";
+
   return (
     <section className="flex h-full min-h-0 flex-col items-center justify-center overflow-auto p-6">
-      <div className="relative mb-8 inline-block text-foreground">
-        <WeekendWordmark className="block h-9 w-auto" />
-        <img
-          src="/logo-face.png"
-          alt=""
-          aria-hidden
-          className="pointer-events-none absolute -top-2 -right-7 h-7 w-7 object-contain"
-        />
-      </div>
+      <h1
+        className="mb-8 text-3xl font-medium tracking-tight text-foreground"
+        style={{ fontFamily: '"Advercase", ui-serif, Georgia, Cambria, serif' }}
+      >
+        New Weekend{" "}
+        <span className="relative inline-block">
+          Project
+          <img
+            src="/logo-face.png"
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute -top-3 -right-4 h-7 w-7 rotate-[35deg] object-contain drop-shadow-sm"
+          />
+        </span>
+      </h1>
       <form className="w-full max-w-[560px]" onSubmit={handleSubmit}>
         <div
           className={cn(
@@ -207,7 +381,7 @@ export function HomePage({
             disabled={isCreatingProject}
             onChange={(event) => setValue(event.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="describe what you want to build…"
+            placeholder={promptPlaceholder}
             value={value}
             style={{ minHeight: MIN_TEXTAREA_HEIGHT, maxHeight: MAX_TEXTAREA_HEIGHT }}
             className={cn(
@@ -217,7 +391,7 @@ export function HomePage({
             )}
           />
 
-          <div className="flex items-center justify-between gap-2 px-2 py-2">
+          <div className="flex items-center justify-between gap-2 border-t border-border/30 px-2 py-2">
             <div className="flex min-w-0 flex-wrap items-center gap-1">
               <Combobox
                 variant="ghost"
@@ -242,6 +416,32 @@ export function HomePage({
                 popoverWidth={220}
                 className="h-7 font-code text-[11px] normal-case text-muted-foreground"
               />
+              <span className="font-code text-[11px] text-muted-foreground/30">
+                ·
+              </span>
+              <Combobox
+                variant="ghost"
+                disabled={isCreatingProject}
+                items={presetItems}
+                onChange={(next) => setPresetId(next)}
+                value={presetId}
+                placeholder="preset"
+                popoverWidth={260}
+                className="h-7 font-code text-[11px] normal-case text-muted-foreground"
+              />
+              <span className="font-code text-[11px] text-muted-foreground/30">
+                ·
+              </span>
+              <Combobox
+                variant="ghost"
+                disabled={isCreatingProject}
+                items={DEPLOY_ITEMS}
+                onChange={(next) => setDeploy(next as DeployChoice)}
+                value={deploy}
+                placeholder="deploy"
+                popoverWidth={200}
+                className="h-7 font-code text-[11px] normal-case text-muted-foreground"
+              />
             </div>
 
             <Button
@@ -256,9 +456,15 @@ export function HomePage({
           </div>
         </div>
 
+        <CredsDrawer sections={drawerSections} disabled={isCreatingProject} />
+
         <div className="mt-2.5 flex min-h-[18px] items-center px-1">
           {error ? (
             <p className="font-code text-xs text-destructive">{error}</p>
+          ) : presetLoadError ? (
+            <p className="font-code text-xs text-muted-foreground/60">
+              {presetLoadError}
+            </p>
           ) : nameTouched && trimmedName.length > 0 && !nameValid ? (
             <p className="font-code text-xs text-muted-foreground/60">
               lowercase letters, digits, dashes, underscores only

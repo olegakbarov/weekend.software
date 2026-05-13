@@ -29,16 +29,19 @@ import { PageStatus } from "./pages/status";
 import { PageSwitch } from "./pages/switch";
 import { PageTable } from "./pages/table";
 import { PageTabs } from "./pages/tabs";
+import { PageTestResults } from "./pages/test-results";
 import { PageThinking } from "./pages/thinking";
 import { PageThinkingSteps } from "./pages/thinking-steps";
 import { PageToolCall } from "./pages/tool-call";
 import { PageTooltip } from "./pages/tooltip";
 import { PageTypography } from "./pages/typography";
 import { PageVoice } from "./pages/voice";
+import { PageWorkbench } from "./pages/workbench";
 
 /** Maps route ids to their page component. Routes without an entry fall back to the placeholder. */
 export const PAGE_REGISTRY: Record<string, ComponentType> = {
   // State
+  workbench: PageWorkbench,
   status: PageStatus,
   audit: PageAudit,
   consumers: PageConsumers,
@@ -70,6 +73,7 @@ export const PAGE_REGISTRY: Record<string, ComponentType> = {
   switch: PageSwitch,
   table: PageTable,
   tabs: PageTabs,
+  "test-results": PageTestResults,
   thinking: PageThinking,
   "thinking-steps": PageThinkingSteps,
   "tool-call": PageToolCall,

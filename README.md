@@ -1,6 +1,6 @@
 # Weekend
 
-Weekend is a desktop workspace for AI-assisted web development. It combines a live browser pane, a project editor, PTY-backed terminals, and a bundled browser MCP bridge so agents can work against the same running app you see.
+Weekend is a desktop workspace for AI-assisted web development. It combines a live browser pane, a project editor, PTY-backed terminals, and a bundled Weekend MCP bridge so agents can work against the same running app you see.
 
 Built with Tauri 2, React 19, TypeScript, and Rust.
 
@@ -8,15 +8,15 @@ Built with Tauri 2, React 19, TypeScript, and Rust.
 
 - A desktop app with browser, editor, terminal, settings, and logs views.
 - Per-project runtime config in `weekend.config.json`.
-- A bundled `weekend-browser-mcp` sidecar for browser automation from agent terminals.
+- A bundled `weekend-mcp` sidecar for agent automation from project terminals.
 - Shared asset syncing across projects.
 - Project archiving, runtime telemetry, theme switching, and editor Vim mode.
 
 ## Repository layout
 
 - `src/` React UI, routes, and workspace controller code.
-- `src-tauri/` Tauri backend for projects, files, terminals, logs, shared assets, and the browser bridge.
-- `src-mcp/` Rust MCP sidecar that exposes browser tools such as `browser_snapshot`, `browser_click_ref`, and `browser_eval_js`.
+- `src-tauri/` Tauri backend for projects, files, terminals, logs, shared assets, and the MCP bridge.
+- `src-mcp/` Rust MCP sidecar that exposes Weekend tools such as `browser_snapshot`, `browser_click_ref`, `browser_eval_js`, and `weekend_terminal_read`.
 
 ## Development
 
@@ -34,7 +34,7 @@ pnpm install
 pnpm tauri:dev
 ```
 
-`pnpm tauri:dev` starts Vite at `http://127.0.0.1:1430`, builds the `weekend-browser-mcp` sidecar, and copies the bundled `portless` runtime into the Tauri resources directory.
+`pnpm tauri:dev` starts Vite at `http://127.0.0.1:1430`, builds the `weekend-mcp` sidecar, and copies the bundled `portless` runtime into the Tauri resources directory.
 
 Useful commands:
 
@@ -104,18 +104,18 @@ Notes:
 - `agents.default` stores the preferred global agent profile id for new/default agent launches.
 - Shared files are synced into each project at `./shared-assets/`.
 
-## Browser MCP
+## Weekend MCP
 
-The bundled `weekend-browser-mcp` sidecar lets agents interact with the live browser pane from inside project terminals. The core loop is:
+The bundled `weekend-mcp` sidecar lets agents interact with Weekend from inside project terminals. For browser work, the core loop is:
 
-Weekend seeds both `.mcp.json` and `.codex/config.toml` so supported agent CLIs can discover the bundled browser MCP server with the correct project context.
+Weekend seeds both `.mcp.json` and `.codex/config.toml` so supported agent CLIs can discover the bundled Weekend MCP server with the correct project context.
 
 1. `browser_snapshot`
 2. `browser_click_ref` or `browser_type_ref`
 3. `browser_wait_for`
 4. snapshot again after navigation or major DOM changes
 
-Other supported tools include `browser_eval_js`, `browser_get_text`, `browser_get_dom`, `browser_navigate`, `browser_get_url`, `browser_scroll`, and `browser_list_webviews`.
+Other supported tools include `browser_eval_js`, `browser_get_text`, `browser_get_dom`, `browser_navigate`, `browser_get_url`, `browser_scroll`, `browser_list_webviews`, and the `weekend_terminal_*` terminal tools.
 
 ## Releases
 

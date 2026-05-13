@@ -1,4 +1,4 @@
-export type ProcessRole = "dev-server" | "agent" | "service";
+export type ProcessRole = "dev-server" | "agent" | "agent-spawned" | "service";
 
 export type AgentProvider = "claude-code" | "codex" | "custom";
 
@@ -33,6 +33,23 @@ export type ProjectAgentsConfigSnapshot = {
   default?: string | null;
 };
 
+export type ProjectThemeConfigSnapshot = {
+  trackShell: boolean;
+  designSystem?: DesignSystemChoice | string | null;
+  deploy?: DeployChoice | string | null;
+  cssVariables?: Record<string, string>;
+  themeVariables?: Record<string, Record<string, string>>;
+};
+
+export type ShapeVariant = "pill" | "rounded";
+
+export type DesignSystemConfigSnapshot = {
+  version: number;
+  shape: ShapeVariant;
+  cssVariables?: Record<string, string>;
+  themeVariables?: Record<string, Record<string, string>>;
+};
+
 export type TerminalSessionDescriptor = {
   terminalId: string;
   project: string;
@@ -59,8 +76,12 @@ export type AgentLaunchMetadata = {
   command: string | null;
 };
 
+const DEFAULT_TERMINAL_LABEL = "Shell";
+
 export function terminalDisplayLabel(desc: TerminalSessionDescriptor): string {
-  return desc.customName ?? desc.displayName;
+  if (desc.customName) return desc.customName;
+  if (desc.label && desc.label !== DEFAULT_TERMINAL_LABEL) return desc.label;
+  return desc.displayName;
 }
 
 export function makeTerminalId(project: string, label: string): string {
@@ -111,6 +132,7 @@ export type ProjectConfigReadSnapshot = {
   processes: Record<string, ProcessEntrySnapshot>;
   agents?: ProjectAgentsConfigSnapshot | null;
   env: Record<string, string>;
+  theme: ProjectThemeConfigSnapshot;
   source: string;
   error: string | null;
 };
@@ -123,6 +145,8 @@ export type SharedAssetSnapshot = {
 
 export type DesignSystemChoice = "weekend" | "none";
 
+export type DeployChoice = "none" | "cloudflare" | "vercel";
+
 export type CreateProjectInput = {
   name?: string;
   defaultAgentCommand?: string;
@@ -130,6 +154,68 @@ export type CreateProjectInput = {
   githubRepoUrl?: string;
   initialPrompt?: string;
   designSystem?: DesignSystemChoice;
+  deploy?: DeployChoice;
+  fileWrites?: Record<string, string>;
+};
+
+export type PresetWriteTarget =
+  | { type: "env.local"; as?: string }
+  | { type: "config"; path: string }
+  | { type: "transient" };
+
+export type PresetFieldValidation = {
+  pattern?: string;
+  minLength?: number;
+};
+
+export type PresetField = {
+  key: string;
+  label: string;
+  description?: string;
+  placeholder?: string;
+  helpUrl?: string;
+  required: boolean;
+  secret: boolean;
+  writesTo: PresetWriteTarget;
+  validate?: PresetFieldValidation;
+};
+
+export type PresetDerived = {
+  key: string;
+  template: string;
+  writesTo: PresetWriteTarget;
+};
+
+export type PresetAfterCreateStep = {
+  label: string;
+  command?: string;
+  url?: string;
+  description?: string;
+};
+
+export type PresetManifest = {
+  id: string;
+  name: string;
+  description: string;
+  tags?: string[];
+  fields: PresetField[];
+  derived?: PresetDerived[];
+  afterCreate?: PresetAfterCreateStep[];
+};
+
+export type PresetSummary = Pick<
+  PresetManifest,
+  "id" | "name" | "description" | "tags"
+>;
+
+export type CreateFromPresetInput = {
+  name: string;
+  presetId: string;
+  fieldValues: Record<string, string>;
+  defaultAgentProfileId?: string;
+  defaultAgentCommand?: string;
+  initialPrompt?: string;
+  additionalFileWrites?: Record<string, string>;
 };
 
 export type SharedAssetUploadInput = {

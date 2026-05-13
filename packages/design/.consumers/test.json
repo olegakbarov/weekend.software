@@ -1,0 +1,116 @@
+{
+  "symbol": "Test",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 81,
+      "props": [
+        "name",
+        "status",
+        "duration"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 86,
+      "props": [
+        "name",
+        "status",
+        "duration"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 91,
+      "props": [
+        "name",
+        "status",
+        "duration"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 104,
+      "props": [
+        "name",
+        "status",
+        "duration"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 105,
+      "props": [
+        "name",
+        "status",
+        "duration"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 107,
+      "props": [
+        "name",
+        "status",
+        "duration"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 123,
+      "props": [
+        "name",
+        "status",
+        "duration"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 136,
+      "props": [
+        "name",
+        "status"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 137,
+      "props": [
+        "name",
+        "status"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 138,
+      "props": [
+        "name",
+        "status"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 147,
+      "props": [
+        "name",
+        "status",
+        "duration"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 152,
+      "props": [
+        "name",
+        "status"
+      ]
+    }
+  ],
+  "propUsage": {
+    "duration": 8,
+    "name": 12,
+    "status": 12
+  },
+  "totalUsages": 12
+}

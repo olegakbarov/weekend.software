@@ -3,6 +3,13 @@
   "tier": "registry",
   "consumers": [
     {
+      "file": "src/components/editor/project-editor-pane.tsx",
+      "line": 579,
+      "props": [
+        "className"
+      ]
+    },
+    {
       "file": "src/components/settings/settings-page.tsx",
       "line": 189,
       "props": []
@@ -23,6 +30,8 @@
       "props": []
     }
   ],
-  "propUsage": {},
-  "totalUsages": 4
+  "propUsage": {
+    "className": 1
+  },
+  "totalUsages": 5
 }

@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type DragEvent,
   type ReactNode,
 } from "react";
@@ -142,6 +143,57 @@ function normalizeLibPath(path: string): string {
   return path.endsWith("/") ? path.slice(0, -1) : path;
 }
 
+function loadExpandedDirs(storageKey: string | null): readonly string[] {
+  if (!storageKey || typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((p): p is string => typeof p === "string");
+  } catch {
+    return [];
+  }
+}
+
+function saveExpandedDirs(storageKey: string | null, paths: readonly string[]): void {
+  if (!storageKey || typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(paths));
+  } catch {
+    // Quota / private mode — degrade silently.
+  }
+}
+
+interface FileTreeModelLike {
+  getItem(path: string): { isDirectory(): boolean; isExpanded?: () => boolean } | null;
+}
+
+function deriveExpandedDirs(
+  model: FileTreeModelLike,
+  dirPaths: readonly string[],
+): string[] {
+  const expanded: string[] = [];
+  for (const p of dirPaths) {
+    const handle = model.getItem(p);
+    if (handle && "isExpanded" in handle && handle.isExpanded?.()) {
+      expanded.push(p);
+    }
+  }
+  return expanded;
+}
+
+// Berkeley Mono via the Shadow-DOM-bound CSS variable that @pierre/trees
+// exposes; class-based selectors don't pierce the boundary.
+const FILE_TREE_FONT_STYLE = {
+  height: "100%",
+  "--trees-font-family-override": "var(--font-mono)",
+  // Match DiffAnchors row gutters in the adjacent sidebar tab.
+  "--trees-padding-inline-override": "0px",
+  "--trees-item-margin-x-override": "0px",
+  "--trees-item-padding-x-override": "0.75rem",
+} as CSSProperties;
+
 type PendingTarget = {
   path: string;
   name: string;
@@ -164,6 +216,8 @@ interface ProjectFileTreeProps {
     files: DroppedTreeFile[]
   ) => Promise<void>;
   isMutating?: boolean;
+  /** Per-project localStorage key for persisting per-folder expansion state. */
+  storageKey?: string;
 }
 
 export const ProjectFileTree = forwardRef<ProjectFileTreeHandle, ProjectFileTreeProps>(
@@ -176,6 +230,7 @@ export const ProjectFileTree = forwardRef<ProjectFileTreeHandle, ProjectFileTree
       onDeletePath,
       onDropFiles,
       isMutating = false,
+      storageKey,
     },
     forwardedRef,
   ) {
@@ -192,8 +247,17 @@ export const ProjectFileTree = forwardRef<ProjectFileTreeHandle, ProjectFileTree
     onSelectFileRef.current = onSelectFile;
   }, [onSelectFile]);
 
+  // `useFileTree` only reads options at mount, so we capture the initial
+  // storage key and seed expansion from localStorage exactly once. Per-folder
+  // toggles after mount are persisted via the subscribe path below.
+  const initialStorageKeyRef = useRef(storageKey ?? null);
+  const initialExpandedRef = useRef<readonly string[]>(
+    loadExpandedDirs(initialStorageKeyRef.current),
+  );
+
   const { model } = useFileTree({
-    initialExpansion: "open",
+    initialExpansion: "closed",
+    initialExpandedPaths: initialExpandedRef.current,
     preparedInput,
     onSelectionChange: (paths) => {
       const head = paths[0];
@@ -205,19 +269,48 @@ export const ProjectFileTree = forwardRef<ProjectFileTreeHandle, ProjectFileTree
     },
   });
 
-  // Keep tree paths in sync when the input changes — `useFileTree` only reads
-  // `options` once at mount, so we drive subsequent updates imperatively.
-  // resetPaths validates that `paths` and `preparedInput` describe the same
-  // list, so we pass both derived from the same source.
-  const initialInputRef = useRef(preparedInput);
-  useEffect(() => {
-    if (initialInputRef.current === preparedInput) return;
-    model.resetPaths(paths, { preparedInput });
-  }, [model, paths, preparedInput]);
-
   // Expose tree-wide expand/collapse to the parent via ref. The lib only has
   // per-directory expand()/collapse() methods so we walk every dir path.
   const dirPaths = useMemo(() => paths.filter((p) => p.endsWith("/")), [paths]);
+
+  // Keep tree paths in sync when the input changes — `useFileTree` only reads
+  // `options` once at mount, so we drive subsequent updates imperatively.
+  // resetPaths validates that `paths` and `preparedInput` describe the same
+  // list, so we pass both derived from the same source. We also re-seed
+  // expansion from the *current* model state so the user's open/close
+  // toggles survive an external tree refresh (e.g. file added on disk).
+  const initialInputRef = useRef(preparedInput);
+  useEffect(() => {
+    if (initialInputRef.current === preparedInput) return;
+    const initialExpandedPaths = deriveExpandedDirs(model, dirPaths);
+    model.resetPaths(paths, { preparedInput, initialExpandedPaths });
+  }, [model, paths, preparedInput, dirPaths]);
+
+  // Persist per-folder expansion state to localStorage on every change.
+  // `subscribe` fires for any controller mutation including expand/collapse;
+  // we debounce so a burst of toggles writes once.
+  const dirPathsRef = useRef(dirPaths);
+  dirPathsRef.current = dirPaths;
+  useEffect(() => {
+    const key = storageKey ?? null;
+    if (!key) return;
+    let timer: number | null = null;
+    const persist = () => {
+      timer = null;
+      saveExpandedDirs(key, deriveExpandedDirs(model, dirPathsRef.current));
+    };
+    const unsubscribe = model.subscribe(() => {
+      if (timer !== null) window.clearTimeout(timer);
+      timer = window.setTimeout(persist, 150);
+    });
+    return () => {
+      unsubscribe();
+      if (timer !== null) {
+        window.clearTimeout(timer);
+        persist();
+      }
+    };
+  }, [model, storageKey]);
   useImperativeHandle(
     forwardedRef,
     () => ({
@@ -384,7 +477,7 @@ export const ProjectFileTree = forwardRef<ProjectFileTreeHandle, ProjectFileTree
         <FileTree
           model={model}
           renderContextMenu={renderContextMenu}
-          style={{ height: "100%" }}
+          style={FILE_TREE_FONT_STYLE}
         />
       </div>
       <ConfirmDialog

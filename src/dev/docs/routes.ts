@@ -16,6 +16,7 @@ export const ROUTES: ReadonlyArray<RouteGroup> = [
   {
     group: "State",
     items: [
+      { id: "workbench", name: "Workbench", icon: "sliders" },
       { id: "status", name: "Status", icon: "activity" },
       { id: "audit", name: "Audit", icon: "clipboardCheck" },
       { id: "consumers", name: "Consumers", icon: "users" },
@@ -55,6 +56,7 @@ export const ROUTES: ReadonlyArray<RouteGroup> = [
       { id: "switch", name: "Switch", icon: "toggleR" },
       { id: "table", name: "Table", icon: "table" },
       { id: "tabs", name: "Tabs", icon: "layout" },
+      { id: "test-results", name: "Test Results", icon: "clipboardCheck", isNew: true },
       { id: "thinking", name: "Thinking indicator", icon: "sparkles" },
       { id: "thinking-steps", name: "Thinking Steps", icon: "sparkles" },
       { id: "tool-call", name: "Tool Call", icon: "sliders", isNew: true },
@@ -79,7 +81,7 @@ export const FLAT_ROUTES: ReadonlyArray<FlatRoute> = ROUTES.flatMap((g) =>
   g.items.map((it) => ({ ...it, group: g.group })),
 );
 
-export const DEFAULT_ROUTE = "status";
+export const DEFAULT_ROUTE = "workbench";
 
 export function findRouteById(id: string): FlatRoute | undefined {
   return FLAT_ROUTES.find((r) => r.id === id);

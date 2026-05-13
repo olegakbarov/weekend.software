@@ -16,7 +16,7 @@ import {
   type WorkspaceSearch,
 } from "@/lib/workspace-navigation";
 
-type ProjectWorkspaceMode = "browser" | "editor" | "agent" | "settings" | "skills";
+type ProjectWorkspaceMode = "browser" | "editor" | "agent" | "settings";
 
 type GrabbedElement = {
   tag: string;
@@ -55,10 +55,6 @@ export function useProjectActions(
       }
       if (mode === "settings") {
         navigateWithinProject({ view: "settings" });
-        return;
-      }
-      if (mode === "skills") {
-        navigateWithinProject({ view: "skills" });
         return;
       }
       const agentId =
@@ -122,6 +118,75 @@ export function useProjectActions(
       terminalId: descriptor.terminalId,
     });
   }, [controller, navigateWithinProject, project, state.agentSettings]);
+
+  const commitCurrentChanges = useCallback(
+    (changedFilePaths: readonly string[] = []) => {
+      const profile = defaultAgentProfile(state.agentSettings);
+      const agentLaunch = {
+        profileId: profile.id,
+        instanceId: createAgentInstanceId(project, profile.id),
+        provider: profile.provider,
+        sessionId:
+          profile.sessionIdStrategy === "preseed-uuid"
+            ? createAgentSessionId()
+            : null,
+        command: profile.command,
+      };
+      const descriptor = controller.createTerminalSession(project, "Commit", {
+        processRole: "agent",
+        agentLaunch,
+      });
+      const visiblePaths = changedFilePaths.slice(0, 40);
+      const remainingCount = Math.max(
+        0,
+        changedFilePaths.length - visiblePaths.length,
+      );
+      const fileList =
+        visiblePaths.length > 0
+          ? [
+              "",
+              "Changed files currently visible in the editor:",
+              ...visiblePaths.map((path) => `- ${path}`),
+              remainingCount > 0 ? `- ...and ${remainingCount} more` : null,
+            ]
+              .filter((line): line is string => line !== null)
+              .join("\n")
+          : "";
+      const prompt = [
+        "Please inspect the current git changes in this project, stage the appropriate files, " +
+          "create a concise commit message, and commit the current changes. Do not push.",
+        fileList,
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      void terminalRegistry
+        .acquire(descriptor.terminalId, project, {
+          processRole: "agent",
+          agentLaunch,
+        })
+        .then(() => terminalRegistry.openPty(descriptor.terminalId))
+        .then(() => {
+          terminalRegistry.sendCommand(
+            descriptor.terminalId,
+            applyAgentLaunchStrategy(
+              profile.command,
+              profile,
+              agentLaunch.sessionId,
+            ),
+          );
+          window.setTimeout(() => {
+            terminalRegistry.sendCommand(descriptor.terminalId, prompt);
+          }, 900);
+        })
+        .catch(() => undefined);
+      navigateWithinProject({
+        view: "terminal",
+        terminalId: descriptor.terminalId,
+      });
+    },
+    [controller, navigateWithinProject, project, state.agentSettings],
+  );
 
   const removeTerminal = useCallback(
     (terminalId: string) => {
@@ -198,7 +263,7 @@ export function useProjectActions(
       if (remaining.length > 0) {
         void navigate(buildWorkspaceLocation(remaining[0]!, { view: "browser" }));
       } else {
-        void navigate({ to: "/settings" });
+        void navigate({ to: "/settings", search: { tab: "basic" } });
       }
     } finally {
       setIsDeletingProject(false);
@@ -214,7 +279,7 @@ export function useProjectActions(
       if (remaining.length > 0) {
         void navigate(buildWorkspaceLocation(remaining[0]!, { view: "browser" }));
       } else {
-        void navigate({ to: "/settings" });
+        void navigate({ to: "/settings", search: { tab: "basic" } });
       }
     } finally {
       setIsArchivingProject(false);
@@ -225,6 +290,7 @@ export function useProjectActions(
     archiveProject,
     createAgentTerminal,
     createTerminal,
+    commitCurrentChanges,
     deleteProject,
     elementGrabbed,
     isArchivingProject,

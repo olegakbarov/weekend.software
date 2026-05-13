@@ -51,6 +51,6 @@
       "resources/portless/**/*",
       "../packages/design/dist/**/*"
     ],
-    "externalBin": ["binaries/weekend-browser-mcp"]
+    "externalBin": ["binaries/weekend-mcp"]
   }
 }

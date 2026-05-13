@@ -1,3 +1,6 @@
+@layer theme, base, components, utilities;
+
+@layer components {
 .ds-select {
   position: relative;
   width: 100%;
@@ -135,4 +138,5 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
 }

@@ -1,3 +1,6 @@
+@layer theme, base, components, utilities;
+
+@layer components {
 /* ---------------------------------------------------------------------------
  * Slider — design-system core component.
  *
@@ -512,4 +515,5 @@
 
 .ds-slider-comfy-spacer {
   flex: 1;
+}
 }

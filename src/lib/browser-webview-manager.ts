@@ -36,6 +36,19 @@ const WEBVIEW_CACHE_LIMIT = 5;
 const managedBrowserWebviews = new Map<string, ManagedBrowserWebviewEntry>();
 let hasClaimedStartupCleanup = false;
 
+function closeSupersededProjectWebviews(
+  projectKey: string,
+  activeCacheKey: string
+): void {
+  for (const [cacheKey, entry] of Array.from(managedBrowserWebviews.entries())) {
+    if (cacheKey === activeCacheKey || entry.projectKey !== projectKey) {
+      continue;
+    }
+    managedBrowserWebviews.delete(cacheKey);
+    void entry.handle.close().catch(() => undefined);
+  }
+}
+
 export function buildManagedBrowserWebviewCacheKey(
   projectKey: string,
   frameVersion: number
@@ -151,6 +164,7 @@ export async function activateManagedBrowserWebview({
     projectKey,
   };
 
+  closeSupersededProjectWebviews(projectKey, cacheKey);
   insertBrowserWebviewCacheEntry(
     managedBrowserWebviews,
     cacheKey,

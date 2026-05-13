@@ -1,0 +1,23 @@
+{
+  "symbol": "DiffAnchors",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/components/editor/project-editor-pane.tsx",
+      "line": 643,
+      "props": [
+        "activePath",
+        "files",
+        "onSelect",
+        "emptyState"
+      ]
+    }
+  ],
+  "propUsage": {
+    "activePath": 1,
+    "emptyState": 1,
+    "files": 1,
+    "onSelect": 1
+  },
+  "totalUsages": 1
+}

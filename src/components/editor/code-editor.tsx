@@ -172,6 +172,7 @@ export function CodeEditor({
               ".cm-scroller": {
                 overflow: "auto",
                 backgroundColor: "var(--background)",
+                fontFamily: "var(--font-mono)",
               },
               ".cm-content": {
                 caretColor: "var(--foreground)",

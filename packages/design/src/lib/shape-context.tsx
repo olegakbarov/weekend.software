@@ -61,6 +61,24 @@ interface ShapeContextValue {
 
 const ShapeContext = createContext<ShapeContextValue | null>(null);
 
+function isShapeVariant(value: unknown): value is ShapeVariant {
+  return value === "pill" || value === "rounded";
+}
+
+function readShellShape(defaultShape: ShapeVariant): ShapeVariant {
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return defaultShape;
+  }
+  const shellShape = (
+    window as {
+      __WEEKEND_SHELL_DESIGN_SYSTEM__?: { shape?: unknown };
+    }
+  ).__WEEKEND_SHELL_DESIGN_SYSTEM__?.shape;
+  if (isShapeVariant(shellShape)) return shellShape;
+  const attrShape = document.documentElement.dataset["shape"];
+  return isShapeVariant(attrShape) ? attrShape : defaultShape;
+}
+
 /**
  * Returns the current shape's class strings. Falls back to `pill` if no
  * `<ShapeProvider>` is mounted (matches upstream behaviour).
@@ -101,15 +119,29 @@ export function transitionShape(callback: () => void): void {
 export function ShapeProvider({
   children,
   defaultShape = "pill",
+  shape: controlledShape,
+  onShapeChange,
 }: {
   children: ReactNode;
   defaultShape?: ShapeVariant;
+  shape?: ShapeVariant;
+  onShapeChange?: (shape: ShapeVariant) => void;
 }): React.JSX.Element {
-  const [shape, setShapeState] = useState<ShapeVariant>(defaultShape);
+  const [internalShape, setInternalShape] = useState<ShapeVariant>(() =>
+    readShellShape(defaultShape)
+  );
+  const shape = controlledShape ?? internalShape;
+  const isControlled = controlledShape !== undefined;
 
   const setShape = useCallback((next: ShapeVariant) => {
-    transitionShape(() => setShapeState(next));
-  }, []);
+    transitionShape(() => {
+      if (isControlled) {
+        onShapeChange?.(next);
+      } else {
+        setInternalShape(next);
+      }
+    });
+  }, [isControlled, onShapeChange]);
 
   // Mirror state onto <html data-shape> so CSS-only consumers
   // (anything that keys off `[data-shape="pill"|"rounded"]` in tokens.css)
@@ -120,6 +152,19 @@ export function ShapeProvider({
     document.documentElement.dataset["shape"] = shape;
   }, [shape]);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || isControlled) return;
+    const onDesignSystem = (event: Event) => {
+      const next = (event as CustomEvent<{ shape?: unknown }>).detail?.shape;
+      if (!isShapeVariant(next)) return;
+      transitionShape(() => setInternalShape(next));
+    };
+    window.addEventListener("weekend:design-system", onDesignSystem);
+    return () => {
+      window.removeEventListener("weekend:design-system", onDesignSystem);
+    };
+  }, [isControlled]);
+
   // Global keyboard shortcut: R to cycle radius
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -128,16 +173,12 @@ export function ShapeProvider({
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
       e.preventDefault();
-      transitionShape(() => {
-        setShapeState((prev) => {
-          const idx = shapeOrder.indexOf(prev);
-          return shapeOrder[(idx + 1) % shapeOrder.length] ?? "pill";
-        });
-      });
+      const idx = shapeOrder.indexOf(shape);
+      setShape(shapeOrder[(idx + 1) % shapeOrder.length] ?? "pill");
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [setShape, shape]);
 
   return (
     <ShapeContext.Provider value={{ shape, setShape, classes: shapeMap[shape] }}>

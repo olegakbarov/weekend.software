@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rust Shell Surfaces</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --paper: #ffffff;
+        --ink: #17191f;
+        --muted: #5f6572;
+        --line: #d9dee8;
+        --soft: #eef1f6;
+        --accent: #315c7a;
+        --code-bg: #10141c;
+        --code-ink: #ecf2ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.55 Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      aside {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: auto;
+        border-right: 1px solid var(--line);
+        background: #fbfcfe;
+        padding: 24px 18px;
+      }
+
+      aside h2 {
+        margin: 0 0 14px;
+        font-size: 13px;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      nav {
+        display: grid;
+        gap: 4px;
+      }
+
+      nav a {
+        color: var(--ink);
+        text-decoration: none;
+        border-radius: 6px;
+        padding: 7px 9px;
+        font-size: 13px;
+      }
+
+      nav a:hover {
+        background: var(--soft);
+      }
+
+      main {
+        min-width: 0;
+        padding: 32px;
+      }
+
+      article {
+        max-width: 1180px;
+        margin: 0 auto 64px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 32px;
+        box-shadow: 0 14px 40px rgba(32, 41, 58, 0.08);
+      }
+
+      h1,
+      h2,
+      h3 {
+        letter-spacing: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: 34px;
+      }
+
+      h2 {
+        margin: 46px 0 14px;
+        border-top: 1px solid var(--line);
+        padding-top: 24px;
+        font-size: 23px;
+      }
+
+      h1 + p,
+      h2 + p {
+        color: var(--muted);
+      }
+
+      p {
+        max-width: 82ch;
+      }
+
+      code {
+        font:
+          0.92em "Berkeley Mono",
+          ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Consolas,
+          monospace;
+        border-radius: 4px;
+        background: var(--soft);
+        padding: 0.1em 0.3em;
+      }
+
+      pre {
+        overflow: auto;
+        border-radius: 8px;
+        background: var(--code-bg);
+        color: var(--code-ink);
+        padding: 16px;
+      }
+
+      pre code {
+        background: transparent;
+        color: inherit;
+        padding: 0;
+      }
+
+      table {
+        display: block;
+        width: 100%;
+        overflow: auto;
+        border-collapse: collapse;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--soft);
+        font-weight: 650;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .diagram-shell {
+        margin: 18px 0 28px;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: linear-gradient(180deg, #ffffff 0%, #f9fbfe 100%);
+        padding: 18px;
+      }
+
+      .mermaid {
+        min-width: 720px;
+      }
+
+      .status {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff8e8;
+        color: #5d4300;
+        padding: 14px 16px;
+      }
+
+      @media (max-width: 900px) {
+        .layout {
+          display: block;
+        }
+
+        aside {
+          position: static;
+          height: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        main {
+          padding: 18px;
+        }
+
+        article {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside>
+        <h2>Surfaces</h2>
+        <nav id="toc"></nav>
+      </aside>
+      <main>
+        <article id="content">
+          <p class="status">Loading diagrams...</p>
+        </article>
+      </main>
+    </div>
+
+    <script type="module">
+      import { marked } from "../node_modules/.pnpm/marked@17.0.6/node_modules/marked/lib/marked.esm.js";
+      import mermaid from "../node_modules/.pnpm/mermaid@11.14.0/node_modules/mermaid/dist/mermaid.esm.min.mjs";
+
+      const content = document.getElementById("content");
+      const toc = document.getElementById("toc");
+
+      const escapeHtml = (value) =>
+        String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+
+      const slugify = (value) =>
+        String(value)
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+
+      const describeError = (error) => {
+        if (error instanceof Error && error.message) return error.message;
+        if (error && typeof error === "object") {
+          if (typeof error.message === "string") return error.message;
+          if (typeof error.str === "string") return error.str;
+          if (
+            error.hash &&
+            typeof error.hash === "object" &&
+            typeof error.hash.text === "string"
+          ) {
+            const line =
+              error.hash.loc && typeof error.hash.loc.first_line === "number"
+                ? ` near line ${error.hash.loc.first_line}`
+                : "";
+            return `Mermaid parse error${line}: ${error.hash.text}`;
+          }
+          try {
+            return JSON.stringify(error, null, 2);
+          } catch {
+            return Object.prototype.toString.call(error);
+          }
+        }
+        return String(error);
+      };
+
+      const renderer = new marked.Renderer();
+
+      renderer.code = (token) => {
+        const lang = String(token.lang || "").trim();
+        const text = String(token.text || "");
+        if (lang === "mermaid") {
+          return `<div class="diagram-shell"><div class="mermaid">${escapeHtml(text)}</div></div>`;
+        }
+        return `<pre><code class="language-${escapeHtml(lang)}">${escapeHtml(text)}</code></pre>`;
+      };
+
+      renderer.heading = (token) => {
+        const text = String(token.text || "");
+        const depth = Math.min(6, Math.max(1, Number(token.depth || 1)));
+        const id = slugify(text);
+        return `<h${depth} id="${id}">${text}</h${depth}>`;
+      };
+
+      marked.setOptions({
+        renderer,
+        gfm: true,
+        mangle: false,
+        headerIds: false,
+      });
+
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: "loose",
+        theme: "base",
+        flowchart: {
+          htmlLabels: true,
+          curve: "basis",
+        },
+        sequence: {
+          useMaxWidth: false,
+        },
+        themeVariables: {
+          background: "#ffffff",
+          primaryColor: "#edf4f8",
+          primaryTextColor: "#17191f",
+          primaryBorderColor: "#88aabd",
+          lineColor: "#506475",
+          secondaryColor: "#f5f7fb",
+          tertiaryColor: "#ffffff",
+          fontFamily:
+            "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+        },
+      });
+
+      try {
+        const response = await fetch("./rust-shell-surfaces.md", {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to load Markdown: HTTP ${response.status}`);
+        }
+        const markdown = await response.text();
+        content.innerHTML = marked.parse(markdown);
+
+        const headings = Array.from(content.querySelectorAll("h2"));
+        toc.innerHTML = headings
+          .map((heading) => {
+            const id = heading.id;
+            const label = heading.textContent || id;
+            return `<a href="#${id}">${escapeHtml(label)}</a>`;
+          })
+          .join("");
+
+        await mermaid.run({
+          querySelector: ".mermaid",
+        });
+      } catch (error) {
+        console.error("Rust shell surfaces viewer failed", error);
+        content.innerHTML = `<pre class="status">${escapeHtml(describeError(error))}</pre>`;
+      }
+    </script>
+  </body>
+</html>

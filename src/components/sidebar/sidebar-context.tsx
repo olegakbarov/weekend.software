@@ -1,4 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react";
+import type { SettingsTab } from "@/components/settings/settings-tabs";
 import type { TerminalSessionDescriptor, PlayState } from "@/lib/controller";
 
 // ── Data context (changes when state changes) ──
@@ -6,6 +7,7 @@ import type { TerminalSessionDescriptor, PlayState } from "@/lib/controller";
 export type SidebarData = {
   currentProject: string | null;
   currentRoute: string;
+  currentSettingsTab: SettingsTab | null;
   activeTerminalId: string | null;
   projects: string[];
   terminalSessionsByProject: Record<string, TerminalSessionDescriptor[]>;
@@ -34,6 +36,7 @@ export type SidebarActions = {
   onOpenSettings: () => void;
   onOpenShared: () => void;
   onOpenLogs: () => void;
+  onOpenDocs: () => void;
   onOpenDesignSystem: () => void;
   onToggleShowArchived: () => void;
   onArchiveProject: (project: string) => Promise<void>;

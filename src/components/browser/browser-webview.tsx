@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import {
@@ -128,7 +134,6 @@ export function useBrowserWebview({
   filesystemEventVersion,
   onCurrentPageUrlChange,
   onUrlInputDraftChange,
-  onAddressBarErrorChange,
   onNavigationUrlChange,
   onFrameVersionIncrement,
   onElementGrabbed,
@@ -144,7 +149,6 @@ export function useBrowserWebview({
   filesystemEventVersion: number;
   onCurrentPageUrlChange: (projectKey: string, url: string) => void;
   onUrlInputDraftChange: (projectKey: string, url: string) => void;
-  onAddressBarErrorChange: (projectKey: string, error: string | null) => void;
   onNavigationUrlChange: (projectKey: string, url: string) => void;
   onFrameVersionIncrement: (projectKey: string) => void;
   onElementGrabbed?: (data: {
@@ -195,10 +199,15 @@ export function useBrowserWebview({
     loadTimeoutRef.current = null;
   }, []);
 
-  useEffect(() => {
+  // Route params can change before passive effects run; clear stale browser
+  // status before paint so the previous project never flashes on the next one.
+  useLayoutEffect(() => {
+    clearLoadTimeout();
+    setIsFrameLoading(false);
+    setFrameErrorMessage(null);
     setIsAwaitingStartupRuntime(false);
     setStartupProbeErrorMessage(null);
-  }, [configuredRuntimeUrl, projectKey]);
+  }, [clearLoadTimeout, configuredRuntimeUrl, projectKey]);
 
   useEffect(() => {
     if (!shouldUseStartupRuntimeProbe) {
@@ -211,7 +220,6 @@ export function useBrowserWebview({
       setIsAwaitingStartupRuntime(true);
       setStartupProbeErrorMessage(null);
       setFrameErrorMessage(null);
-      onAddressBarErrorChange(projectKey, null);
       return;
     }
 
@@ -225,7 +233,6 @@ export function useBrowserWebview({
       setIsAwaitingStartupRuntime(false);
     }
   }, [
-    onAddressBarErrorChange,
     playState,
     projectKey,
     shouldUseStartupRuntimeProbe,
@@ -307,12 +314,10 @@ export function useBrowserWebview({
     if (!nextUrl) return;
     onNavigationUrlChange(projectKey, nextUrl);
     onFrameVersionIncrement(projectKey);
-    onAddressBarErrorChange(projectKey, null);
   }, [
     configuredRuntimeUrl,
     currentPageUrl,
     navigationUrl,
-    onAddressBarErrorChange,
     onFrameVersionIncrement,
     onNavigationUrlChange,
     projectKey,
@@ -341,14 +346,12 @@ export function useBrowserWebview({
 
     onNavigationUrlChange(projectKey, nextUrl);
     onFrameVersionIncrement(projectKey);
-    onAddressBarErrorChange(projectKey, null);
     setFrameErrorMessage(null);
   }, [
     configuredRuntimeUrl,
     currentPageUrl,
     filesystemEventVersion,
     navigationUrl,
-    onAddressBarErrorChange,
     onFrameVersionIncrement,
     onNavigationUrlChange,
     projectKey,
@@ -414,7 +417,6 @@ export function useBrowserWebview({
 
         onCurrentPageUrlChange(projectKey, nextUrl);
         onUrlInputDraftChange(projectKey, nextUrl);
-        onAddressBarErrorChange(projectKey, null);
       }
     );
 
@@ -422,7 +424,6 @@ export function useBrowserWebview({
       void unlisten.then((fn) => fn());
     };
   }, [
-    onAddressBarErrorChange,
     onCurrentPageUrlChange,
     onUrlInputDraftChange,
     projectKey,
@@ -575,7 +576,6 @@ export function useBrowserWebview({
       setFrameErrorMessage(null);
       onCurrentPageUrlChange(projectKey, payload.url);
       onUrlInputDraftChange(projectKey, payload.url);
-      onAddressBarErrorChange(projectKey, null);
     };
 
     const attach = async (): Promise<void> => {
@@ -664,7 +664,6 @@ export function useBrowserWebview({
     clearLoadTimeout,
     frameVersion,
     navigationUrl,
-    onAddressBarErrorChange,
     onCurrentPageUrlChange,
     onUrlInputDraftChange,
     projectKey,
@@ -732,12 +731,6 @@ export function useBrowserWebview({
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [reloadCurrentPage, workspaceMode]);
-
-  // Clear errors on project switch
-  useEffect(() => {
-    onAddressBarErrorChange(projectKey, null);
-    setFrameErrorMessage(null);
-  }, [onAddressBarErrorChange, projectKey]);
 
   const capturePreview = useCallback(async (): Promise<CapturePreviewResult> => {
     const handle = activeWebviewRef.current;

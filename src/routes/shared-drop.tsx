@@ -327,17 +327,14 @@ function SharedDropRoute() {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-transparent p-3 text-foreground">
-      <div className="pointer-events-none absolute inset-4 rounded-[36px] bg-[radial-gradient(circle_at_20%_0%,rgba(64,170,140,0.22),transparent_32%),radial-gradient(circle_at_100%_12%,rgba(90,120,200,0.12),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(255,255,255,0.06),transparent_34%)] blur-2xl opacity-75" />
       <section
         className={cn(
-          "relative flex h-full min-h-0 flex-col overflow-hidden rounded-[30px] px-4 pb-4 pt-3 shadow-[0_26px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl",
+          "relative flex h-full min-h-0 flex-col overflow-hidden rounded-[30px] px-4 pb-4 pt-3",
           isDragActive
-            ? "bg-[linear-gradient(180deg,rgba(10,24,20,0.94),rgba(3,6,5,0.96))]"
-            : "bg-[linear-gradient(180deg,rgba(14,14,18,0.92),rgba(4,4,6,0.96))]"
+            ? "bg-[radial-gradient(circle_at_20%_10%,rgba(64,170,140,0.12),transparent_38%)]"
+            : "bg-transparent"
         )}
       >
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),transparent_24%,transparent)]" />
-
         <header className="relative flex items-center gap-3" data-tauri-drag-region>
           <div className="min-w-0 flex-1">
             <p className="font-vcr text-[10px] uppercase tracking-[0.24em] text-muted-foreground/70">
@@ -365,10 +362,10 @@ function SharedDropRoute() {
 
         <section
           className={cn(
-            "relative mt-3 overflow-hidden rounded-[24px] px-4 py-4 transition-[opacity,transform] duration-200",
+            "relative mt-3 overflow-hidden rounded-[24px] px-4 py-4 shadow-[0_18px_56px_rgba(0,0,0,0.24)] backdrop-blur-xl transition-[opacity,transform] duration-200",
             isDragActive
               ? "bg-[linear-gradient(180deg,rgba(12,34,28,0.86),rgba(7,17,15,0.9))] shadow-[0_18px_60px_rgba(0,0,0,0.28)]"
-              : "bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))]"
+              : "bg-[linear-gradient(180deg,rgba(18,18,22,0.9),rgba(8,8,10,0.86))]"
           )}
         >
           <div className="flex items-start gap-3">
@@ -423,7 +420,7 @@ function SharedDropRoute() {
           </div>
         ) : null}
 
-        <section className="relative mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[24px] bg-black/22 px-3 py-3">
+        <section className="relative mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[24px] bg-black/8 px-3 py-3">
           {assets.length === 0 ? (
             <div className="flex h-full min-h-[92px] items-center justify-center px-6 text-center">
               <div className="flex items-center gap-2 font-code text-[11px] text-muted-foreground">

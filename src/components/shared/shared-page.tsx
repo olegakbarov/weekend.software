@@ -314,20 +314,17 @@ export function SharedPage({
   };
 
   return (
-    <section className="flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between px-4 pt-4 pb-2">
-        <div>
-          <h1 className="font-code text-xs text-foreground">Shared</h1>
-          <p className="font-code text-[10px] text-muted-foreground/70">
-            Files shared across all projects at ./shared-assets/
-          </p>
-        </div>
+      <div className="flex shrink-0 items-center justify-between pb-2">
+        <p className="font-code text-[11px] text-muted-foreground">
+          Files shared across all projects at ./shared-assets/
+        </p>
         <div className="flex items-center gap-1">
           <Button
-            size="xs"
+            size="sm"
             variant="ghost"
-            className="font-code text-[10px]"
+            className="h-7 px-2 font-code text-[10px]"
             disabled={isLoading}
             icon={RefreshCw}
             loading={isLoading}
@@ -336,9 +333,9 @@ export function SharedPage({
             Refresh
           </Button>
           <Button
-            size="xs"
+            size="sm"
             variant="outline"
-            className="font-code text-[10px]"
+            className="h-7 px-2 font-code text-[10px]"
             disabled={isUploading}
             icon={Upload}
             loading={isUploading}
@@ -358,7 +355,7 @@ export function SharedPage({
 
       {/* Error */}
       {sharedAssetsError && (
-        <div className="mx-4 rounded border border-destructive/30 bg-destructive/10 px-2.5 py-1.5 font-code text-[10px] text-destructive">
+        <div className="rounded border border-destructive/30 bg-destructive/10 px-2.5 py-1.5 font-code text-[10px] text-destructive">
           {sharedAssetsError}
         </div>
       )}
@@ -366,7 +363,7 @@ export function SharedPage({
       {/* Two-column file browser with drop zone */}
       <div
         className={cn(
-          "mx-4 mt-1 flex min-h-0 flex-1 overflow-hidden rounded border transition-colors",
+          "mt-1 flex min-h-0 flex-1 overflow-hidden rounded border transition-colors",
           dragOver ? "border-primary/50 bg-primary/5" : "border-border/30",
         )}
         onDragOver={(e) => {
@@ -434,17 +431,14 @@ export function SharedPage({
       </div>
 
       {/* Shared Environment Variables */}
-      <div className="mx-4 mt-3">
+      <div className="mt-3 shrink-0">
         <EnvVarsEditor
           env={sharedEnv}
           onUpdate={onUpdateSharedEnv}
           title="Shared Environment Variables"
-          description="Variables inherited by all projects. Project-level variables with the same key will override these."
+          description="Inherited by all projects. Project-level variables with the same key override these."
         />
       </div>
-
-      {/* Bottom spacer */}
-      <div className="h-4 shrink-0" />
-    </section>
+    </div>
   );
 }

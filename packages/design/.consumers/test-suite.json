@@ -1,0 +1,46 @@
+{
+  "symbol": "TestSuite",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 75,
+      "props": [
+        "name",
+        "status",
+        "defaultOpen"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 98,
+      "props": [
+        "name",
+        "status",
+        "defaultOpen"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 130,
+      "props": [
+        "name",
+        "status"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 141,
+      "props": [
+        "name",
+        "status"
+      ]
+    }
+  ],
+  "propUsage": {
+    "defaultOpen": 2,
+    "name": 4,
+    "status": 4
+  },
+  "totalUsages": 4
+}

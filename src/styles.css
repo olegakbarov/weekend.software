@@ -89,6 +89,15 @@
   font-display: swap;
 }
 
+/* Advercase - display serif used on the home-page wordmark heading */
+@font-face {
+  font-family: "Advercase";
+  src: url("/fonts/Advercase-Font-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ============================================================================
    Design System - Based on ispo-code
    ============================================================================ */
@@ -287,6 +296,16 @@ body {
 .light ::-webkit-scrollbar-thumb:hover {
   background: oklch(0.5 0.02 60);
   background-clip: content-box;
+}
+
+.sidebar-edge-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-edge-scrollbar::-webkit-scrollbar-thumb {
+  border: 0;
+  border-radius: 4px 0 0 4px;
+  background-clip: border-box;
 }
 
 .scrollbar-none {

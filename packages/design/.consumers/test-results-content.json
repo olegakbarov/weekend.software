@@ -1,0 +1,13 @@
+{
+  "symbol": "TestResultsContent",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 73,
+      "props": []
+    }
+  ],
+  "propUsage": {},
+  "totalUsages": 1
+}

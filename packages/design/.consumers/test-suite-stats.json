@@ -1,0 +1,41 @@
+{
+  "symbol": "TestSuiteStats",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 78,
+      "props": [
+        "passed"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 101,
+      "props": [
+        "passed",
+        "failed"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 133,
+      "props": [
+        "skipped"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/test-results.tsx",
+      "line": 144,
+      "props": [
+        "passed"
+      ]
+    }
+  ],
+  "propUsage": {
+    "failed": 1,
+    "passed": 3,
+    "skipped": 1
+  },
+  "totalUsages": 4
+}

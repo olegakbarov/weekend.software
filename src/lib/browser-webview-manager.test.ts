@@ -124,6 +124,46 @@ test("managed browser webviews navigate in place when url changes", async () => 
   await closeAllManagedBrowserWebviewsForTest();
 });
 
+test("managed browser webviews close older frames for the same project", async () => {
+  await closeAllManagedBrowserWebviewsForTest();
+  const calls: string[] = [];
+  const firstKey = buildManagedBrowserWebviewCacheKey("alpha", 0);
+  const secondKey = buildManagedBrowserWebviewCacheKey("alpha", 1);
+
+  await activateManagedBrowserWebview({
+    cacheKey: firstKey,
+    container: fakeContainer("one"),
+    frameVersion: 0,
+    projectKey: "alpha",
+    createHandle: async () => createFakeHandle("browser-pane:alpha:0", calls),
+    onPageLoad: () => undefined,
+    url: "http://alpha.localhost:1355/",
+  });
+
+  await activateManagedBrowserWebview({
+    cacheKey: secondKey,
+    container: fakeContainer("two"),
+    frameVersion: 1,
+    projectKey: "alpha",
+    createHandle: async () => createFakeHandle("browser-pane:alpha:1", calls),
+    onPageLoad: () => undefined,
+    url: "http://alpha.localhost:1355/",
+  });
+
+  assert.ok(calls.includes("close:browser-pane:alpha:0"));
+
+  await closeAllManagedBrowserWebviewsForTest();
+
+  assert.equal(
+    calls.filter((call) => call === "close:browser-pane:alpha:0").length,
+    1
+  );
+  assert.equal(
+    calls.filter((call) => call === "close:browser-pane:alpha:1").length,
+    1
+  );
+});
+
 test("managed browser webview startup cleanup is claimed once", async () => {
   await closeAllManagedBrowserWebviewsForTest();
   assert.equal(claimBrowserWebviewStartupCleanup(), true);

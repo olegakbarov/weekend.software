@@ -77,11 +77,13 @@ export function EnvVarsEditor({ env, onUpdate, title, description }: EnvVarsEdit
   }, [draft, env]);
 
   return (
-    <div className="rounded-lg border border-border/70 bg-background/60 p-4">
-      <div className="space-y-3">
-        <h2 className="font-code text-xs text-foreground">{title}</h2>
-        <p className="font-code text-xs text-muted-foreground">{description}</p>
+    <div className="rounded border border-border/70 bg-background/60 px-3 py-2.5">
+      <div className="mb-2">
+        <p className="font-code text-xs text-foreground">{title}</p>
+        <p className="font-code text-[11px] text-muted-foreground">{description}</p>
+      </div>
 
+      <div className="space-y-2">
         {draft.map((entry, index) => (
           <div key={index} className="flex items-center gap-2">
             <Input
@@ -97,7 +99,7 @@ export function EnvVarsEditor({ env, onUpdate, title, description }: EnvVarsEdit
               onChange={(e) => handleChange(index, "value", e.target.value)}
             />
             <Button
-              className="text-muted-foreground hover:text-destructive"
+              className="h-7 px-2 text-muted-foreground hover:text-destructive"
               icon={X}
               onClick={() => handleRemove(index)}
               size="icon-sm"
@@ -108,7 +110,7 @@ export function EnvVarsEditor({ env, onUpdate, title, description }: EnvVarsEdit
 
         <div className="flex items-center gap-2">
           <Button
-            className="text-foreground"
+            className="h-7 px-2 font-code text-[10px]"
             icon={Plus}
             onClick={handleAdd}
             size="sm"
@@ -119,7 +121,7 @@ export function EnvVarsEditor({ env, onUpdate, title, description }: EnvVarsEdit
 
           {hasChanges ? (
             <Button
-              className="text-foreground"
+              className="h-7 px-2 font-code text-[10px]"
               loading={isSaving}
               onClick={() => void handleSave()}
               size="sm"

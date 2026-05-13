@@ -255,6 +255,28 @@
   --trees-theme-scrollbar-thumb: var(--scrollbar-thumb);
 }
 
+/* =====================================================================
+   @pierre/diffs theme bridge
+
+   `<PatchDiff>` renders inside a Shadow DOM; the `--diffs-*` overrides
+   passed via inline `style={...}` cascade in. SplitDiffViewer maps each
+   override to a Weekend-namespaced `--weekend-diffs-*` token defined
+   here. Values derive from the existing palette (`--color-green`,
+   `--color-red`) mixed with `--background`, so the diff palette adapts
+   to every theme via cascade — no per-theme override needed.
+   ===================================================================== */
+:root {
+  --weekend-diffs-buffer-bg: color-mix(in oklab, var(--muted) 70%, transparent);
+  --weekend-diffs-addition-color: var(--color-green);
+  --weekend-diffs-addition-bg: color-mix(in oklab, var(--color-green) 15%, var(--background));
+  --weekend-diffs-addition-number-bg: color-mix(in oklab, var(--color-green) 10%, var(--background));
+  --weekend-diffs-addition-emphasis-bg: color-mix(in oklab, var(--color-green) 30%, transparent);
+  --weekend-diffs-deletion-color: var(--color-red);
+  --weekend-diffs-deletion-bg: color-mix(in oklab, var(--color-red) 15%, var(--background));
+  --weekend-diffs-deletion-number-bg: color-mix(in oklab, var(--color-red) 10%, var(--background));
+  --weekend-diffs-deletion-emphasis-bg: color-mix(in oklab, var(--color-red) 30%, transparent);
+}
+
 [data-shape="pill"] {
   --radius-control: 20px;
   --radius-container: 24px;
@@ -492,6 +514,9 @@ html.transitioning *::after {
   /* Interactive states (Weekend has no --accent; derive from --secondary) */
   --accent: #1A1A1A;
   --accent-foreground: #DEDEDE;
+  --selected: #2D2D2D;
+  --hover: color-mix(in oklab, var(--foreground) 6%, transparent);
+  --active: color-mix(in oklab, var(--foreground) 10%, transparent);
 
   /* Borders / rings / inputs */
   --border: #2D2D2D;
@@ -499,8 +524,13 @@ html.transitioning *::after {
   --input: #181818;
   --focus-ring: #00BE83;
 
+  /* ColorPicker checkerboard (alpha channel preview) */
+  --checker-a: #1F1F1F;
+  --checker-b: #2A2A2A;
+
   /* Status / destructive / success */
   --destructive: #F14D4C;
+  --destructive-light: #3A1010;
   --destructive-foreground: #F8F8F8;
   --success: #31AA40;
   --success-foreground: #F8F8F8;
@@ -602,6 +632,9 @@ html.transitioning *::after {
   /* Interactive states (Weekend has no --accent; derive from --secondary) */
   --accent: #E8E2DB;
   --accent-foreground: #2C2420;
+  --selected: #D8D0C8;
+  --hover: color-mix(in oklab, var(--foreground) 6%, transparent);
+  --active: color-mix(in oklab, var(--foreground) 10%, transparent);
 
   /* Borders / rings / inputs */
   --border: #D8D0C8;
@@ -609,8 +642,13 @@ html.transitioning *::after {
   --input: #EDE7E1;
   --focus-ring: #E84B8A;
 
+  /* ColorPicker checkerboard (alpha channel preview) */
+  --checker-a: #D8D0C8;
+  --checker-b: #F5F0EB;
+
   /* Status / destructive / success */
   --destructive: #D40924;
+  --destructive-light: #FBE4E7;
   --destructive-foreground: #F8F8F8;
   --success: #008D00;
   --success-foreground: #F8F8F8;

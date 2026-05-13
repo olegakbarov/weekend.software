@@ -9,6 +9,7 @@ import {
   type CreateProjectInput,
   type ProcessRole,
   type ProjectConfigReadSnapshot,
+  type ProjectThemeConfigSnapshot,
   type TerminalSessionDescriptor,
   type WorkspaceControllerState,
 } from "./types";
@@ -44,6 +45,7 @@ import {
   refreshProjectTree as refreshProjectTreeImpl,
   refreshProjectConfig as refreshProjectConfigImpl,
   createProject as createProjectImpl,
+  createProjectFromPreset as createProjectFromPresetImpl,
   updateProjectConfig as updateProjectConfigImpl,
   deleteProject as deleteProjectImpl,
   renameProject as renameProjectImpl,
@@ -92,6 +94,8 @@ export type {
   SharedAssetSnapshot,
   CreateProjectInput,
   DesignSystemChoice,
+  DeployChoice,
+  ShapeVariant,
   AgentLaunchMetadata,
   AgentProfile,
   AgentProvider,
@@ -101,6 +105,8 @@ export type {
   TerminalSessionDescriptor,
   ProcessEntrySnapshot,
   ProjectAgentsConfigSnapshot,
+  ProjectThemeConfigSnapshot,
+  DesignSystemConfigSnapshot,
   PortlessLaunchPlan,
 } from "./types";
 
@@ -640,6 +646,16 @@ export function createWorkspaceController() {
       refreshProjectConfigImpl(ctx, projectInternals, runtimeInternals, project),
     createProject: (input?: CreateProjectInput) =>
       createProjectImpl(ctx, projectInternals, runtimeInternals, input),
+    createProjectFromPreset: (input: {
+      name: string;
+      presetId: string;
+      fieldValues: Record<string, string>;
+      defaultAgentProfileId?: string;
+      defaultAgentCommand?: string;
+      initialPrompt?: string;
+      additionalFileWrites?: Record<string, string>;
+    }) =>
+      createProjectFromPresetImpl(ctx, projectInternals, runtimeInternals, input),
     refreshSharedAssets,
     uploadSharedAssets: (files: File[]) => uploadSharedAssetsImpl(ctx, files),
     renameSharedAsset: (fileName: string, newFileName: string) =>
@@ -648,7 +664,11 @@ export function createWorkspaceController() {
       deleteSharedAssetImpl(ctx, fileName),
     updateProjectConfig: (
       project: string,
-      options?: { env?: Record<string, string>; deployUrl?: string | null }
+      options?: {
+        env?: Record<string, string>;
+        deployUrl?: string | null;
+        theme?: ProjectThemeConfigSnapshot;
+      }
     ) =>
       updateProjectConfigImpl(ctx, runtimeInternals, project, options),
     deleteProject: (project: string) =>

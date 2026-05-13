@@ -4,6 +4,7 @@ import { toErrorMessage } from "@/lib/utils/error";
 import {
   type ControllerContext,
   type ProjectConfigReadSnapshot,
+  type ProjectThemeConfigSnapshot,
   type ProjectTreeNode,
   isUserProjectName,
 } from "./types";
@@ -24,6 +25,7 @@ import {
   reconcileProjectRuntimeState,
 } from "./runtime";
 import type { RuntimeInternals } from "./runtime";
+import { createFromPreset } from "./presets";
 
 function extractProjectName(projectPath: string): string | null {
   const segments = projectPath.split(/[\\/]/).filter(Boolean);
@@ -264,6 +266,8 @@ export async function createProject(
     githubRepoUrl?: string;
     initialPrompt?: string;
     designSystem?: "weekend" | "none";
+    deploy?: "none" | "cloudflare" | "vercel";
+    fileWrites?: Record<string, string>;
   } = {}
 ): Promise<string> {
   const normalizedName = input.name?.trim();
@@ -279,6 +283,11 @@ export async function createProject(
     githubRepoUrl: normalizedGithubRepoUrl || undefined,
     initialPrompt: normalizedInitialPrompt || undefined,
     designSystem: input.designSystem ?? undefined,
+    deploy: input.deploy ?? undefined,
+    fileWrites:
+      input.fileWrites && Object.keys(input.fileWrites).length > 0
+        ? input.fileWrites
+        : undefined,
   });
   const createdName = extractProjectName(createdPath);
 
@@ -300,11 +309,62 @@ export async function createProject(
   return resolvedProject;
 }
 
+export async function createProjectFromPreset(
+  ctx: ControllerContext,
+  projectInternals: ProjectInternals,
+  runtimeInternals: RuntimeInternals,
+  input: {
+    name: string;
+    presetId: string;
+    fieldValues: Record<string, string>;
+    defaultAgentProfileId?: string;
+    defaultAgentCommand?: string;
+    initialPrompt?: string;
+    additionalFileWrites?: Record<string, string>;
+  },
+): Promise<string> {
+  const createdPath = await createFromPreset(input);
+  const createdName = extractProjectName(createdPath);
+
+  await loadProjects(
+    ctx,
+    projectInternals,
+    runtimeInternals,
+    createdName ?? undefined,
+  );
+
+  const state = ctx.getState();
+  const resolvedProject =
+    (createdName && state.projects.includes(createdName) ? createdName : null) ??
+    state.focusedProject;
+
+  if (!resolvedProject) {
+    throw new Error("created project name could not be resolved");
+  }
+
+  await Promise.all([
+    refreshProjectTree(ctx, projectInternals, resolvedProject).catch(
+      () => undefined,
+    ),
+    refreshProjectConfig(
+      ctx,
+      projectInternals,
+      runtimeInternals,
+      resolvedProject,
+    ).catch(() => undefined),
+  ]);
+  return resolvedProject;
+}
+
 export async function updateProjectConfig(
   ctx: ControllerContext,
   runtimeInternals: RuntimeInternals,
   project: string,
-  options?: { env?: Record<string, string>; deployUrl?: string | null }
+  options?: {
+    env?: Record<string, string>;
+    deployUrl?: string | null;
+    theme?: ProjectThemeConfigSnapshot;
+  }
 ): Promise<ProjectConfigReadSnapshot> {
   const projectName = project.trim();
   if (!projectName) {
@@ -331,6 +391,7 @@ export async function updateProjectConfig(
         env: options?.env,
         deployUrl:
           options?.deployUrl === undefined ? undefined : options.deployUrl ?? "",
+        theme: options?.theme,
       }
     );
 

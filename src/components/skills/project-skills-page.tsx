@@ -333,7 +333,7 @@ export function ProjectSkillsPage({
   }, [controller, project]);
 
   return (
-    <div className="flex h-full min-h-0">
+    <div className="flex h-full min-h-0 w-full flex-1">
       {/* Left column */}
       <div className="flex w-64 shrink-0 flex-col border-r border-border">
         <div className="min-h-0 flex-1 overflow-auto py-3">

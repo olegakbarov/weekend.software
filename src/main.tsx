@@ -5,8 +5,8 @@ import {
   createRouter,
   createHashHistory,
 } from "@tanstack/react-router";
+import { DesignSystemProvider } from "@/components/theme/design-system-provider";
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import { ShapeProvider } from "@weekend/design/registry";
 import { useWorkspaceController } from "@/hooks/use-workspace-controller";
 import { initUiFileLogger } from "@/lib/ui-file-logger";
 import { routeTree } from "./routeTree.gen";
@@ -38,8 +38,8 @@ function InnerApp() {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <ThemeProvider>
-    <ShapeProvider defaultShape="pill">
+    <DesignSystemProvider>
       <InnerApp />
-    </ShapeProvider>
+    </DesignSystemProvider>
   </ThemeProvider>
 );

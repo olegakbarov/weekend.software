@@ -23,44 +23,11 @@ import {
   useEffect,
   useState,
 } from "react";
-import { getCurrentWindow } from "@/lib/tauri-mock";
-import {
-  safeLocalStorageGetItem,
-  safeLocalStorageSetItem,
-} from "@/lib/utils/safe-local-storage";
+import { applyThemeToDom, readStoredTheme } from "./theme-dom";
+import { isDarkTheme, isThemeName, type ThemeName } from "./theme-model";
+import { syncNativeTheme } from "./theme-native";
 
-export type ThemeName =
-  | "fluid"
-  | "fluid-dark"
-  | "weekend-dark"
-  | "weekend-paper";
-
-export const THEME_NAMES: readonly ThemeName[] = [
-  "fluid",
-  "fluid-dark",
-  "weekend-dark",
-  "weekend-paper",
-] as const;
-
-const DEFAULT_THEME: ThemeName = "fluid";
-const STORAGE_KEY = "weekend.theme";
-
-const DARK_THEMES: ReadonlySet<ThemeName> = new Set([
-  "fluid-dark",
-  "weekend-dark",
-]);
-
-/**
- * Canonical background colors per theme. Mirrors the `--background` value in
- * packages/design/src/tokens.css; used to set the native Tauri window
- * background to match the painted CSS background (avoids flicker on resize).
- */
-const THEME_BACKGROUND_HEX: Record<ThemeName, string> = {
-  fluid: "#fafafa",
-  "fluid-dark": "#0a0a0a",
-  "weekend-dark": "#000000",
-  "weekend-paper": "#F5F0EB",
-};
+export { THEME_NAMES, type ThemeName } from "./theme-model";
 
 interface ThemeContextValue {
   activeTheme: ThemeName;
@@ -69,44 +36,6 @@ interface ThemeContextValue {
 }
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null);
-
-function isThemeName(value: unknown): value is ThemeName {
-  return (
-    typeof value === "string" &&
-    (THEME_NAMES as readonly string[]).includes(value)
-  );
-}
-
-function readStoredTheme(): ThemeName {
-  if (typeof window === "undefined") return DEFAULT_THEME;
-  const stored = safeLocalStorageGetItem(STORAGE_KEY);
-  return isThemeName(stored) ? stored : DEFAULT_THEME;
-}
-
-function hexToRgba(hex: string) {
-  const trimmed = hex.replace("#", "");
-  const normalized =
-    trimmed.length === 3
-      ? trimmed
-          .split("")
-          .map((char) => `${char}${char}`)
-          .join("")
-      : trimmed;
-
-  if (normalized.length !== 6) {
-    return { red: 0, green: 0, blue: 0, alpha: 255 };
-  }
-
-  const red = Number.parseInt(normalized.slice(0, 2), 16);
-  const green = Number.parseInt(normalized.slice(2, 4), 16);
-  const blue = Number.parseInt(normalized.slice(4, 6), 16);
-
-  if ([red, green, blue].some((value) => Number.isNaN(value))) {
-    return { red: 0, green: 0, blue: 0, alpha: 255 };
-  }
-
-  return { red, green, blue, alpha: 255 };
-}
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -176,37 +105,29 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   // (kept so Tailwind `dark:` utilities + .dark selectors keep working), and
   // sync the native Tauri window theme + background.
   useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.theme = activeTheme;
-
-    const dark = DARK_THEMES.has(activeTheme);
-    root.classList.toggle("dark", dark);
-    root.classList.toggle("light", !dark);
-
-    safeLocalStorageSetItem(STORAGE_KEY, activeTheme);
-
-    const win = getCurrentWindow();
-    const nativeMode = dark ? "dark" : "light";
-    const bg = hexToRgba(THEME_BACKGROUND_HEX[activeTheme]);
-    Promise.all([win.setTheme(nativeMode), win.setBackgroundColor(bg)]).catch(
-      (err) => {
-        console.warn("[Theme] failed to sync native window:", err);
-      }
-    );
+    applyThemeToDom(activeTheme);
+    syncNativeTheme(activeTheme);
   }, [activeTheme]);
 
-  const setActiveTheme = useCallback((next: ThemeName) => {
-    // Optimistic update for snappiness; Rust will broadcast and our listener
-    // will idempotently re-confirm.
-    setActiveThemeState((current) => (current === next ? current : next));
-    void invoke("set_active_theme", { theme: next }).catch((err) => {
-      console.error("[Theme] set_active_theme failed, reverting:", err);
-      // Revert by re-reading from storage (the source we trust on error).
-      setActiveThemeState(readStoredTheme());
-    });
-  }, []);
+  const setActiveTheme = useCallback(
+    (next: ThemeName) => {
+      if (next === activeTheme) return;
 
-  const isDark = DARK_THEMES.has(activeTheme);
+      // Optimistic update for snappiness; Rust will broadcast and our listener
+      // will idempotently re-confirm.
+      const previous = activeTheme;
+      setActiveThemeState(next);
+      void invoke("set_active_theme", { theme: next }).catch((err) => {
+        console.error("[Theme] set_active_theme failed, reverting:", err);
+        setActiveThemeState((current) =>
+          current === next ? previous : current
+        );
+      });
+    },
+    [activeTheme]
+  );
+
+  const isDark = isDarkTheme(activeTheme);
 
   return (
     <ThemeContext.Provider value={{ activeTheme, setActiveTheme, isDark }}>
@@ -223,17 +144,4 @@ export { useTheme } from "./use-theme";
  * <html data-theme="..."> set, before the JS bundle parses. Keep in sync with
  * ThemeProvider's storage key, valid theme list, and default.
  */
-export const themeScript = `
-(function() {
-  try {
-    var t = localStorage.getItem('weekend.theme') || 'fluid';
-    var valid = ['fluid','fluid-dark','weekend-dark','weekend-paper'];
-    if (valid.indexOf(t) === -1) t = 'fluid';
-    var root = document.documentElement;
-    root.dataset.theme = t;
-    var dark = t === 'fluid-dark' || t === 'weekend-dark';
-    root.classList.toggle('dark', dark);
-    root.classList.toggle('light', !dark);
-  } catch (e) {}
-})();
-`;
+export { themeScript } from "./theme-dom";

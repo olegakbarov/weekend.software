@@ -20,6 +20,10 @@ import { useAppActions } from "@/hooks/use-app-actions";
 import { useFullscreen } from "@/hooks/use-fullscreen";
 import { useSidebarVisibility } from "@/hooks/use-sidebar-visibility";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import {
+  isSettingsTab,
+  type SettingsTab,
+} from "@/components/settings/settings-tabs";
 import type { WorkspaceController } from "@/hooks/use-workspace-controller";
 import { setTrafficLightsVisible } from "@/lib/tauri-mock";
 import { useWorkspaceState } from "@/hooks/use-workspace-state";
@@ -33,8 +37,8 @@ type CurrentRouteInfo = {
   route:
     | "home"
     | "settings"
-    | "shared"
     | "logs"
+    | "docs"
     | "workspace"
     | "index"
     | "shared-drop"
@@ -42,6 +46,7 @@ type CurrentRouteInfo = {
   project: string | null;
   view: string | null;
   terminalId: string | null;
+  settingsTab: SettingsTab | null;
 };
 
 export const Route = createRootRouteWithContext<RouterContext>()({
@@ -58,14 +63,15 @@ function useCurrentRouteInfo(): CurrentRouteInfo {
       const search = last?.search as {
         view?: string;
         terminalId?: string;
+        tab?: string;
       } | undefined;
 
       let route: CurrentRouteInfo["route"] = "index";
       if (routeId === "/workspace/$project") route = "workspace";
       else if (routeId === "/home") route = "home";
       else if (routeId === "/settings") route = "settings";
-      else if (routeId === "/shared") route = "shared";
       else if (routeId === "/logs") route = "logs";
+      else if (routeId === "/docs") route = "docs";
       else if (routeId === "/shared-drop") route = "shared-drop";
       else if (routeId === "/dev/ds") route = "dev-ds";
 
@@ -74,6 +80,8 @@ function useCurrentRouteInfo(): CurrentRouteInfo {
         project: params?.project ?? null,
         view: search?.view ?? null,
         terminalId: search?.terminalId ?? null,
+        settingsTab:
+          route === "settings" && isSettingsTab(search?.tab) ? search.tab : null,
       };
     },
   });
@@ -139,6 +147,7 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
   const sidebarData: SidebarData = {
     currentProject: routeInfo.project,
     currentRoute: routeInfo.route,
+    currentSettingsTab: routeInfo.settingsTab,
     activeTerminalId: routeInfo.view === "terminal" ? routeInfo.terminalId : null,
     isFullscreen,
     projects: appActions.projects,
@@ -154,8 +163,11 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
       onOpenHome: () => void navigate({ to: "/home" }),
       onCreateTerminal: appActions.createTerminal,
       onOpenLogs: () => void navigate({ to: "/logs" }),
-      onOpenSettings: () => void navigate({ to: "/settings" }),
-      onOpenShared: () => void navigate({ to: "/shared" }),
+      onOpenDocs: () => void navigate({ to: "/docs" }),
+      onOpenSettings: () =>
+        void navigate({ to: "/settings", search: { tab: "basic" } }),
+      onOpenShared: () =>
+        void navigate({ to: "/settings", search: { tab: "shared" } }),
       onOpenDesignSystem: () => void navigate({ to: "/dev/ds" }),
       onRenameTerminal: appActions.renameTerminal,
       onPlay: appActions.play,

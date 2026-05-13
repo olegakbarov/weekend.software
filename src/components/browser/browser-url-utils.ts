@@ -41,6 +41,27 @@ export function buildBrowserSurfaceUrl(url: string): string {
   }
 }
 
+function routeSegmentForDisplay(parsed: URL): string {
+  const route = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  return route || "/";
+}
+
+export function formatBrowserAddressDisplay(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const normalizedHostname = normalizeLocalDevHostname(parsed.hostname);
+    const route = routeSegmentForDisplay(parsed);
+
+    if (isLocalDevHostname(normalizedHostname)) {
+      return route === "/" ? "browser:/" : `browser${route}`;
+    }
+
+    return `${parsed.host}${route === "/" ? "" : route}`;
+  } catch {
+    return url.replace(/^https?:\/\//i, "");
+  }
+}
+
 export function localDevOriginKey(url: string): string | null {
   try {
     const parsed = new URL(url);
@@ -77,18 +98,4 @@ export function shouldHydrateBrowserValueFromConfiguredRuntime(
     normalizedStoredValue,
     configuredRuntimeUrl
   );
-}
-
-export function normalizeNavigableUrl(rawAddress: string): string | null {
-  const trimmed = rawAddress.trim();
-  if (!trimmed) return null;
-  try {
-    const normalizedAddress =
-      trimmed.startsWith("http://") || trimmed.startsWith("https://")
-        ? trimmed
-        : `http://${trimmed}`;
-    return new URL(normalizedAddress).toString();
-  } catch {
-    return null;
-  }
 }

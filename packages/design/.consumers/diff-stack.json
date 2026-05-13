@@ -1,0 +1,27 @@
+{
+  "symbol": "DiffStack",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/components/editor/project-editor-pane.tsx",
+      "line": 713,
+      "props": [
+        "files",
+        "ref",
+        "onActiveFileChange",
+        "renderItem",
+        "workerFactory",
+        "emptyState"
+      ]
+    }
+  ],
+  "propUsage": {
+    "emptyState": 1,
+    "files": 1,
+    "onActiveFileChange": 1,
+    "ref": 1,
+    "renderItem": 1,
+    "workerFactory": 1
+  },
+  "totalUsages": 1
+}

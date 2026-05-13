@@ -1,3 +1,6 @@
+@layer theme, base, components, utilities;
+
+@layer components {
 .ds-number-stepper {
   display: inline-flex;
   align-items: stretch;
@@ -48,4 +51,5 @@
 .ds-number-stepper button:disabled {
   opacity: 0.4;
   pointer-events: none;
+}
 }
