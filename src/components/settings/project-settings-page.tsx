@@ -233,12 +233,16 @@ export function ProjectSettingsPage({
                     <InputCopy value={runtimeAddress} />
                   </div>
                 </div>
-                <label className="flex items-center gap-3">
-                  <span className="w-20 shrink-0 font-code text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-3">
+                  <label
+                    className="w-20 shrink-0 font-code text-[11px] text-muted-foreground"
+                    htmlFor="project-deploy-url"
+                  >
                     Deployed
-                  </span>
+                  </label>
                   <Input
                     className="h-8 min-w-0 flex-1 font-code text-xs"
+                    id="project-deploy-url"
                     onChange={(event) => {
                       setDeployUrlDraft(event.target.value);
                       setDeployUrlError(null);
@@ -260,7 +264,7 @@ export function ProjectSettingsPage({
                   >
                     Save
                   </Button>
-                </label>
+                </div>
                 {deployUrlError ? (
                   <p className="pl-[5.75rem] font-code text-[11px] text-destructive/80">
                     {deployUrlError}
@@ -300,7 +304,7 @@ export function ProjectSettingsPage({
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
-                <label className="block space-y-1">
+                <div className="block space-y-1">
                   <span className="block font-code text-[11px] text-muted-foreground">
                     Theme Tracking
                   </span>
@@ -326,9 +330,9 @@ export function ProjectSettingsPage({
                       </button>
                     ))}
                   </div>
-                </label>
+                </div>
 
-                <label className="block space-y-1">
+                <div className="block space-y-1">
                   <span className="block font-code text-[11px] text-muted-foreground">
                     Primitives
                   </span>
@@ -354,16 +358,17 @@ export function ProjectSettingsPage({
                       </button>
                     ))}
                   </div>
-                </label>
+                </div>
               </div>
 
               <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <label className="block space-y-1">
+                <label className="block space-y-1" htmlFor="project-css-variables">
                   <span className="block font-code text-[11px] text-muted-foreground">
                     CSS Variables
                   </span>
                   <textarea
                     className="min-h-28 w-full resize-y rounded border border-border/70 bg-background px-2 py-1.5 font-code text-[11px] text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-ring"
+                    id="project-css-variables"
                     onChange={(event) => {
                       setCssVariablesDraft(event.target.value);
                       setThemeError(null);
@@ -372,12 +377,13 @@ export function ProjectSettingsPage({
                     value={cssVariablesDraft}
                   />
                 </label>
-                <label className="block space-y-1">
+                <label className="block space-y-1" htmlFor="project-theme-variables">
                   <span className="block font-code text-[11px] text-muted-foreground">
                     Per-theme Variables
                   </span>
                   <textarea
                     className="min-h-28 w-full resize-y rounded border border-border/70 bg-background px-2 py-1.5 font-code text-[11px] text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-ring"
+                    id="project-theme-variables"
                     onChange={(event) => {
                       setThemeVariablesDraft(event.target.value);
                       setThemeError(null);

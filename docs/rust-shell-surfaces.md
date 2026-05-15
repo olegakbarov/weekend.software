@@ -50,7 +50,7 @@ flowchart LR
 | Portless runtime | React shell + Rust env -> process | command wrapper | `portless --name <project> --app-port <port> -- <dev command>` |
 | Native browser webview | React shell + Rust | UI plus eval/navigation | runtime URL, injected bridge script, page load, screenshot, element grab |
 | Browser event bridge | Browser webview -> Rust -> MCP/shell | command callbacks/events | console/errors/navigation/click/input/network/custom events |
-| TCP bridge | MCP sidecar -> Rust | JSON line protocol | `hello`, `list_webviews`, `eval_js`, `navigate`, `get_url`, `drain_events`, `configure_observers` |
+| TCP bridge | MCP sidecar -> Rust | JSON line protocol | `hello`, browser requests, observer requests, terminal requests |
 | MCP stdio server | Agent -> sidecar | MCP JSON-RPC | Weekend tools exposed to agents |
 | Theme/design system | Shell/Rust -> project webviews/files | config plus injected JS/files | shell theme, design variable overrides, `shared-assets/weekend-design` |
 | Shared assets/env | Shell/Rust -> all projects | files/env injection | `~/.weekend/shared-assets`, project `shared-assets`, shared env into PTYs |
@@ -288,7 +288,7 @@ sequenceDiagram
   WebviewAPI->>Rust: native webview created/loads
   Rust->>Rust: record browser-pane label
   Rust->>Rust: sync ~/.weekend/bridge-projects/{project}.port
-  Rust->>Page: eval theme preamble + bridge_inject.js
+  Rust->>Page: eval theme bridge preamble + browser_bridge.js
   Page->>Rust: browser_bridge_ready(version, url)
   React->>Rust: browser_navigate/history/grab/screenshot/probe
   Rust->>Page: navigate/eval/snapshot/screenshot/grab control
@@ -357,6 +357,11 @@ Supported bridge request types:
 - `get_url`
 - `drain_events`
 - `configure_observers`
+- `terminal_spawn`
+- `terminal_write`
+- `terminal_read`
+- `terminal_list`
+- `terminal_kill`
 
 ## MCP Surface
 
@@ -468,8 +473,8 @@ sequenceDiagram
 
 ## Theme And Design Surface
 
-The shell owns global theme and design variable defaults. Projects can opt out
-of shell theme tracking in `weekend.config.json`.
+The shell owns the active theme and global design variable defaults. Projects
+can opt out of shell theme/design tracking in `weekend.config.json`.
 
 ```mermaid
 flowchart TB
@@ -478,23 +483,32 @@ flowchart TB
   ThemeFile["~/.weekend/theme.json"]
   MainWindows["Shell webviews<br/>listen theme-changed"]
   ProjectWebviews["Project browser-pane webviews"]
+  ThemeBridge["__WEEKEND_THEME_BRIDGE__<br/>in project page"]
   DSPrefs["set_design_system_config/get_design_system_config"]
   DSFile["~/.weekend/design-system.json"]
+  ProjectConfig["weekend.config.json<br/>theme.* overrides"]
   DSBundle["packages/design/dist"]
   ProjectDS["{project}/shared-assets/weekend-design"]
 
   ShellTheme --> RustTheme
   RustTheme --> ThemeFile
   RustTheme -->|emit theme-changed| MainWindows
-  RustTheme -->|direct eval theme_apply_script| ProjectWebviews
+  RustTheme -->|eval project_theme_bridge_script| ProjectWebviews
+  ProjectWebviews --> ThemeBridge
 
   ShellTheme --> DSPrefs
   DSPrefs --> DSFile
   DSPrefs -->|emit design-system-changed| MainWindows
-  DSPrefs -->|direct eval overrides script| ProjectWebviews
+  DSPrefs -->|eval project_theme_bridge_script| ProjectWebviews
+  ProjectConfig -->|theme policy + project vars| ThemeBridge
 
   DSBundle -->|startup/create/sync command| ProjectDS
 ```
+
+Rust serializes a `ThemeBridgeState` and injects
+`src-tauri/src/js/theme_bridge.js` plus `theme_bridge_apply.js`. The same
+script is prepended to `browser_bridge.js` on project page load, and is pushed
+again on `set_active_theme` or `set_design_system_config`.
 
 Injected project theme state anchors:
 
@@ -503,8 +517,31 @@ Injected project theme state anchors:
 - `window.__WEEKEND_SHELL_THEME__`
 - `weekend:theme` browser event
 - `window.__WEEKEND_SHELL_DESIGN_SYSTEM__`
+- `document.documentElement.dataset.shape`
 - `weekend:design-system` and `weekend:design-system-overrides` events
 - style tag `#weekend-project-ds-vars`
+
+Design variable precedence in the bridge is:
+
+1. Global base variables from `~/.weekend/design-system.json`.
+2. Global variables for the active theme.
+3. Project base variables from `weekend.config.json` under
+   `theme.cssVariables`.
+4. Project variables for the active theme under `theme.themeVariables`.
+
+The project bridge writes variables to `#weekend-project-ds-vars`, not inline
+styles on `<html>`, so `@weekend/design/tokens.css` keeps its selector-based
+cascade. A `MutationObserver` in the bridge restores `data-theme`, `.dark` /
+`.light`, and `data-shape` if page code rewrites them.
+
+Policy fields:
+
+- `theme.trackShell` defaults to `true`; `false` disables project webview theme
+  bridge injection and update pushes.
+- `theme.designSystem` defaults to `weekend`; `none` serializes
+  `designSystem: null` in the theme bridge and changes agent guidance.
+- `theme.cssVariables` and `theme.themeVariables` are normalized maps of CSS
+  custom properties. Only names matching `--[A-Za-z0-9_-]+` are accepted.
 
 ## Shared Assets And Env
 
@@ -569,12 +606,15 @@ flowchart TB
 
 ## Source Landmarks
 
-- Main Rust command/event/backend surface: `src-tauri/src/main.rs`
+- Main Rust command/event/backend surface: `src-tauri/src/app.rs`
+- Theme/design bridge logic: `src-tauri/src/app/theme.rs`
 - TCP bridge dispatcher: `src-tauri/src/bridge_server.rs`
 - Bridge request/state types: `src-tauri/src/bridge_types.rs`
 - Webview eval/navigation helpers: `src-tauri/src/webview_ops.rs`
 - Browser event buffer: `src-tauri/src/event_buffer.rs`
-- Browser injected script: `src-tauri/src/bridge_inject.js`
+- Browser injected script: `src-tauri/src/js/browser_bridge.js`
+- Project theme bridge scripts: `src-tauri/src/js/theme_bridge.js`,
+  `src-tauri/src/js/theme_bridge_apply.js`
 - MCP stdio server: `src-mcp/src/mcp_protocol.rs`
 - MCP TCP client and port-file resolution: `src-mcp/src/bridge_client.rs`
 - MCP tool definitions and tool-to-bridge translation: `src-mcp/src/tools.rs`

@@ -19,13 +19,17 @@ export function DayCell({ cell, events, eventPositions, today }: DayCellProps) {
   const isToday = isSameDay(cell.date, today);
 
   // Build slots array (0, 1, 2)
-  const slots: (CalendarEvent | null)[] = [null, null, null];
+  const slots: { id: string; event: CalendarEvent | null }[] = [
+    { id: "slot-0", event: null },
+    { id: "slot-1", event: null },
+    { id: "slot-2", event: null },
+  ];
   const overflow: CalendarEvent[] = [];
 
   for (const event of dayEvents) {
     const pos = eventPositions.get(event.id) ?? -1;
     if (pos >= 0 && pos < 3) {
-      slots[pos] = event;
+      slots[pos] = { id: String(event.id), event };
     } else {
       overflow.push(event);
     }
@@ -63,15 +67,15 @@ export function DayCell({ cell, events, eventPositions, today }: DayCellProps) {
 
       {/* Desktop event badges */}
       <div className="hidden flex-col gap-0.5 lg:flex">
-        {slots.map((event, i) =>
-          event ? (
+        {slots.map((slot) =>
+          slot.event ? (
             <EventBadge
-              key={event.id}
-              event={event}
+              key={slot.id}
+              event={slot.event}
               date={cell.date}
             />
           ) : (
-            <div key={`empty-${i}`} className="h-[26px]" />
+            <div key={slot.id} className="h-[26px]" />
           )
         )}
         {overflowCount > 0 && (

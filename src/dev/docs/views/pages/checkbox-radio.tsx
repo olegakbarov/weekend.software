@@ -44,7 +44,7 @@ export function PageCheckboxRadio(): React.JSX.Element {
         <p className="lede">
           Independent yes/no states. The parent owns selection (a <code>Set&lt;number&gt;</code>);
           each <code>CheckboxItem</code> reports toggles via <code>onToggle</code>. Try selecting
-          adjacent rows — the selected backgrounds merge into one block.
+          adjacent rows, the selected backgrounds merge into one block.
         </p>
         <div className="example">
           <div className="example-stage" style={{ justifyContent: "flex-start" }}>
@@ -95,12 +95,12 @@ const [checked, setChecked] = useState<Set<number>>(new Set([0]));
         </H>
         <ul>
           <li>
-            <code>CheckboxGroup</code> — required <code>checkedIndices: Set&lt;number&gt;</code>.
+            <code>CheckboxGroup</code>, required <code>checkedIndices: Set&lt;number&gt;</code>.
             Renders <code>role="group"</code> and owns the proximity-hover, focus-ring, and merged
             selection overlays.
           </li>
           <li>
-            <code>CheckboxItem</code> — required <code>label</code>, <code>index</code>,{" "}
+            <code>CheckboxItem</code>, required <code>label</code>, <code>index</code>,{" "}
             <code>checked</code>, <code>onToggle</code>. Keyboard: Space/Enter toggle;
             Arrow/Home/End navigate.
           </li>
@@ -181,12 +181,12 @@ const [selected, setSelected] = useState(1);
         </H>
         <ul>
           <li>
-            <code>RadioGroup</code> — accepts <code>selectedIndex</code> for the index-based mode,
+            <code>RadioGroup</code>, accepts <code>selectedIndex</code> for the index-based mode,
             or <code>value</code> + <code>onValueChange</code> for the value-based mode. Renders{" "}
             <code>role="radiogroup"</code>.
           </li>
           <li>
-            <code>RadioItem</code> — required <code>label</code> and <code>index</code>; either{" "}
+            <code>RadioItem</code>, required <code>label</code> and <code>index</code>; either{" "}
             <code>selected</code> + <code>onSelect</code> (index mode) or <code>value</code>{" "}
             (value mode). Keyboard: Arrow/Home/End move + select; Space/Enter select on focus.
             Roving <code>tabIndex</code> means only the currently selected row is in the tab

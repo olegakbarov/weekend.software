@@ -107,6 +107,18 @@ import { Button } from "@weekend/design";
 The design system supports four themes selected via the `data-theme`
 attribute on `<html>`: `fluid` (default), `fluid-dark`, `weekend-dark`,
 and `weekend-paper`.
+
+When the project is opened inside Weekend and `theme.trackShell` is not false,
+the host injects the active theme and design defaults into the project webview.
+Observe them instead of inventing a separate theme store:
+- CSS reads `<html data-theme="...">`, `.dark` / `.light`, and optional
+  `<html data-shape="pill|rounded">`.
+- JS can read `window.__WEEKEND_SHELL_THEME__` and
+  `window.__WEEKEND_SHELL_DESIGN_SYSTEM__`.
+- React code from `@weekend/design` can use `ShellThemeBridge`,
+  `useShellTheme`, and `ShapeProvider`.
+- Theme updates dispatch `weekend:theme`; design/shape updates dispatch
+  `weekend:design-system` and `weekend:design-system-overrides`.
 "#;
 
 const PROJECT_AGENT_RUNTIME_NO_DESIGN_GUIDANCE: &str = r#"

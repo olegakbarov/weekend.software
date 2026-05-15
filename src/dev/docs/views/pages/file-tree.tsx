@@ -106,38 +106,38 @@ export function ProjectTree() {
         <p>Re-exports from <CodeInline>@pierre/trees/react</CodeInline> (component + hooks):</p>
         <ul>
           <li>
-            <CodeInline>FileTree</CodeInline> — renders the tree. Takes a{" "}
+            <CodeInline>FileTree</CodeInline>, renders the tree. Takes a{" "}
             <CodeInline>model</CodeInline>, optional <CodeInline>header</CodeInline>, and an
             optional <CodeInline>renderContextMenu</CodeInline>.
           </li>
           <li>
-            <CodeInline>useFileTree(options)</CodeInline> — creates the model. Accepts{" "}
+            <CodeInline>useFileTree(options)</CodeInline>, creates the model. Accepts{" "}
             <CodeInline>paths</CodeInline> or <CodeInline>preparedInput</CodeInline>, plus
             options like <CodeInline>initialExpansion</CodeInline>, <CodeInline>search</CodeInline>,{" "}
             <CodeInline>density</CodeInline>, <CodeInline>icons</CodeInline>,{" "}
             <CodeInline>gitStatus</CodeInline>, <CodeInline>onSelectionChange</CodeInline>.
           </li>
           <li>
-            <CodeInline>useFileTreeSelection(model)</CodeInline> — reactive snapshot of selected
+            <CodeInline>useFileTreeSelection(model)</CodeInline>, reactive snapshot of selected
             paths.
           </li>
           <li>
-            <CodeInline>useFileTreeSelector(model, selector, isEqual?)</CodeInline> — subscribe
+            <CodeInline>useFileTreeSelector(model, selector, isEqual?)</CodeInline>, subscribe
             to a derived slice of model state.
           </li>
           <li>
-            <CodeInline>useFileTreeSearch(model)</CodeInline> — open / close / drive the
+            <CodeInline>useFileTreeSearch(model)</CodeInline>, open / close / drive the
             built-in search overlay.
           </li>
         </ul>
         <p>And from the root entry of <CodeInline>@pierre/trees</CodeInline>:</p>
         <ul>
           <li>
-            <CodeInline>prepareFileTreeInput(paths, options?)</CodeInline> — sort + dedupe paths
+            <CodeInline>prepareFileTreeInput(paths, options?)</CodeInline>, sort + dedupe paths
             once, off the render path. Use this when you start from raw input.
           </li>
           <li>
-            <CodeInline>preparePresortedFileTreeInput(paths)</CodeInline> — same idea, skipping
+            <CodeInline>preparePresortedFileTreeInput(paths)</CodeInline>, same idea, skipping
             the sort step when the input order is already canonical.
           </li>
         </ul>
@@ -149,7 +149,7 @@ export function ProjectTree() {
         </H>
         <ul>
           <li>
-            The tree must live inside a sized container — give the wrapper a fixed{" "}
+            The tree must live inside a sized container, give the wrapper a fixed{" "}
             <CodeInline>height</CodeInline> (or a flex parent) and pass{" "}
             <CodeInline>{'style={{ height: "100%" }}'}</CodeInline> through.
           </li>

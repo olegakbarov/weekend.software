@@ -5,7 +5,7 @@ import {
   type HTMLAttributes,
   type ReactNode,
 } from "react";
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { cn } from "../lib/cn";
 import { fontWeights } from "../lib/font-weight";
 import { springs } from "../lib/springs";
@@ -154,25 +154,29 @@ function ThinkingStep({
 }: ThinkingStepProps): React.JSX.Element | null {
   const Icon = useIcon(icon);
   const shape = useShape();
+  const shouldReduceMotion = useReducedMotion();
 
   if (status === "pending") return null;
 
   const isActive = status === "active";
 
   return (
-    /* Outer: animates height to create space smoothly */
-    <motion.div
-      className={cn("relative z-10 overflow-hidden", className)}
-      initial={{ height: 0 }}
-      animate={{ height: "auto" }}
-      transition={springs.slow}
-    >
-      {/* Inner: fades content in after space starts opening */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.24, delay: 0.08, ease: "easeOut" }}
+    <LazyMotion features={domAnimation}>
+      <m.div
+        className={cn("relative z-10 overflow-hidden", className)}
+        initial={shouldReduceMotion ? false : { height: 0 }}
+        animate={{ height: "auto" }}
+        transition={shouldReduceMotion ? { duration: 0 } : springs.slow}
       >
+        <m.div
+          initial={shouldReduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={
+            shouldReduceMotion
+              ? { duration: 0 }
+              : { duration: 0.24, delay: 0.08, ease: "easeOut" }
+          }
+        >
         {/* Content row — this is the proximity hover target */}
         <div className={cn("flex gap-2.5 px-2 py-1.5", shape.item)}>
           {/* Icon column with continuous connector line */}
@@ -185,8 +189,8 @@ function ThinkingStep({
                   className="text-muted-foreground"
                 />
               ) : (
-                <div className="w-[14px] h-[14px] flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60" />
+                <div className="flex size-[14px] items-center justify-center">
+                  <div className="size-1.5 rounded-full bg-muted-foreground/60" />
                 </div>
               )}
             </div>
@@ -214,8 +218,9 @@ function ThinkingStep({
             {children}
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+        </m.div>
+      </m.div>
+    </LazyMotion>
   );
 }
 
@@ -258,9 +263,9 @@ function ThinkingStepDetails({
         </div>
         <AccordionContent>
           <div className="flex flex-col gap-0.5 pt-0.5">
-            {details?.map((item, i) => (
+            {details?.map((item) => (
               <span
-                key={i}
+                key={item}
                 className="text-[12px] text-muted-foreground leading-snug"
               >
                 {item}
@@ -312,20 +317,28 @@ function ThinkingStepSource({
   children,
   className,
 }: ThinkingStepSourceProps): React.JSX.Element {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
-    <motion.span
-      initial={{ opacity: 0, scale: 0.85, filter: "blur(4px)" }}
+    <LazyMotion features={domAnimation}>
+      <m.span
+      initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.85, filter: "blur(4px)" }}
       animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-      transition={{
-        ...springs.moderate,
-        delay,
-        filter: { duration: 0.12, delay },
-      }}
-    >
-      <Badge variant="solid" size="sm" color={color} className={className}>
-        {children}
-      </Badge>
-    </motion.span>
+      transition={
+        shouldReduceMotion
+          ? { duration: 0 }
+          : {
+              ...springs.moderate,
+              delay,
+              filter: { duration: 0.12, delay },
+            }
+      }
+      >
+        <Badge variant="solid" size="sm" color={color} className={className}>
+          {children}
+        </Badge>
+      </m.span>
+    </LazyMotion>
   );
 }
 
@@ -347,27 +360,35 @@ function ThinkingStepImage({
   className,
 }: ThinkingStepImageProps): React.JSX.Element {
   const shape = useShape();
+  const shouldReduceMotion = useReducedMotion();
+
   return (
-    <motion.div
-      className={cn("mt-1.5", className)}
-      initial={{ opacity: 0, filter: "blur(4px)" }}
-      animate={{ opacity: 1, filter: "blur(0px)" }}
-      transition={{
-        opacity: { duration: 0.2, delay, ease: "easeOut" },
-        filter: { duration: 0.15, delay },
-      }}
-    >
-      <img
-        src={src}
-        alt={alt}
-        className={cn("w-full max-w-[200px] object-cover", shape.container)}
-      />
-      {caption && (
-        <span className="text-[11px] text-muted-foreground mt-1 block">
-          {caption}
-        </span>
-      )}
-    </motion.div>
+    <LazyMotion features={domAnimation}>
+      <m.div
+        className={cn("mt-1.5", className)}
+        initial={shouldReduceMotion ? false : { opacity: 0, filter: "blur(4px)" }}
+        animate={{ opacity: 1, filter: "blur(0px)" }}
+        transition={
+          shouldReduceMotion
+            ? { duration: 0 }
+            : {
+                opacity: { duration: 0.2, delay, ease: "easeOut" },
+                filter: { duration: 0.15, delay },
+              }
+        }
+      >
+        <img
+          src={src}
+          alt={alt}
+          className={cn("w-full max-w-[200px] object-cover", shape.container)}
+        />
+        {caption && (
+          <span className="text-[11px] text-muted-foreground mt-1 block">
+            {caption}
+          </span>
+        )}
+      </m.div>
+    </LazyMotion>
   );
 }
 

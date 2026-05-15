@@ -1,0 +1,71 @@
+{
+  "symbol": "Diagram",
+  "tier": "core",
+  "consumers": [
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 410,
+      "props": [
+        "ariaLabel",
+        "ariaDescription",
+        "caption",
+        "className",
+        "cols",
+        "rows",
+        "nodes",
+        "edges"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/diagram.tsx",
+      "line": 113,
+      "props": [
+        "cols",
+        "rows",
+        "nodes",
+        "edges"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/diagram.tsx",
+      "line": 145,
+      "props": [
+        "cols",
+        "rows",
+        "nodes",
+        "edges"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/diagram.tsx",
+      "line": 174,
+      "props": [
+        "cols",
+        "rows",
+        "nodes",
+        "edges"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/diagram.tsx",
+      "line": 192,
+      "props": [
+        "cols",
+        "rows",
+        "nodes",
+        "edges"
+      ]
+    }
+  ],
+  "propUsage": {
+    "ariaDescription": 1,
+    "ariaLabel": 1,
+    "caption": 1,
+    "className": 1,
+    "cols": 5,
+    "edges": 5,
+    "nodes": 5,
+    "rows": 5
+  },
+  "totalUsages": 5
+}

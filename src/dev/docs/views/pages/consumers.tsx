@@ -41,24 +41,43 @@ interface ConsumerRow {
   readonly topFiles: ReadonlyArray<readonly [string, number]>;
 }
 
+function insertByDescending<T>(
+  items: ReadonlyArray<T>,
+  item: T,
+  getValue: (item: T) => number,
+  limit?: number,
+): ReadonlyArray<T> {
+  const next = [...items];
+  const insertAt = next.findIndex((existing) => getValue(item) > getValue(existing));
+  if (insertAt === -1) {
+    next.push(item);
+  } else {
+    next.splice(insertAt, 0, item);
+  }
+  return typeof limit === "number" ? next.slice(0, limit) : next;
+}
+
 const ROWS: ReadonlyArray<ConsumerRow> = Object.values(MODULES)
   .filter((m): m is ConsumerJson => m !== null && typeof m === "object" && "symbol" in m)
-  .map((m): ConsumerRow => {
+  .reduce<ReadonlyArray<ConsumerRow>>((rows, m) => {
     const fileCounts = new Map<string, number>();
     for (const c of m.consumers) {
       fileCounts.set(c.file, (fileCounts.get(c.file) ?? 0) + 1);
     }
-    const topFiles = [...fileCounts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3);
-    return {
+    const topFiles = Array.from(fileCounts.entries()).reduce<
+      ReadonlyArray<readonly [string, number]>
+    >(
+      (files, entry) => insertByDescending(files, entry, ([, count]) => count, 3),
+      [],
+    );
+    const row = {
       symbol: m.symbol,
       tier: m.tier,
       totalUsages: m.totalUsages,
       topFiles,
     };
-  })
-  .sort((a, b) => b.totalUsages - a.totalUsages);
+    return insertByDescending(rows, row, (entry) => entry.totalUsages);
+  }, []);
 
 const TIER_COLOR = { core: "blue", registry: "violet" } as const;
 
@@ -104,7 +123,7 @@ export function PageConsumers(): React.JSX.Element {
         </H>
         <p>
           Sorted by total usage count, descending. Top consumer files show the three call sites
-          with the most occurrences — useful when sizing the blast radius of a prop deprecation.
+          with the most occurrences, useful when sizing the blast radius of a prop deprecation.
         </p>
         <div className="example">
           <div className="example-stage" style={{ padding: 0 }}>
@@ -154,7 +173,7 @@ export function PageConsumers(): React.JSX.Element {
                     <TableCell>
                       {row.topFiles.length === 0 ? (
                         <span style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-                          —
+                          None
                         </span>
                       ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -163,7 +182,7 @@ export function PageConsumers(): React.JSX.Element {
                               key={file}
                               style={{
                                 fontFamily: "var(--font-mono)",
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 color: "var(--muted-foreground)",
                                 lineHeight: 1.5,
                               }}

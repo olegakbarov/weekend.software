@@ -44,13 +44,13 @@ export type EmbeddedBrowserWebviewHandle = {
   goForward: () => Promise<void>;
   navigate: (url: string) => Promise<void>;
   setPageLoadHandler: (
-    handler: ((payload: BrowserWebviewPageLoadPayload) => void) | null
+    handler: ((payload: BrowserWebviewPageLoadPayload) => void) | null,
   ) => void;
 };
 
 export function buildEmbeddedBrowserWebviewLabel(
   projectKey: string,
-  frameVersion: number
+  frameVersion: number,
 ): string {
   const normalizedProjectKey =
     projectKey
@@ -74,14 +74,14 @@ async function listEmbeddedBrowserWebviews(): Promise<Webview[]> {
 }
 
 export async function hideInactiveEmbeddedBrowserWebviews(
-  activeLabel?: string | null
+  activeLabel?: string | null,
 ): Promise<void> {
   const webviews = await listEmbeddedBrowserWebviews();
   const inactiveLabels = new Set(
     getInactiveBrowserPaneWebviewLabels(
       webviews.map(({ label }) => label),
-      activeLabel
-    )
+      activeLabel,
+    ),
   );
   if (inactiveLabels.size === 0) return;
 
@@ -89,19 +89,19 @@ export async function hideInactiveEmbeddedBrowserWebviews(
     webviews.map(async (webview) => {
       if (!inactiveLabels.has(webview.label)) return;
       await webview.hide().catch(() => undefined);
-    })
+    }),
   );
 }
 
 export async function closeInactiveEmbeddedBrowserWebviews(
-  activeLabel?: string | null
+  activeLabel?: string | null,
 ): Promise<void> {
   const webviews = await listEmbeddedBrowserWebviews();
   const inactiveLabels = new Set(
     getInactiveBrowserPaneWebviewLabels(
       webviews.map(({ label }) => label),
-      activeLabel
-    )
+      activeLabel,
+    ),
   );
   if (inactiveLabels.size === 0) return;
 
@@ -110,7 +110,7 @@ export async function closeInactiveEmbeddedBrowserWebviews(
       if (!inactiveLabels.has(webview.label)) return;
       await webview.hide().catch(() => undefined);
       await webview.close().catch(() => undefined);
-    })
+    }),
   );
 }
 
@@ -179,8 +179,8 @@ async function waitForWebviewCreation(webview: Webview): Promise<void> {
         reject(
           new Error(
             stringifyEventPayload(event.payload) ||
-              "Failed to create embedded browser webview."
-          )
+              "Failed to create embedded browser webview.",
+          ),
         );
       });
     });
@@ -201,15 +201,13 @@ export async function createEmbeddedBrowserWebview({
   let activeContainer = container;
   let activeOnPageLoad = onPageLoad ?? null;
   let unlistenPageLoad: UnlistenFn | null = null;
-  if (onPageLoad) {
-    unlistenPageLoad = await listen<BrowserWebviewPageLoadPayload>(
-      BROWSER_WEBVIEW_PAGE_LOAD_EVENT,
-      (event) => {
-        if (event.payload.webviewLabel !== label) return;
-        activeOnPageLoad?.(event.payload);
-      }
-    );
-  }
+  unlistenPageLoad = await listen<BrowserWebviewPageLoadPayload>(
+    BROWSER_WEBVIEW_PAGE_LOAD_EVENT,
+    (event) => {
+      if (event.payload.webviewLabel !== label) return;
+      activeOnPageLoad?.(event.payload);
+    },
+  );
 
   const existing = await Webview.getByLabel(label);
   if (existing) {
@@ -234,6 +232,7 @@ export async function createEmbeddedBrowserWebview({
 
   try {
     await waitForWebviewCreation(webview);
+    await webview.hide().catch(() => undefined);
   } catch (error) {
     if (unlistenPageLoad) {
       unlistenPageLoad();
@@ -244,7 +243,7 @@ export async function createEmbeddedBrowserWebview({
   }
 
   let closed = false;
-  let visible = true;
+  let visible = false;
   let animationFrameId: number | null = null;
   let syncInFlight = false;
   let syncQueued = false;
@@ -273,6 +272,13 @@ export async function createEmbeddedBrowserWebview({
         previousBounds = nextBounds;
       } while (!closed && syncQueued);
     } catch (error) {
+      if (String(error).includes("webview not found")) {
+        closed = true;
+        if (animationFrameId !== null) {
+          window.cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+      }
       if (!closed) {
         console.warn("[Browser] native webview bounds sync failed", {
           label,
@@ -301,6 +307,13 @@ export async function createEmbeddedBrowserWebview({
       }
       visible = nextVisible;
     } catch (error) {
+      if (String(error).includes("webview not found")) {
+        closed = true;
+        if (animationFrameId !== null) {
+          window.cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+      }
       if (!closed) {
         console.warn("[Browser] native webview visibility change failed", {
           label,
@@ -310,14 +323,20 @@ export async function createEmbeddedBrowserWebview({
     }
   };
 
-  const historyNavigate = async (direction: "back" | "forward"): Promise<void> => {
+  const historyNavigate = async (
+    direction: "back" | "forward",
+  ): Promise<void> => {
     if (closed) return;
-    await invoke("browser_history_navigate", { label, direction }).catch(() => undefined);
+    await invoke("browser_history_navigate", { label, direction }).catch(
+      () => undefined,
+    );
   };
 
   const navigateTo = async (nextUrl: string): Promise<void> => {
     if (closed) return;
-    await invoke("browser_navigate", { label, url: nextUrl }).catch(() => undefined);
+    await invoke("browser_navigate", { label, url: nextUrl }).catch(
+      () => undefined,
+    );
   };
 
   return {

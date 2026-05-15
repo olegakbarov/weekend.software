@@ -1,4 +1,4 @@
-import { Loader2, Play } from "lucide-react";
+import { AlertTriangle, Loader2, Play, RefreshCw } from "lucide-react";
 import {
   type ReactNode,
   useCallback,
@@ -22,20 +22,22 @@ import { MOCK_MODE } from "@/lib/tauri-mock";
 import {
   buildBrowserSurfaceUrl,
   isCrossProjectLocalDevUrl,
+  preferCachedBrowserValue,
   shouldHydrateBrowserValueFromConfiguredRuntime,
 } from "./browser-url-utils";
 import {
   resolveBrowserRuntimeTarget,
+  shouldRenderNativeBrowserWebviewHost,
 } from "./browser-runtime";
-import { BrowserToolbar } from "./browser-toolbar";
+import {
+  BrowserToolbar,
+  TerminalTabStrip,
+  groupTerminalSessions,
+  type BrowserLayoutMode,
+} from "./browser-toolbar";
 import { useBrowserWebview } from "./browser-webview";
 
-type WorkspaceMode =
-  | "browser"
-  | "editor"
-  | "agent"
-  | "terminal"
-  | "settings";
+type WorkspaceMode = "browser" | "editor" | "agent" | "terminal" | "settings";
 
 export function BrowserPane({
   projectKey,
@@ -49,6 +51,7 @@ export function BrowserPane({
   onPlayProject,
   onRestartApp,
   playState,
+  playError,
   editorContent,
   settingsContent,
   agentContent,
@@ -69,11 +72,12 @@ export function BrowserPane({
   projectConfigError: string | null;
   workspaceMode: WorkspaceMode;
   onWorkspaceModeChange: (
-    mode: "browser" | "editor" | "agent" | "settings"
+    mode: "browser" | "editor" | "agent" | "settings",
   ) => void;
   onPlayProject: () => void;
   onRestartApp: () => void;
   playState: PlayState;
+  playError?: string | null;
   editorContent?: ReactNode;
   settingsContent?: ReactNode;
   agentContent?: ReactNode;
@@ -100,7 +104,9 @@ export function BrowserPane({
   const cachedProjectWebview =
     getMostRecentManagedBrowserWebviewForProject(projectKey);
   const frameVersion =
-    frameVersionByProject[projectKey] ?? cachedProjectWebview?.frameVersion ?? 0;
+    frameVersionByProject[projectKey] ??
+    cachedProjectWebview?.frameVersion ??
+    0;
   const [navigationUrlByProject, setNavigationUrlByProject] = useState<
     Record<string, string>
   >({});
@@ -110,7 +116,18 @@ export function BrowserPane({
   const [urlInputDraftByProject, setUrlInputDraftByProject] = useState<
     Record<string, string>
   >({});
+  const [layoutModeByProject, setLayoutModeByProject] = useState<
+    Record<string, BrowserLayoutMode>
+  >({});
   const previousProjectKeyRef = useRef<string | null>(null);
+  const layoutMode = layoutModeByProject[projectKey] ?? "single";
+  const isTerminalMode =
+    workspaceMode === "terminal" || workspaceMode === "agent";
+  const isSplitLayoutActive = layoutMode === "split";
+  // In split layout the left pane is always the browser; selecting a terminal
+  // tab on the right must not hide the native webview or swap the left pane.
+  const isBrowserPaneVisible =
+    workspaceMode === "browser" || (isSplitLayoutActive && isTerminalMode);
 
   const browserTarget = useMemo(
     () =>
@@ -129,7 +146,7 @@ export function BrowserPane({
       isProjectConfigLoading,
       projectConfigError,
       projectConfigSnapshot,
-    ]
+    ],
   );
   const configuredRuntimeUrl = browserTarget.url;
   const cachedFrameWebview =
@@ -137,12 +154,18 @@ export function BrowserPane({
     buildManagedBrowserWebviewCacheKey(projectKey, frameVersion)
       ? cachedProjectWebview
       : null;
-  const storedNavigationUrl =
-    navigationUrlByProject[projectKey] ?? cachedFrameWebview?.lastUrl ?? null;
-  const storedCurrentPageUrl =
-    currentPageUrlByProject[projectKey] ?? cachedFrameWebview?.lastUrl ?? null;
-  const storedUrlInputDraft =
-    urlInputDraftByProject[projectKey] ?? cachedFrameWebview?.lastUrl ?? null;
+  const storedNavigationUrl = preferCachedBrowserValue(
+    cachedFrameWebview?.lastUrl,
+    navigationUrlByProject[projectKey],
+  );
+  const storedCurrentPageUrl = preferCachedBrowserValue(
+    cachedFrameWebview?.lastUrl,
+    currentPageUrlByProject[projectKey],
+  );
+  const storedUrlInputDraft = preferCachedBrowserValue(
+    cachedFrameWebview?.lastUrl,
+    urlInputDraftByProject[projectKey],
+  );
   const hasNavigationOriginMismatch =
     !!configuredRuntimeUrl &&
     !!storedNavigationUrl &&
@@ -159,25 +182,38 @@ export function BrowserPane({
     hasNavigationOriginMismatch ||
     hasCurrentPageOriginMismatch ||
     hasDraftOriginMismatch;
+  const isRestoringCachedBrowserFrame =
+    !!cachedFrameWebview &&
+    cachedFrameWebview.isReady &&
+    !hasCrossProjectLocalDevMismatch &&
+    playState === "running";
+  const cachedBrowserRestoreUrl = isRestoringCachedBrowserFrame
+    ? cachedFrameWebview.lastUrl
+    : null;
   const navigationUrl =
     browserTarget.status === "ready"
       ? hasNavigationOriginMismatch
         ? configuredRuntimeUrl
-        : storedNavigationUrl ?? configuredRuntimeUrl
-      : null;
+        : (storedNavigationUrl ?? configuredRuntimeUrl)
+      : cachedBrowserRestoreUrl;
   const currentPageUrl =
     browserTarget.status === "ready"
       ? hasCurrentPageOriginMismatch
         ? navigationUrl
-        : storedCurrentPageUrl ?? navigationUrl
-      : null;
+        : (storedCurrentPageUrl ?? navigationUrl)
+      : cachedBrowserRestoreUrl;
   const urlInputDraft =
     browserTarget.status === "ready"
       ? hasDraftOriginMismatch
-        ? navigationUrl ?? ""
-        : storedUrlInputDraft ?? currentPageUrl ?? ""
-      : "";
+        ? (navigationUrl ?? "")
+        : (storedUrlInputDraft ?? currentPageUrl ?? "")
+      : (cachedBrowserRestoreUrl ?? "");
   const isEmbeddedBrowserAvailable = !MOCK_MODE;
+  const shouldKeepPreviousSurfaceWhenUnavailable =
+    isBrowserPaneVisible &&
+    playState === "running" &&
+    !projectConfigError &&
+    (isProjectConfigLoading || !projectConfigSnapshot);
 
   const effectiveNavigationUrl = navigationUrl;
   const effectiveUrlInputDraft = urlInputDraft;
@@ -187,41 +223,29 @@ export function BrowserPane({
       effectiveNavigationUrl
         ? buildBrowserSurfaceUrl(effectiveNavigationUrl)
         : null,
-    [effectiveNavigationUrl]
+    [effectiveNavigationUrl],
   );
 
   // --- Stable callbacks for the webview hook ---
 
-  const onCurrentPageUrlChange = useCallback(
-    (pk: string, url: string) => {
-      setCurrentPageUrlByProject((prev) => ({ ...prev, [pk]: url }));
-    },
-    []
-  );
+  const onCurrentPageUrlChange = useCallback((pk: string, url: string) => {
+    setCurrentPageUrlByProject((prev) => ({ ...prev, [pk]: url }));
+  }, []);
 
-  const onUrlInputDraftChange = useCallback(
-    (pk: string, url: string) => {
-      setUrlInputDraftByProject((prev) => ({ ...prev, [pk]: url }));
-    },
-    []
-  );
+  const onUrlInputDraftChange = useCallback((pk: string, url: string) => {
+    setUrlInputDraftByProject((prev) => ({ ...prev, [pk]: url }));
+  }, []);
 
-  const onNavigationUrlChange = useCallback(
-    (pk: string, url: string) => {
-      setNavigationUrlByProject((prev) => ({ ...prev, [pk]: url }));
-    },
-    []
-  );
+  const onNavigationUrlChange = useCallback((pk: string, url: string) => {
+    setNavigationUrlByProject((prev) => ({ ...prev, [pk]: url }));
+  }, []);
 
-  const onFrameVersionIncrement = useCallback(
-    (pk: string) => {
-      setFrameVersionByProject((prev) => ({
-        ...prev,
-        [pk]: (prev[pk] ?? 0) + 1,
-      }));
-    },
-    []
-  );
+  const onFrameVersionIncrement = useCallback((pk: string) => {
+    setFrameVersionByProject((prev) => ({
+      ...prev,
+      [pk]: (prev[pk] ?? 0) + 1,
+    }));
+  }, []);
 
   // --- Webview hook ---
 
@@ -243,6 +267,8 @@ export function BrowserPane({
     configuredRuntimeUrl,
     runtimeSurfaceUrl,
     workspaceMode,
+    isBrowserPaneVisible,
+    shouldKeepPreviousSurfaceWhenUnavailable,
     playState,
     filesystemEventVersion,
     onCurrentPageUrlChange,
@@ -283,17 +309,17 @@ export function BrowserPane({
     const shouldHydrateNavigationUrl =
       shouldHydrateBrowserValueFromConfiguredRuntime(
         storedNavigationUrl,
-        configuredRuntimeUrl
+        configuredRuntimeUrl,
       );
     const shouldHydrateCurrentPageUrl =
       shouldHydrateBrowserValueFromConfiguredRuntime(
         storedCurrentPageUrl,
-        configuredRuntimeUrl
+        configuredRuntimeUrl,
       );
     const shouldHydrateDraftUrl =
       shouldHydrateBrowserValueFromConfiguredRuntime(
         storedUrlInputDraft,
-        configuredRuntimeUrl
+        configuredRuntimeUrl,
       );
 
     if (
@@ -351,6 +377,11 @@ export function BrowserPane({
     isEmbeddedBrowserAvailable && Boolean(effectiveNavigationUrl);
   const effectiveBrowserErrorMessage =
     startupProbeErrorMessage ?? frameErrorMessage;
+  const failureDiagnostic =
+    playError?.trim() ||
+    effectiveBrowserErrorMessage ||
+    browserTarget.message ||
+    "The runtime exited before the app became available.";
   const retryBrowserLoad = () => {
     if (startupProbeErrorMessage) {
       onRestartApp();
@@ -377,35 +408,207 @@ export function BrowserPane({
     });
   }, [projectKey]);
 
+  const shouldShowFrameLoading =
+    playState !== "running" && isFrameLoading && !isRestoringCachedBrowserFrame;
   const isAwakening =
     !!effectiveBrowserErrorMessage ||
     isStartupLoading ||
-    isFrameLoading ||
+    shouldShowFrameLoading ||
     playState !== "running" ||
-    browserTarget.status !== "ready" ||
+    (browserTarget.status !== "ready" && !isRestoringCachedBrowserFrame) ||
     !displayRuntimeSurfaceUrl;
+  const shouldMountNativeBrowserHost = shouldRenderNativeBrowserWebviewHost({
+    browserTargetStatus: browserTarget.status,
+    displayRuntimeSurfaceUrl,
+    isEmbeddedBrowserAvailable,
+    isRestoringCachedBrowserFrame,
+  });
 
-  const awakeningStatus: { kind: "button" } | { kind: "text"; message: string } | null = (() => {
+  const awakeningStatus:
+    | { kind: "button" }
+    | { kind: "text"; message: string }
+    | null = (() => {
+    if (playState === "failed") return null; // failed block has its own treatment
     if (effectiveBrowserErrorMessage) return null; // error block has its own treatment
     if (playState === "starting" || isStartupLoading) {
       return { kind: "text", message: "Starting..." };
     }
-    if (isFrameLoading) {
+    if (shouldShowFrameLoading) {
       return { kind: "text", message: "Loading app..." };
     }
     if (browserTarget.action === "play") {
       return { kind: "button" };
     }
-    if (browserTarget.message) {
+    if (browserTarget.message && !isRestoringCachedBrowserFrame) {
       return { kind: "text", message: browserTarget.message };
     }
     return null;
   })();
 
+  const configuredProcesses = projectConfigSnapshot?.processes ?? {};
+  const { processSessions, agentSessions } = useMemo(
+    () => groupTerminalSessions(terminalSessions, configuredProcesses),
+    [configuredProcesses, terminalSessions],
+  );
+
+  const handleLayoutModeChange = useCallback(
+    (mode: BrowserLayoutMode) => {
+      setLayoutModeByProject((prev) => {
+        if (prev[projectKey] === mode) return prev;
+        return { ...prev, [projectKey]: mode };
+      });
+    },
+    [projectKey],
+  );
+
+  const terminalPaneContent = agentContent ?? (
+    <div className="flex h-full items-center justify-center">
+      <p className="font-code text-sm text-muted-foreground/50">
+        Agent terminal
+      </p>
+    </div>
+  );
+
+  const browserPaneContent = (
+    <div className="relative h-full min-h-0 bg-background">
+      {shouldMountNativeBrowserHost ? (
+        <div
+          aria-hidden={!isBrowserPaneVisible}
+          className={
+            isBrowserPaneVisible
+              ? "absolute inset-0"
+              : "pointer-events-none absolute inset-0 opacity-0"
+          }
+        >
+          <div
+            className="h-full w-full bg-background"
+            ref={nativeWebviewHostRef}
+          />
+        </div>
+      ) : null}
+
+      {browserTarget.status === "ready" && !isEmbeddedBrowserAvailable ? (
+        <div className="flex h-full items-center justify-center px-4">
+          <div className="max-w-xl rounded-md border border-border bg-background p-4 text-center">
+            <p className="font-code text-xs text-foreground">
+              Browser pane is available only in the desktop app.
+            </p>
+            <p className="mt-2 font-code text-xs text-muted-foreground">
+              Run `pnpm tauri:dev` to use the embedded browser.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div
+          aria-hidden={!isAwakening}
+          className={`absolute inset-0 ${
+            isAwakening ? "" : "pointer-events-none"
+          }`}
+        >
+          {previewSrc ? (
+            <img
+              aria-hidden
+              alt=""
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60 grayscale"
+              src={previewSrc}
+            />
+          ) : null}
+
+          {playState === "failed" ? (
+            <div className="absolute inset-0 flex items-center justify-center px-4">
+              <div
+                className="w-full max-w-[30rem] rounded-md bg-background/95 p-4 text-left shadow-[0_0_0_1px_rgba(248,113,113,0.28),0_18px_50px_-24px_rgba(0,0,0,0.72)] backdrop-blur-sm"
+                role="alert"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                    <AlertTriangle aria-hidden className="size-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-vcr text-[13px] text-foreground">
+                      Project failed to run
+                    </p>
+                    <p className="mt-1 break-words font-code text-xs leading-5 text-muted-foreground">
+                      {failureDiagnostic}
+                    </p>
+                    <button
+                      className="mt-4 inline-flex h-8 items-center gap-2 rounded-md bg-foreground px-3 font-vcr text-[11px] text-background shadow-[0_1px_0_rgba(255,255,255,0.18)_inset,0_10px_24px_-16px_rgba(0,0,0,0.9)] transition-transform duration-200 ease-[cubic-bezier(0.2,0,0,1)] hover:scale-[1.02] active:scale-[0.96]"
+                      onClick={onRestartApp}
+                      type="button"
+                    >
+                      <RefreshCw aria-hidden className="size-3" />
+                      <span className="leading-none">RESTART</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : effectiveBrowserErrorMessage ? (
+            <div className="absolute inset-0 flex items-center justify-center px-4">
+              <div className="max-w-md rounded-md border border-border bg-background/90 p-4 text-center backdrop-blur-sm">
+                <p className="font-code text-xs text-foreground">
+                  {effectiveBrowserErrorMessage}
+                </p>
+                <button
+                  className="mt-3 rounded border border-border px-3 py-1.5 font-code text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  onClick={retryBrowserLoad}
+                  type="button"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : awakeningStatus ? (
+            <div className="absolute inset-0 flex items-center justify-center px-4">
+              <button
+                type="button"
+                aria-label={
+                  awakeningStatus.kind === "text"
+                    ? awakeningStatus.message
+                    : "Start project"
+                }
+                aria-busy={awakeningStatus.kind !== "button"}
+                disabled={awakeningStatus.kind !== "button"}
+                onClick={
+                  awakeningStatus.kind === "button" ? onPlayProject : undefined
+                }
+                className={cn(
+                  "group relative flex h-28 w-28 items-center justify-center rounded-full",
+                  "bg-gradient-to-b from-emerald-300 via-emerald-500 to-emerald-700",
+                  "shadow-[0_0_0_1.5px_rgba(15,23,42,0.85),0_0_0_4px_rgba(74,222,128,0.45),0_0_28px_rgba(34,197,94,0.45),0_10px_24px_-6px_rgba(0,0,0,0.5),inset_0_8px_16px_-8px_rgba(255,255,255,0.7),inset_0_-10px_18px_-8px_rgba(0,0,0,0.35),inset_0_0_0_1px_rgba(255,255,255,0.18)]",
+                  "transition-transform duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+                  "cursor-pointer hover:enabled:scale-[1.04] active:enabled:scale-[0.96]",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  "disabled:cursor-default disabled:saturate-[.75]",
+                )}
+              >
+                {awakeningStatus.kind === "button" ? (
+                  <Play
+                    aria-hidden
+                    className="size-12 translate-x-[1.5px] fill-white text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                    strokeWidth={1.25}
+                  />
+                ) : (
+                  <Loader2
+                    aria-hidden
+                    className="size-10 animate-spin text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.45)]"
+                    strokeWidth={2.5}
+                  />
+                )}
+              </button>
+            </div>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <BrowserToolbar
         workspaceMode={workspaceMode}
+        layoutMode={layoutMode}
+        onLayoutModeChange={handleLayoutModeChange}
         onWorkspaceModeChange={onWorkspaceModeChange}
         projectId={projectKey}
         urlInputDraft={effectiveUrlInputDraft}
@@ -421,140 +624,63 @@ export function BrowserPane({
         onCreateTerminal={onCreateTerminal}
         onCreateAgentTerminal={onCreateAgentTerminal}
         onOpenConfigFile={onOpenConfigFile}
+        showTerminalTabs={!isSplitLayoutActive}
       />
 
-      <div className="relative min-h-0 flex-1 bg-background">
-        {isEmbeddedBrowserAvailable &&
-        browserTarget.status === "ready" &&
-        displayRuntimeSurfaceUrl ? (
-          <div
-            aria-hidden={workspaceMode !== "browser"}
-            className={
-              workspaceMode === "browser"
-                ? "absolute inset-0"
-                : "pointer-events-none absolute inset-0 opacity-0"
-            }
-          >
-            <div
-              className="h-full w-full bg-background"
-              ref={nativeWebviewHostRef}
-            />
-          </div>
-        ) : null}
+      <div className="relative flex min-h-0 flex-1 bg-background">
+        <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
+          {browserPaneContent}
 
+          {workspaceMode === "editor" ? (
+            <div className="absolute inset-0 bg-background">
+              {editorContent ?? (
+                <div className="flex h-full items-center justify-center">
+                  <p className="font-code text-sm text-muted-foreground/50">
+                    Select a file to edit
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : workspaceMode === "settings" ? (
+            <div className="absolute inset-0 bg-background">
+              {settingsContent ?? (
+                <div className="flex h-full items-center justify-center">
+                  <p className="font-code text-sm text-muted-foreground/50">
+                    Project settings
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : isTerminalMode && !isSplitLayoutActive ? (
+            <div className="absolute inset-0 bg-background">
+              {terminalPaneContent}
+            </div>
+          ) : null}
+        </div>
 
-        {workspaceMode === "editor" ? (
-          editorContent ?? (
-            <div className="flex h-full items-center justify-center">
-              <p className="font-code text-sm text-muted-foreground/50">
-                Select a file to edit
-              </p>
-            </div>
-          )
-        ) : workspaceMode === "settings" ? (
-          settingsContent ?? (
-            <div className="flex h-full items-center justify-center">
-              <p className="font-code text-sm text-muted-foreground/50">
-                Project settings
-              </p>
-            </div>
-          )
-        ) : workspaceMode === "agent" || workspaceMode === "terminal" ? (
-          agentContent ?? (
-            <div className="flex h-full items-center justify-center">
-              <p className="font-code text-sm text-muted-foreground/50">
-                Agent terminal
-              </p>
-            </div>
-          )
-        ) : browserTarget.status === "ready" && !isEmbeddedBrowserAvailable ? (
-          <div className="flex h-full items-center justify-center px-4">
-            <div className="max-w-xl rounded-md border border-border bg-background p-4 text-center">
-              <p className="font-code text-xs text-foreground">
-                Browser pane is available only in the desktop app.
-              </p>
-              <p className="mt-2 font-code text-xs text-muted-foreground">
-                Run `pnpm tauri:dev` to use the embedded browser.
-              </p>
-            </div>
-          </div>
-        ) : (
+        {isSplitLayoutActive ? (
           <>
-            <div
-              aria-hidden={!isAwakening}
-              className={`absolute inset-0 ${
-                isAwakening ? "" : "pointer-events-none"
-              }`}
-            >
-              {previewSrc ? (
-                <img
-                  aria-hidden
-                  alt=""
-                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60 grayscale"
-                  src={previewSrc}
+            <div className="w-px shrink-0 bg-border/70" />
+            <div className="flex w-1/2 min-h-0 min-w-0 shrink-0 flex-col bg-background">
+              <div className="shrink-0 border-b border-border/80 p-2">
+                <TerminalTabStrip
+                  processSessions={processSessions}
+                  agentSessions={agentSessions}
+                  activeTerminalId={activeTerminalId}
+                  isActiveMode={isTerminalMode}
+                  onSelect={onSelectTerminal}
+                  onRemove={onRemoveTerminal}
+                  onCreateProcess={onCreateTerminal}
+                  onCreateAgent={onCreateAgentTerminal}
+                  disabled={!projectKey}
                 />
-              ) : null}
-
-              {effectiveBrowserErrorMessage ? (
-                <div className="absolute inset-0 flex items-center justify-center px-4">
-                  <div className="max-w-md rounded-md border border-border bg-background/90 p-4 text-center backdrop-blur-sm">
-                    <p className="font-code text-xs text-foreground">
-                      {effectiveBrowserErrorMessage}
-                    </p>
-                    <button
-                      className="mt-3 rounded border border-border px-3 py-1.5 font-code text-xs text-muted-foreground transition-colors hover:text-foreground"
-                      onClick={retryBrowserLoad}
-                      type="button"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                </div>
-              ) : awakeningStatus ? (
-                <div className="absolute inset-0 flex items-center justify-center px-4">
-                  <button
-                    type="button"
-                    aria-label={
-                      awakeningStatus.kind === "text"
-                        ? awakeningStatus.message
-                        : "Start project"
-                    }
-                    aria-busy={awakeningStatus.kind !== "button"}
-                    disabled={awakeningStatus.kind !== "button"}
-                    onClick={
-                      awakeningStatus.kind === "button"
-                        ? onPlayProject
-                        : undefined
-                    }
-                    className={cn(
-                      "group relative flex h-28 w-28 items-center justify-center rounded-full",
-                      "bg-gradient-to-b from-emerald-300 via-emerald-500 to-emerald-700",
-                      "shadow-[0_0_0_1.5px_rgba(15,23,42,0.85),0_0_0_4px_rgba(74,222,128,0.45),0_0_28px_rgba(34,197,94,0.45),0_10px_24px_-6px_rgba(0,0,0,0.5),inset_0_8px_16px_-8px_rgba(255,255,255,0.7),inset_0_-10px_18px_-8px_rgba(0,0,0,0.35),inset_0_0_0_1px_rgba(255,255,255,0.18)]",
-                      "transition-transform duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
-                      "cursor-pointer hover:enabled:scale-[1.04] active:enabled:scale-[0.96]",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                      "disabled:cursor-default disabled:saturate-[.75]"
-                    )}
-                  >
-                    {awakeningStatus.kind === "button" ? (
-                      <Play
-                        aria-hidden
-                        className="h-12 w-12 translate-x-[1.5px] fill-white text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
-                        strokeWidth={1.25}
-                      />
-                    ) : (
-                      <Loader2
-                        aria-hidden
-                        className="h-10 w-10 animate-spin text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.45)]"
-                        strokeWidth={2.5}
-                      />
-                    )}
-                  </button>
-                </div>
-              ) : null}
+              </div>
+              <div className="min-h-0 flex-1 overflow-hidden">
+                {terminalPaneContent}
+              </div>
             </div>
           </>
-        )}
+        ) : null}
       </div>
     </section>
   );

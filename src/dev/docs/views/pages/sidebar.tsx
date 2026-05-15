@@ -5,7 +5,7 @@ import { CodeBlock, CodeInline } from "../../components/code-block";
 import { H } from "../../components/heading";
 
 export function PageSidebar(): React.JSX.Element {
-  const [active, setActive] = useState("/colors");
+  const [active, setActive] = useState("#colors");
   return (
     <>
       <header className="page-header">
@@ -35,7 +35,7 @@ export function PageSidebar(): React.JSX.Element {
             >
               <div
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                   color: "var(--muted-foreground)",
@@ -48,9 +48,9 @@ export function PageSidebar(): React.JSX.Element {
               <NavMenu activeSlug={active}>
                 {(
                   [
-                    ["/", "Home", Home],
-                    ["/colors", "Tokens", Palette],
-                    ["/components", "Components", Layers],
+                    ["#home", "Home", Home],
+                    ["#colors", "Tokens", Palette],
+                    ["#components", "Components", Layers],
                   ] as const
                 ).map(([slug, label, Icon], i) => (
                   <NavItem
@@ -59,8 +59,7 @@ export function PageSidebar(): React.JSX.Element {
                     href={slug}
                     label={label}
                     icon={Icon}
-                    onClick={(e) => {
-                      e.preventDefault();
+                    onClick={() => {
                       setActive(slug);
                     }}
                   />
@@ -69,7 +68,7 @@ export function PageSidebar(): React.JSX.Element {
 
               <div
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                   color: "var(--muted-foreground)",
@@ -82,10 +81,10 @@ export function PageSidebar(): React.JSX.Element {
               <NavMenu activeSlug={active}>
                 {(
                   [
-                    ["/intro", "Introduction", Book],
-                    ["/typography", "Typography", Type],
-                    ["/icons", "Iconography", Hash],
-                    ["/changelog", "Changelog", Sparkles],
+                    ["#intro", "Introduction", Book],
+                    ["#typography", "Typography", Type],
+                    ["#icons", "Iconography", Hash],
+                    ["#changelog", "Changelog", Sparkles],
                   ] as const
                 ).map(([slug, label, Icon], i) => (
                   <NavItem
@@ -94,8 +93,7 @@ export function PageSidebar(): React.JSX.Element {
                     href={slug}
                     label={label}
                     icon={Icon}
-                    onClick={(e) => {
-                      e.preventDefault();
+                    onClick={() => {
                       setActive(slug);
                     }}
                   />

@@ -129,6 +129,10 @@ export function HomePage({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
@@ -373,7 +377,6 @@ export function HomePage({
 
           <textarea
             ref={textareaRef}
-            autoFocus
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"

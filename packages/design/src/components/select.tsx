@@ -37,6 +37,7 @@ export function Select<T extends string = string>({
   const [highlighted, setHighlighted] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const listboxId = useId();
   const valueId = useId();
 
   const selected = items.find((it) => it.value === value);
@@ -107,6 +108,7 @@ export function Select<T extends string = string>({
         role="combobox"
         className="ds-select-trigger"
         aria-haspopup="listbox"
+        aria-controls={listboxId}
         aria-expanded={open}
         aria-labelledby={ariaLabel ? undefined : valueId}
         aria-label={ariaLabel}
@@ -136,7 +138,7 @@ export function Select<T extends string = string>({
         </span>
       </button>
       {open && (
-        <div className="ds-select-menu" role="listbox" ref={listRef}>
+        <div className="ds-select-menu" id={listboxId} role="listbox" ref={listRef}>
           {items.map((it, i) => (
             <button
               type="button"

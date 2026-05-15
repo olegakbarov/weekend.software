@@ -43,6 +43,7 @@ export const ROUTES: ReadonlyArray<RouteGroup> = [
       { id: "checkbox-radio", name: "Checkbox & Radio", icon: "check" },
       { id: "color-picker", name: "Color Picker", icon: "palette" },
       { id: "combobox", name: "Combobox", icon: "chevronDown" },
+      { id: "diagram", name: "Diagram", icon: "grid", isNew: true },
       { id: "dialog", name: "Dialog", icon: "layout" },
       { id: "dropdown", name: "Dropdown", icon: "chevronDown" },
       { id: "file-tree", name: "File Tree", icon: "list" },

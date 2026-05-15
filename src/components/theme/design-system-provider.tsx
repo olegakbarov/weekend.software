@@ -2,8 +2,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
   createContext,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -149,7 +149,7 @@ export function DesignSystemProvider({
 }
 
 export function useDesignSystem(): DesignSystemContextValue {
-  const context = useContext(DesignSystemContext);
+  const context = use(DesignSystemContext);
   if (!context) {
     throw new Error("useDesignSystem must be used within DesignSystemProvider");
   }

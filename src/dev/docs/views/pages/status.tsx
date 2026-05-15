@@ -3,7 +3,7 @@ import { CodeInline } from "../../components/code-block";
 import { H } from "../../components/heading";
 
 /**
- * Snapshot constants — bumped manually during meaningful commits. The point
+ * Snapshot constants, bumped manually during meaningful commits. The point
  * isn't real-time accuracy, it's a one-glance read of the design system's
  * current shape. If you've just shipped a wave of changes, update these.
  */
@@ -58,7 +58,7 @@ function Metric({ label, value, hint }: MetricProps): React.JSX.Element {
     >
       <div
         style={{
-          fontSize: 11,
+          fontSize: 12,
           textTransform: "uppercase",
           letterSpacing: "0.06em",
           color: "var(--muted-foreground)",
@@ -98,7 +98,7 @@ export function PageStatus(): React.JSX.Element {
         <h1>Status</h1>
         <p className="lede">
           Top-line metrics for <CodeInline>@weekend/design</CodeInline>. Snapshot values, bumped
-          during commits — close enough for a one-glance read of the system's current shape.
+          during commits, close enough for a one-glance read of the system's current shape.
         </p>
         <div
           className="meta-row"
@@ -180,7 +180,7 @@ export function PageStatus(): React.JSX.Element {
         <ul>
           {THEMES.map(([name, blurb]) => (
             <li key={name}>
-              <strong style={{ fontFamily: "var(--font-mono)" }}>{name}</strong> — {blurb}
+              <strong style={{ fontFamily: "var(--font-mono)" }}>{name}</strong>, {blurb}
             </li>
           ))}
         </ul>
@@ -192,7 +192,7 @@ export function PageStatus(): React.JSX.Element {
         </H>
         <p>
           Values come from a <CodeInline>SNAPSHOT</CodeInline> const at the top of{" "}
-          <CodeInline>views/pages/status.tsx</CodeInline>. Bump it when you ship a wave —
+          <CodeInline>views/pages/status.tsx</CodeInline>. Bump it when you ship a wave:
           {" "}<CodeInline>git rev-parse --short HEAD</CodeInline>,{" "}
           <CodeInline>pnpm --filter @weekend/design test</CodeInline> for the count,{" "}
           <CodeInline>stat -f "%z" packages/design/dist/*</CodeInline> for the byte sizes.

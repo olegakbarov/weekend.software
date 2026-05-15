@@ -26,8 +26,8 @@ export function PageCombobox(): React.JSX.Element {
         <h1>Combobox</h1>
         <p className="lede">
           Trigger button + popover with a free-text input and a filterable preset list. Use it
-          where the value is usually one of a known set but consumers may need to type any string
-          — agent commands, branch names, file paths.
+          where the value is usually one of a known set but consumers may need to type any string,
+          such as agent commands, branch names, and file paths.
         </p>
       </header>
 
@@ -101,24 +101,24 @@ const [value, setValue] = useState("");
         </H>
         <ul>
           <li>
-            <CodeInline>value</CodeInline> — current string value. Generic over{" "}
+            <CodeInline>value</CodeInline>, current string value. Generic over{" "}
             <CodeInline>T extends string</CodeInline> so literal-union types narrow correctly.
           </li>
           <li>
-            <CodeInline>onChange(next)</CodeInline> — fires on selection, and on every keystroke
+            <CodeInline>onChange(next)</CodeInline>, fires on selection, and on every keystroke
             when <CodeInline>allowFreeText</CodeInline> is true (the default).
           </li>
           <li>
-            <CodeInline>items</CodeInline> — preset list of{" "}
+            <CodeInline>items</CodeInline>, preset list of{" "}
             <CodeInline>{"{ value, label }"}</CodeInline>. Filtered case-insensitively against the
             input as the user types.
           </li>
           <li>
-            <CodeInline>allowFreeText</CodeInline> — default <CodeInline>true</CodeInline>. When
+            <CodeInline>allowFreeText</CodeInline>, default <CodeInline>true</CodeInline>. When
             false, only items.value can be committed.
           </li>
           <li>
-            <CodeInline>popoverWidth</CodeInline> — pixel width of the popover panel. Defaults to
+            <CodeInline>popoverWidth</CodeInline>, pixel width of the popover panel. Defaults to
             280.
           </li>
         </ul>

@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/editor/project-file-tree.tsx",
-      "line": 384,
+      "line": 477,
       "props": [
         "model",
         "renderContextMenu",
@@ -13,7 +13,7 @@
     },
     {
       "file": "src/components/shared/shared-page.tsx",
-      "line": 398,
+      "line": 395,
       "props": [
         "model",
         "style"

@@ -29,7 +29,7 @@ export function PageAccordion(): React.JSX.Element {
               <AccordionItem value="a">
                 <AccordionTrigger>What's a design token?</AccordionTrigger>
                 <AccordionContent>
-                  A named, reusable design decision — a color, a radius, a duration. Tokens give
+                  A named, reusable design decision, a color, a radius, a duration. Tokens give
                   the design system one source of truth that components and apps reference.
                 </AccordionContent>
               </AccordionItem>

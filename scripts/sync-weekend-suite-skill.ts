@@ -51,28 +51,29 @@ async function main(): Promise<void> {
 
   // Remove stale top-level entries in DEST.
   const destNames = await readdir(DEST);
-  for (const name of destNames) {
-    if (PROTECTED_DEST_ENTRIES.has(name)) continue;
-    if (sourceNames.has(name)) continue;
-    await rm(join(DEST, name), { recursive: true, force: true });
-  }
+  await Promise.all(
+    destNames.map(async (name) => {
+      if (PROTECTED_DEST_ENTRIES.has(name)) return;
+      if (sourceNames.has(name)) return;
+      await rm(join(DEST, name), { recursive: true, force: true });
+    }),
+  );
 
   // Copy each top-level entry. Directories are wiped first so removed files
   // inside them do not linger.
-  let fileCount = 0;
-  for (const name of sourceNames) {
+  const copyCounts = await Promise.all([...sourceNames].map(async (name) => {
     const from = join(SOURCE, name);
     const to = join(DEST, name);
     const info = statSync(from);
     if (info.isDirectory()) {
       await rm(to, { recursive: true, force: true });
       await cp(from, to, { recursive: true });
-      fileCount += await countFiles(to);
-    } else {
-      await cp(from, to);
-      fileCount += 1;
+      return countFiles(to);
     }
-  }
+    await cp(from, to);
+    return 1;
+  }));
+  const fileCount = copyCounts.reduce((sum, count) => sum + count, 0);
 
   const prettyDest = DEST.replace(homedir(), "~");
   console.log(`${TAG} copied ${fileCount} file(s) to ${prettyDest}/`);

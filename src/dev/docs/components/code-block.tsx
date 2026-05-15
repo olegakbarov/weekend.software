@@ -1,44 +1,20 @@
-import { useState } from "react";
-import { Icon } from "./icon";
+import { Code, CodeInline as DesignCodeInline } from "@weekend/design/registry";
 
 interface CodeBlockProps {
-  /** Language hint — informational only; no syntax highlighting yet. */
-  lang?: "jsx" | "tsx" | "ts" | "js" | "bash" | "css" | "html";
+  /** Language hint for syntax highlighting (e.g. "tsx", "json", "bash"). */
+  lang?: string;
   children: string;
 }
 
-export function CodeBlock({ children, lang: _lang = "jsx" }: CodeBlockProps): React.JSX.Element {
-  const [copied, setCopied] = useState(false);
-
-  const onCopy = (): void => {
-    if (!navigator.clipboard) return;
-    navigator.clipboard
-      .writeText(children)
-      .then(() => {
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 1400);
-      })
-      .catch(() => {
-        // ignore clipboard rejection
-      });
-  };
-
-  return (
-    <div className="code-block">
-      <button
-        type="button"
-        className="copy-btn"
-        onClick={onCopy}
-        data-copied={copied ? true : undefined}
-        aria-label="Copy code"
-      >
-        <Icon name={copied ? "check" : "copy"} size={13} />
-      </button>
-      <pre>{children}</pre>
-    </div>
-  );
+/**
+ * Thin docs-site wrapper around the design system `<Code>` component.
+ * Maps the historical `lang` prop to the canonical `language` prop so the
+ * 30+ fluid docs pages don't need to be touched.
+ */
+export function CodeBlock({ children, lang = "tsx" }: CodeBlockProps): React.JSX.Element {
+  return <Code language={lang}>{children}</Code>;
 }
 
 export function CodeInline({ children }: { children: React.ReactNode }): React.JSX.Element {
-  return <code className="code-inline">{children}</code>;
+  return <DesignCodeInline>{children}</DesignCodeInline>;
 }

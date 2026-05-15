@@ -2,14 +2,14 @@
 
 import {
   createContext,
-  useContext,
+  use,
   useEffect,
   useState,
   type ReactElement,
   type ReactNode,
 } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { cn } from "../lib/cn";
 import { springs } from "../lib/springs";
 import { fontWeights } from "../lib/font-weight";
@@ -94,7 +94,8 @@ function Tooltip({
   const open = forceOpen !== undefined ? forceOpen : internalOpen;
   const [mounted, setMounted] = useState(false);
   const shape = useShape();
-  const portalContainer = useContext(TooltipPortalContainerContext);
+  const portalContainer = use(TooltipPortalContainerContext);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (open) setMounted(true);
@@ -127,24 +128,32 @@ function Tooltip({
               forceMount
               className="z-50"
             >
-              <motion.div
-                className={cn(
-                  "bg-foreground text-background px-2 py-1 text-[12px]",
-                  shape.bg,
-                  className,
-                )}
-                style={{ fontVariationSettings: fontWeights.medium }}
-                initial={{ opacity: 0, ...slideOffset }}
-                animate={{
-                  opacity: open ? 1 : 0,
-                  x: 0,
-                  y: 0,
-                }}
-                transition={open ? springs.fast : { duration: 0.1 }}
-                onAnimationComplete={handleAnimationComplete}
-              >
-                {content}
-              </motion.div>
+              <LazyMotion features={domAnimation}>
+                <m.div
+                  className={cn(
+                    "bg-foreground text-background px-2 py-1 text-[12px]",
+                    shape.bg,
+                    className,
+                  )}
+                  style={{ fontVariationSettings: fontWeights.medium }}
+                  initial={shouldReduceMotion ? false : { opacity: 0, ...slideOffset }}
+                  animate={{
+                    opacity: open ? 1 : 0,
+                    x: 0,
+                    y: 0,
+                  }}
+                  transition={
+                    shouldReduceMotion
+                      ? { duration: 0 }
+                      : open
+                        ? springs.fast
+                        : { duration: 0.1 }
+                  }
+                  onAnimationComplete={handleAnimationComplete}
+                >
+                  {content}
+                </m.div>
+              </LazyMotion>
             </TooltipPrimitive.Content>
           </TooltipPrimitive.Portal>
         )}

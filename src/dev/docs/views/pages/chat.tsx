@@ -13,7 +13,7 @@ import { CodeBlock } from "../../components/code-block";
 import { H } from "../../components/heading";
 
 const SCRIPT = [
-  "Sure thing — let me look that up.",
+  "Sure thing, let me look that up.",
   " I'll check the source first.",
   "\n\nThe `Chat` composite is just a wiring of the parts.",
   " You pass `messages`, `streamingText`, `status`, and `onSend`.",
@@ -27,7 +27,7 @@ const INITIAL_MESSAGES: ChatMessageItem[] = [
   {
     id: 2,
     role: "assistant",
-    text: "It wires the chat primitives together via plain UI props. State (messages, streaming text, status) lives on the caller — Chat owns scroll and layout but knows nothing about transport.",
+    text: "It wires the chat primitives together via plain UI props. State (messages, streaming text, status) lives on the caller, Chat owns scroll and layout but knows nothing about transport.",
   },
 ];
 
@@ -50,7 +50,7 @@ export function PageChat(): React.JSX.Element {
         </H>
         <p>
           A wired-up demo. Messages stream in word-by-word; tool calls animate
-          through their lifecycle. Try sending a message — it&apos;ll echo back
+          through their lifecycle. Try sending a message, it&apos;ll echo back
           a scripted response.
         </p>
         <div className="example">
@@ -74,7 +74,7 @@ export function PageChat(): React.JSX.Element {
           <div className="example-stage flex flex-col gap-2">
             <ChatMessage role="user">Hi, can you help with this?</ChatMessage>
             <ChatMessage role="assistant">
-              Of course — what are you trying to do?
+              Of course, what are you trying to do?
             </ChatMessage>
             <ChatMessage role="assistant" interrupted>
               I was answering when you stopped me…

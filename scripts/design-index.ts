@@ -174,14 +174,14 @@ function collectJsxUsages(sf: SourceFile, relPath: string): Map<string, UsageRec
 
 function sortPropUsage(propUsage: Record<string, number>): Record<string, number> {
   const sorted: Record<string, number> = {};
-  for (const k of Object.keys(propUsage).sort()) {
+  for (const k of Object.keys(propUsage).toSorted()) {
     sorted[k] = propUsage[k]!;
   }
   return sorted;
 }
 
 function buildManifest(symbol: string, tier: Tier, raw: ConsumerEntry[]): SymbolManifest {
-  const consumers = [...raw].sort((a, b) => {
+  const consumers = raw.toSorted((a, b) => {
     if (a.file !== b.file) return a.file < b.file ? -1 : 1;
     return a.line - b.line;
   });
@@ -298,7 +298,7 @@ function main(): void {
   };
 
   // Sort symbols so file naming is deterministic.
-  const orderedSymbols = [...manifests.keys()].sort();
+  const orderedSymbols = [...manifests.keys()].toSorted();
   const targets = new Map<string, string>(); // absPath -> serialized content
   for (const sym of orderedSymbols) {
     const m = manifests.get(sym)!;

@@ -1,0 +1,103 @@
+{
+  "symbol": "CodeInline",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 187,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 199,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 201,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 202,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 203,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 207,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 217,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 228,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 231,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 242,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 254,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 256,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 260,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 261,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 262,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 269,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 270,
+      "props": []
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 275,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/components/code-block.tsx",
+      "line": 19,
+      "props": []
+    }
+  ],
+  "propUsage": {},
+  "totalUsages": 19
+}

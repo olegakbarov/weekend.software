@@ -5,7 +5,7 @@ import { CodeBlock } from "../../components/code-block";
 import { H } from "../../components/heading";
 
 export function PageNavMenu(): React.JSX.Element {
-  const [active, setActive] = useState("/colors");
+  const [active, setActive] = useState("#colors");
   return (
     <>
       <header className="page-header">
@@ -27,12 +27,12 @@ export function PageNavMenu(): React.JSX.Element {
               <NavMenu activeSlug={active}>
                 {(
                   [
-                    ["/intro", "Introduction", Book],
-                    ["/colors", "Colors", Palette],
-                    ["/typography", "Typography", Type],
-                    ["/spacing", "Spacing", Sliders],
-                    ["/badges", "Badges", Hash],
-                    ["/components", "Components", List],
+                    ["#intro", "Introduction", Book],
+                    ["#colors", "Colors", Palette],
+                    ["#typography", "Typography", Type],
+                    ["#spacing", "Spacing", Sliders],
+                    ["#badges", "Badges", Hash],
+                    ["#components", "Components", List],
                   ] as const
                 ).map(([slug, label, Icon], i) => (
                   <NavItem
@@ -41,8 +41,7 @@ export function PageNavMenu(): React.JSX.Element {
                     href={slug}
                     label={label}
                     icon={Icon}
-                    onClick={(e) => {
-                      e.preventDefault();
+                    onClick={() => {
                       setActive(slug);
                     }}
                   />
@@ -51,7 +50,7 @@ export function PageNavMenu(): React.JSX.Element {
               <div
                 style={{
                   marginTop: 16,
-                  fontSize: 11,
+                  fontSize: 12,
                   color: "var(--muted-foreground)",
                   textAlign: "center",
                 }}

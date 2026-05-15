@@ -1,5 +1,4 @@
 import {
-  forwardRef,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -8,6 +7,7 @@ import {
   useState,
   type CSSProperties,
   type DragEvent,
+  type Ref,
   type ReactNode,
 } from "react";
 import {
@@ -70,10 +70,10 @@ function fileNameFromPath(path: string): string | null {
 function extractDroppedSourcePaths(dataTransfer: DataTransfer): string[] {
   const uriList = dataTransfer.getData("text/uri-list");
   if (!uriList.trim()) return [];
-  return uriList
-    .split(/\r?\n/)
-    .map((line) => decodeFileUriPath(line))
-    .filter((path): path is string => path !== null);
+  return uriList.split(/\r?\n/).flatMap((line) => {
+    const path = decodeFileUriPath(line);
+    return path === null ? [] : [path];
+  });
 }
 
 function toDroppedTreeFiles(dataTransfer: DataTransfer): DroppedTreeFile[] {
@@ -220,20 +220,17 @@ interface ProjectFileTreeProps {
   storageKey?: string;
 }
 
-export const ProjectFileTree = forwardRef<ProjectFileTreeHandle, ProjectFileTreeProps>(
-  function ProjectFileTree(
-    {
-      tree,
-      selectedPath,
-      onSelectFile,
-      onRenamePath,
-      onDeletePath,
-      onDropFiles,
-      isMutating = false,
-      storageKey,
-    },
-    forwardedRef,
-  ) {
+export function ProjectFileTree({
+  tree,
+  selectedPath,
+  onSelectFile,
+  onRenamePath,
+  onDeletePath,
+  onDropFiles,
+  isMutating = false,
+  storageKey,
+  ref: forwardedRef,
+}: ProjectFileTreeProps & { ref?: Ref<ProjectFileTreeHandle> }) {
   const paths = useMemo(() => flattenTreeToPaths(tree), [tree]);
   const preparedInput = useMemo(
     () => prepareFileTreeInput(paths),
@@ -505,8 +502,7 @@ export const ProjectFileTree = forwardRef<ProjectFileTreeHandle, ProjectFileTree
       />
     </>
   );
-  },
-);
+}
 
 function RenameDialog({
   target,
@@ -518,6 +514,7 @@ function RenameDialog({
   onCancel: () => void;
 }) {
   const [value, setValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Reset the input each time the dialog opens for a different target.
   useEffect(() => {
@@ -525,6 +522,17 @@ function RenameDialog({
   }, [target]);
 
   const isOpen = target !== null;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const frameId = window.requestAnimationFrame(() => {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    });
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [isOpen]);
 
   return (
     <Dialog
@@ -551,7 +559,6 @@ function RenameDialog({
           }}
         >
           <Input
-            autoFocus
             onChange={(event) => setValue(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Escape") {
@@ -560,6 +567,7 @@ function RenameDialog({
               }
             }}
             placeholder="New name"
+            ref={inputRef}
             value={value}
           />
           <DialogFooter className="mt-4">

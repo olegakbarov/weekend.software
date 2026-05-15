@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useState, type HTMLAttributes } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { cn } from "../lib/cn";
 import { springs } from "../lib/springs";
@@ -40,6 +40,7 @@ export const ToolCallList = forwardRef<HTMLDivElement, ToolCallListProps>(
     ref,
   ) {
     const [expanded, setExpanded] = useState(defaultSummaryOpen);
+    const shouldReduceMotion = useReducedMotion();
 
     if (items.length === 0) return null;
 
@@ -49,7 +50,8 @@ export const ToolCallList = forwardRef<HTMLDivElement, ToolCallListProps>(
     const previewNames = previous.map((it) => it.name).join(", ");
 
     return (
-      <div ref={ref} className={cn("space-y-1", className)} {...props}>
+      <LazyMotion features={domAnimation}>
+        <div ref={ref} className={cn("space-y-1", className)} {...props}>
         {previous.length > 0 && (
           <button
             type="button"
@@ -62,13 +64,13 @@ export const ToolCallList = forwardRef<HTMLDivElement, ToolCallListProps>(
               "focus-visible:ring-2 focus-visible:ring-ring/50",
             )}
           >
-            <motion.span
+            <m.span
               animate={{ rotate: expanded ? 90 : 0 }}
-              transition={springs.fast}
+              transition={shouldReduceMotion ? { duration: 0 } : springs.fast}
               className="inline-flex"
             >
               <ChevronRight className="size-3" />
-            </motion.span>
+            </m.span>
             <span className="font-mono tabular-nums">
               {completedCount}/{previous.length} tool calls
             </span>
@@ -82,12 +84,12 @@ export const ToolCallList = forwardRef<HTMLDivElement, ToolCallListProps>(
 
         <AnimatePresence initial={false}>
           {expanded && previous.length > 0 && (
-            <motion.div
+            <m.div
               key="previous"
-              initial={{ height: 0, opacity: 0 }}
+              initial={shouldReduceMotion ? false : { height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ ...springs.moderate, bounce: 0 }}
+              transition={shouldReduceMotion ? { duration: 0 } : { ...springs.moderate, bounce: 0 }}
               className="overflow-hidden"
             >
               <div className="space-y-1 pt-1">
@@ -95,12 +97,13 @@ export const ToolCallList = forwardRef<HTMLDivElement, ToolCallListProps>(
                   <ToolCall key={id} {...itemProps} />
                 ))}
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 
         <ToolCall key={latest.id} {...stripId(latest)} />
-      </div>
+        </div>
+      </LazyMotion>
     );
   },
 );

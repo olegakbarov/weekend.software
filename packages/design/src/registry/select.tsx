@@ -7,9 +7,10 @@ import {
   createContext,
   forwardRef,
   isValidElement,
+  use,
   useCallback,
-  useContext,
   useEffect,
+  useId,
   useRef,
   useState,
   type HTMLAttributes,
@@ -17,7 +18,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/cn";
 import { springs } from "../lib/springs";
@@ -50,12 +51,13 @@ interface SelectContextValue {
   disabled: boolean;
   triggerRef: React.RefObject<HTMLButtonElement | null>;
   labelMap: React.MutableRefObject<Map<string, string>>;
+  contentId: string;
 }
 
 const SelectContext = createContext<SelectContextValue | null>(null);
 
 function useSelectContext(): SelectContextValue {
-  const ctx = useContext(SelectContext);
+  const ctx = use(SelectContext);
   if (!ctx) throw new Error("Select compound components must be inside <Select>");
   return ctx;
 }
@@ -99,6 +101,7 @@ function Select({
   const currentValue = value !== undefined ? value : internalValue;
   const triggerRef = useRef<HTMLButtonElement>(null);
   const labelMap = useRef(new Map<string, string>());
+  const contentId = useId();
 
   const onChange = useCallback(
     (v: string): void => {
@@ -112,7 +115,16 @@ function Select({
 
   return (
     <SelectContext.Provider
-      value={{ value: currentValue, onChange, open, setOpen, disabled, triggerRef, labelMap }}
+      value={{
+        value: currentValue,
+        onChange,
+        open,
+        setOpen,
+        disabled,
+        triggerRef,
+        labelMap,
+        contentId,
+      }}
     >
       {children}
       {name !== undefined && (
@@ -158,7 +170,7 @@ interface SelectTriggerProps
 
 const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
   ({ className, variant, icon: Icon, placeholder = "Select…", error, ...props }, ref) => {
-    const { value, open, setOpen, disabled, triggerRef, labelMap } = useSelectContext();
+    const { value, open, setOpen, disabled, triggerRef, labelMap, contentId } = useSelectContext();
     const shape = useShape();
     const ChevronDown = useIcon("chevron-down");
     const label = value ? (labelMap.current.get(value) ?? value) : undefined;
@@ -176,6 +188,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
           role="combobox"
           aria-expanded={open}
           aria-haspopup="listbox"
+          aria-controls={contentId}
           aria-invalid={error ? true : undefined}
           disabled={disabled}
           onClick={() => setOpen(!open)}
@@ -283,8 +296,9 @@ function autoIndexChildren(children: ReactNode): ReactNode {
 
 const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
   ({ className, children }, ref) => {
-    const { open, setOpen, value, triggerRef } = useSelectContext();
+    const { open, setOpen, value, triggerRef, contentId } = useSelectContext();
     const shape = useShape();
+    const shouldReduceMotion = useReducedMotion();
     const containerRef = useRef<HTMLDivElement>(null);
     const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
 
@@ -441,10 +455,11 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
             zIndex: 50,
           }}
         >
-          <motion.div
-            initial={{ opacity: 0, y: -4, scaleY: 0.96 }}
+          <LazyMotion features={domAnimation}>
+          <m.div
+            initial={shouldReduceMotion ? false : { opacity: 0, y: -4, scaleY: 0.96 }}
             animate={{ opacity: 1, y: 0, scaleY: 1 }}
-            transition={springs.fast}
+            transition={shouldReduceMotion ? { duration: 0 } : springs.fast}
             style={{ transformOrigin: "top center" }}
           >
             <div
@@ -454,6 +469,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
                 else if (ref)
                   (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
               }}
+              id={contentId}
               role="listbox"
               tabIndex={-1}
               onMouseEnter={() => {
@@ -491,7 +507,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
               {/* Checked-row background */}
               <AnimatePresence>
                 {checkedRect && (
-                  <motion.div
+                  <m.div
                     className={cn("absolute pointer-events-none", shape.bg, "bg-selected/50 dark:bg-accent/40")}
                     initial={false}
                     animate={{
@@ -501,8 +517,8 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
                       height: checkedRect.height,
                       opacity: isHoveringOther ? 0.8 : 1,
                     }}
-                    exit={{ opacity: 0, transition: { duration: 0.12 } }}
-                    transition={{ ...springs.moderate, opacity: { duration: 0.08 } }}
+                    exit={{ opacity: 0, transition: { duration: shouldReduceMotion ? 0 : 0.12 } }}
+                    transition={shouldReduceMotion ? { duration: 0 } : { ...springs.moderate, opacity: { duration: 0.08 } }}
                   />
                 )}
               </AnimatePresence>
@@ -510,16 +526,20 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
               {/* Proximity-hover background */}
               <AnimatePresence>
                 {activeRect && (
-                  <motion.div
+                  <m.div
                     key={sessionRef.current}
                     className={cn("absolute pointer-events-none", shape.bg, "bg-accent/40 dark:bg-accent/25")}
-                    initial={{
-                      opacity: 0,
-                      top: checkedRect?.top ?? activeRect.top,
-                      left: checkedRect?.left ?? activeRect.left,
-                      width: checkedRect?.width ?? activeRect.width,
-                      height: checkedRect?.height ?? activeRect.height,
-                    }}
+                    initial={
+                      shouldReduceMotion
+                        ? false
+                        : {
+                            opacity: 0,
+                            top: checkedRect?.top ?? activeRect.top,
+                            left: checkedRect?.left ?? activeRect.left,
+                            width: checkedRect?.width ?? activeRect.width,
+                            height: checkedRect?.height ?? activeRect.height,
+                          }
+                    }
                     animate={{
                       opacity: 1,
                       top: activeRect.top,
@@ -527,8 +547,8 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
                       width: activeRect.width,
                       height: activeRect.height,
                     }}
-                    exit={{ opacity: 0, transition: { duration: 0.06 } }}
-                    transition={{ ...springs.fast, opacity: { duration: 0.08 } }}
+                    exit={{ opacity: 0, transition: { duration: shouldReduceMotion ? 0 : 0.06 } }}
+                    transition={shouldReduceMotion ? { duration: 0 } : { ...springs.fast, opacity: { duration: 0.08 } }}
                   />
                 )}
               </AnimatePresence>
@@ -536,7 +556,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
               {/* Animated focus ring */}
               <AnimatePresence>
                 {focusRect && (
-                  <motion.div
+                  <m.div
                     className={cn(
                       "absolute pointer-events-none z-20 border border-[#6B97FF]",
                       shape.focusRing,
@@ -548,15 +568,16 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
                       width: focusRect.width + 4,
                       height: focusRect.height + 4,
                     }}
-                    exit={{ opacity: 0, transition: { duration: 0.06 } }}
-                    transition={{ ...springs.fast, opacity: { duration: 0.08 } }}
+                    exit={{ opacity: 0, transition: { duration: shouldReduceMotion ? 0 : 0.06 } }}
+                    transition={shouldReduceMotion ? { duration: 0 } : { ...springs.fast, opacity: { duration: 0.08 } }}
                   />
                 )}
               </AnimatePresence>
 
               {indexedChildren}
             </div>
-          </motion.div>
+          </m.div>
+          </LazyMotion>
         </div>
       </SelectContentContext.Provider>,
       document.body,
@@ -597,10 +618,11 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
     ref,
   ) => {
     const selectCtx = useSelectContext();
-    const contentCtx = useContext(SelectContentContext);
+    const contentCtx = use(SelectContentContext);
     const internalRef = useRef<HTMLDivElement>(null);
     const shape = useShape();
     const hasMounted = useRef(false);
+    const shouldReduceMotion = useReducedMotion();
 
     useEffect(() => {
       hasMounted.current = true;
@@ -673,38 +695,40 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
 
         <span className="flex-1 min-w-0 truncate">{children}</span>
 
-        <AnimatePresence>
-          {isChecked && (
-            <motion.svg
-              key="check"
-              width={16}
-              height={16}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="shrink-0 text-foreground"
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 1 }}
-            >
-              <motion.path
-                d="M4 12L9 17L20 6"
-                initial={{ pathLength: skipAnimation ? 1 : 0 }}
-                animate={{
-                  pathLength: 1,
-                  transition: { duration: 0.08, ease: "easeOut" },
-                }}
-                exit={{
-                  pathLength: 0,
-                  transition: { duration: 0.04, ease: "easeIn" },
-                }}
-              />
-            </motion.svg>
-          )}
-        </AnimatePresence>
+        <LazyMotion features={domAnimation}>
+          <AnimatePresence>
+            {isChecked && (
+              <m.svg
+                key="check"
+                width={16}
+                height={16}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="shrink-0 text-foreground"
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 1 }}
+              >
+                <m.path
+                  d="M4 12L9 17L20 6"
+                  initial={{ pathLength: skipAnimation || shouldReduceMotion ? 1 : 0 }}
+                  animate={{
+                    pathLength: 1,
+                    transition: { duration: shouldReduceMotion ? 0 : 0.08, ease: "easeOut" },
+                  }}
+                  exit={{
+                    pathLength: 0,
+                    transition: { duration: shouldReduceMotion ? 0 : 0.04, ease: "easeIn" },
+                  }}
+                />
+              </m.svg>
+            )}
+          </AnimatePresence>
+        </LazyMotion>
       </div>
     );
   },

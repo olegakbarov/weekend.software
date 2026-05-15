@@ -6,8 +6,8 @@ import {
   type ReactNode,
   createContext,
   forwardRef,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -25,7 +25,7 @@ interface InputGroupContextValue {
 const InputGroupContext = createContext<InputGroupContextValue | null>(null);
 
 function useInputGroup(): InputGroupContextValue {
-  const ctx = useContext(InputGroupContext);
+  const ctx = use(InputGroupContext);
   if (!ctx) throw new Error("useInputGroup must be used within an InputGroup");
   return ctx;
 }

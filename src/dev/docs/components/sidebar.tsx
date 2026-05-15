@@ -57,11 +57,10 @@ export function Sidebar({
           <div className="nav-section">{g.group}</div>
           <div className="nav">
             {g.items.map((it) => (
-              <a
+              <button
+                type="button"
                 key={it.id}
-                href={`#/${it.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
+                onClick={() => {
                   onNav(it.id);
                 }}
                 data-active={route === it.id ? true : undefined}
@@ -70,7 +69,7 @@ export function Sidebar({
                 <Icon name={it.icon} size={14} className="nav-icon" />
                 <span>{it.name}</span>
                 {it.isNew && <span className="badge-new">new</span>}
-              </a>
+              </button>
             ))}
           </div>
         </div>

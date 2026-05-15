@@ -3,7 +3,7 @@
 import {
   createContext,
   forwardRef,
-  useContext,
+  use,
   useEffect,
   useRef,
   useState,
@@ -25,7 +25,7 @@ interface DropdownContextValue {
 const DropdownContext = createContext<DropdownContextValue | null>(null);
 
 export function useDropdown(): DropdownContextValue {
-  const ctx = useContext(DropdownContext);
+  const ctx = use(DropdownContext);
   if (!ctx) throw new Error("useDropdown must be used within a Dropdown");
   return ctx;
 }

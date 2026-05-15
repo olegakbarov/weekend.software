@@ -11,6 +11,7 @@ import { PageColors } from "./pages/colors";
 import { PageCombobox } from "./pages/combobox";
 import { PageConsumers } from "./pages/consumers";
 import { PageDialog } from "./pages/dialog";
+import { PageDiagram } from "./pages/diagram";
 import { PageDropdown } from "./pages/dropdown";
 import { PageFileTree } from "./pages/file-tree";
 import { PageIcons } from "./pages/icons";
@@ -60,6 +61,7 @@ export const PAGE_REGISTRY: Record<string, ComponentType> = {
   "checkbox-radio": PageCheckboxRadio,
   "color-picker": PageColorPicker,
   combobox: PageCombobox,
+  diagram: PageDiagram,
   dialog: PageDialog,
   dropdown: PageDropdown,
   "file-tree": PageFileTree,

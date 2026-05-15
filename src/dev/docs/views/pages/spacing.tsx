@@ -20,7 +20,7 @@ export function PageSpacing(): React.JSX.Element {
         <div className="page-eyebrow">Tokens</div>
         <h1>Spacing</h1>
         <p className="lede">
-          Tailwind's 4-pixel grid. Components use micro-gaps inside — never larger than{" "}
+          Tailwind's 4-pixel grid. Components use micro-gaps inside, never larger than{" "}
           <CodeInline>gap-3</CodeInline> within a control. Layout uses{" "}
           <CodeInline>gap-6</CodeInline> / <CodeInline>gap-8</CodeInline>.
         </p>

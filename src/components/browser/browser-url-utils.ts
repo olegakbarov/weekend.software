@@ -41,6 +41,17 @@ export function buildBrowserSurfaceUrl(url: string): string {
   }
 }
 
+export function preferCachedBrowserValue(
+  cachedValue: string | null | undefined,
+  storedValue: string | null | undefined,
+): string | null {
+  const normalizedCachedValue = cachedValue?.trim() ?? "";
+  if (normalizedCachedValue) return normalizedCachedValue;
+
+  const normalizedStoredValue = storedValue?.trim() ?? "";
+  return normalizedStoredValue || null;
+}
+
 function routeSegmentForDisplay(parsed: URL): string {
   const route = `${parsed.pathname}${parsed.search}${parsed.hash}`;
   return route || "/";
@@ -76,7 +87,7 @@ export function localDevOriginKey(url: string): string | null {
 
 export function isCrossProjectLocalDevUrl(
   candidateUrl: string,
-  configuredRuntimeUrl: string
+  configuredRuntimeUrl: string,
 ): boolean {
   const candidateOrigin = localDevOriginKey(candidateUrl);
   if (!candidateOrigin) return false;
@@ -87,15 +98,12 @@ export function isCrossProjectLocalDevUrl(
 
 export function shouldHydrateBrowserValueFromConfiguredRuntime(
   storedValue: string | null | undefined,
-  configuredRuntimeUrl: string
+  configuredRuntimeUrl: string,
 ): boolean {
   const normalizedStoredValue = storedValue?.trim() ?? "";
   if (!normalizedStoredValue) {
     return true;
   }
 
-  return isCrossProjectLocalDevUrl(
-    normalizedStoredValue,
-    configuredRuntimeUrl
-  );
+  return isCrossProjectLocalDevUrl(normalizedStoredValue, configuredRuntimeUrl);
 }

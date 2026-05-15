@@ -75,7 +75,7 @@ export function PageRadii(): React.JSX.Element {
     <>
       <header className="page-header">
         <div className="page-eyebrow">Tokens</div>
-        <h1>Corner radii — Shape Context</h1>
+        <h1>Corner radii, Shape Context</h1>
         <p className="lede">
           A runtime-switchable shape variant. Pill (default) or rounded. Press <kbd>R</kbd>{" "}
           anywhere to cycle.

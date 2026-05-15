@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, use, type ReactNode } from "react";
 import type { SettingsTab } from "@/components/settings/settings-tabs";
 import type { TerminalSessionDescriptor, PlayState } from "@/lib/controller";
 
@@ -70,13 +70,13 @@ export function SidebarProvider({
 // ── Hooks ──
 
 export function useSidebarData(): SidebarData {
-  const ctx = useContext(SidebarDataContext);
+  const ctx = use(SidebarDataContext);
   if (!ctx) throw new Error("useSidebarData must be used within SidebarProvider");
   return ctx;
 }
 
 export function useSidebarActions(): SidebarActions {
-  const ctx = useContext(SidebarActionsContext);
+  const ctx = use(SidebarActionsContext);
   if (!ctx) throw new Error("useSidebarActions must be used within SidebarProvider");
   return ctx;
 }

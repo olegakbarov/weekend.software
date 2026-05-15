@@ -41,8 +41,7 @@ function consumerFiles(token: string): string[] {
     );
     return out
       .split("\n")
-      .filter(Boolean)
-      .filter((f) => f !== "src/styles.css");
+      .filter((f) => f && f !== "src/styles.css");
   } catch {
     return [];
   }
@@ -50,12 +49,13 @@ function consumerFiles(token: string): string[] {
 
 const legacy = tokenNames(LEGACY);
 const canonical = tokenNames(CANONICAL);
-const both = [...legacy].filter((t) => canonical.has(t)).sort();
-const onlyLegacy = [...legacy].filter((t) => !canonical.has(t)).sort();
+const both = [...legacy].filter((t) => canonical.has(t)).toSorted();
+const onlyLegacy = [...legacy].filter((t) => !canonical.has(t)).toSorted();
 
-const migrationTargets = onlyLegacy
-  .map((token) => ({ token, files: consumerFiles(token) }))
-  .filter((row) => row.files.length > 0);
+const migrationTargets = onlyLegacy.flatMap((token) => {
+  const files = consumerFiles(token);
+  return files.length > 0 ? [{ token, files }] : [];
+});
 
 console.log(`legacy:    ${relative(REPO, LEGACY)}  (${legacy.size} tokens)`);
 console.log(`canonical: ${relative(REPO, CANONICAL)}  (${canonical.size} tokens)`);

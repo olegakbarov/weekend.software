@@ -70,18 +70,64 @@
         "trailingIcon",
         "variant"
       ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/workbench.tsx",
+      "line": 198,
+      "props": [
+        "disabled",
+        "loading",
+        "onClick",
+        "size",
+        "variant"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/workbench.tsx",
+      "line": 305,
+      "props": []
+    },
+    {
+      "file": "src/dev/docs/views/pages/workbench.tsx",
+      "line": 306,
+      "props": [
+        "variant"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/workbench.tsx",
+      "line": 307,
+      "props": [
+        "variant"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/workbench.tsx",
+      "line": 308,
+      "props": [
+        "variant"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/workbench.tsx",
+      "line": 309,
+      "props": [
+        "variant"
+      ]
     }
   ],
   "propUsage": {
     "asChild": 1,
     "className": 1,
+    "disabled": 1,
     "icon": 1,
-    "onClick": 1,
+    "loading": 1,
+    "onClick": 2,
     "onPointerDown": 1,
     "ref": 1,
-    "size": 3,
+    "size": 4,
     "trailingIcon": 1,
-    "variant": 6
+    "variant": 11
   },
-  "totalUsages": 9
+  "totalUsages": 15
 }

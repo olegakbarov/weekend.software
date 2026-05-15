@@ -79,6 +79,7 @@ export default function MainContent({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
+  const newFolderInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = useCallback(() => {
     setSubfolders(store.getFoldersByParent(folderId));
@@ -92,6 +93,18 @@ export default function MainContent({
     setCreatingFolder(false);
     setPreviewFile(null);
   }, [folderId, loadData]);
+
+  useEffect(() => {
+    if (editingFolderId || editingFileId) {
+      renameInputRef.current?.focus();
+    }
+  }, [editingFileId, editingFolderId]);
+
+  useEffect(() => {
+    if (creatingFolder) {
+      newFolderInputRef.current?.focus();
+    }
+  }, [creatingFolder]);
 
   // --- Folder CRUD ---
 
@@ -192,14 +205,14 @@ export default function MainContent({
           className="text-white text-lg font-semibold px-2 hover:bg-[#1e1e1e]"
         >
           {folderName}
-          <ChevronDown className="ml-1 size-4 text-gray-400" />
+          <ChevronDown className="ml-1 size-4 text-neutral-400" />
         </Button>
       </div>
 
       {/* Folders Section */}
       {showFoldersSection && (
         <div className="mb-8">
-          <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
+          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-neutral-400">
             Folders
           </h2>
           <ScrollArea className="w-full">
@@ -207,16 +220,17 @@ export default function MainContent({
               {subfolders.map((folder) => (
                 <div
                   key={folder.id}
-                  className="flex-shrink-0 w-[200px] rounded-xl bg-[#1e1e1e] border border-[#2a2a2a] p-4 text-left transition-colors hover:bg-[#262626] hover:border-[#333] group relative"
+                  className="group relative w-[200px] shrink-0 rounded-xl border border-[#2a2a2a] bg-[#1e1e1e] p-4 text-left transition-colors hover:border-[#333] hover:bg-[#262626]"
                 >
                   {/* Folder menu */}
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100">
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
                           <button
-                            className="p-1 rounded hover:bg-[#333] text-gray-400 hover:text-white"
+                            className="rounded p-1 text-neutral-400 hover:bg-[#333] hover:text-white"
                             onClick={(e) => e.stopPropagation()}
+                            type="button"
                           />
                         }
                       >
@@ -227,15 +241,14 @@ export default function MainContent({
                         className="bg-[#1e1e1e] border-[#2a2a2a]"
                       >
                         <DropdownMenuItem
-                          className="text-gray-300 focus:text-white focus:bg-[#2a2a2a] cursor-pointer"
+                          className="cursor-pointer text-neutral-300 focus:bg-[#2a2a2a] focus:text-white"
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditName(folder.name);
                             setEditingFolderId(folder.id);
-                            setTimeout(() => renameInputRef.current?.focus(), 0);
                           }}
                         >
-                          <Pencil className="size-4 mr-2" />
+                          <Pencil className="mr-2 size-4" />
                           Rename
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -245,26 +258,19 @@ export default function MainContent({
                             handleDeleteFolder(folder.id);
                           }}
                         >
-                          <Trash2 className="size-4 mr-2" />
+                          <Trash2 className="mr-2 size-4" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
 
-                  <button
-                    className="w-full text-left"
-                    onClick={() => {
-                      if (editingFolderId !== folder.id) {
-                        onOpenFolder(folder.id);
-                      }
-                    }}
-                  >
-                    <div className="mb-3 flex items-center justify-center w-10 h-10 rounded-lg bg-[#2a2a2a] group-hover:bg-[#333]">
-                      <Folder className="size-5 text-gray-400" />
-                    </div>
+                  <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-[#2a2a2a] group-hover:bg-[#333]">
+                    <Folder className="size-5 text-neutral-400" />
+                  </div>
 
-                    {editingFolderId === folder.id ? (
+                  {editingFolderId === folder.id ? (
+                    <div>
                       <Input
                         ref={renameInputRef}
                         value={editName}
@@ -275,30 +281,34 @@ export default function MainContent({
                           if (e.key === "Escape") setEditingFolderId(null);
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        className="h-7 text-sm bg-[#111] border-[#333] text-white px-2"
-                        autoFocus
+                        className="h-7 border-[#333] bg-[#111] px-2 text-sm text-white"
                       />
-                    ) : (
-                      <>
-                        <p className="text-sm font-medium text-white truncate">
-                          {folder.name}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {store.getFileCountForFolder(folder.id)} Files
-                        </p>
-                      </>
-                    )}
-                  </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="w-full text-left"
+                      onClick={() => onOpenFolder(folder.id)}
+                      type="button"
+                    >
+                      <p className="truncate text-sm font-medium text-white">
+                        {folder.name}
+                      </p>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        {store.getFileCountForFolder(folder.id)} Files
+                      </p>
+                    </button>
+                  )}
                 </div>
               ))}
 
               {/* Creating new folder inline */}
               {creatingFolder && (
-                <div className="flex-shrink-0 w-[200px] rounded-xl bg-[#1e1e1e] border border-[#2a2a2a] p-4">
-                  <div className="mb-3 flex items-center justify-center w-10 h-10 rounded-lg bg-[#2a2a2a]">
-                    <Folder className="size-5 text-gray-400" />
+                <div className="w-[200px] shrink-0 rounded-xl border border-[#2a2a2a] bg-[#1e1e1e] p-4">
+                  <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-[#2a2a2a]">
+                    <Folder className="size-5 text-neutral-400" />
                   </div>
                   <Input
+                    ref={newFolderInputRef}
                     value={newFolderName}
                     onChange={(e) => setNewFolderName(e.target.value)}
                     onBlur={handleCreateFolder}
@@ -310,8 +320,7 @@ export default function MainContent({
                       }
                     }}
                     placeholder="Folder name"
-                    className="h-7 text-sm bg-[#111] border-[#333] text-white px-2"
-                    autoFocus
+                    className="h-7 border-[#333] bg-[#111] px-2 text-sm text-white"
                   />
                 </div>
               )}
@@ -322,12 +331,13 @@ export default function MainContent({
                   setCreatingFolder(true);
                   setNewFolderName("");
                 }}
-                className="flex-shrink-0 w-[200px] rounded-xl border-2 border-dashed border-[#2a2a2a] p-4 text-left transition-colors hover:border-[#444] hover:bg-[#1a1a1a] flex flex-col items-center justify-center gap-2"
+                className="flex w-[200px] shrink-0 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#2a2a2a] p-4 text-left transition-colors hover:border-[#444] hover:bg-[#1a1a1a]"
+                type="button"
               >
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#1e1e1e]">
-                  <Plus className="size-5 text-gray-500" />
+                <div className="flex size-10 items-center justify-center rounded-lg bg-[#1e1e1e]">
+                  <Plus className="size-5 text-neutral-500" />
                 </div>
-                <p className="text-sm text-gray-500">New folder</p>
+                <p className="text-sm text-neutral-500">New folder</p>
               </button>
             </div>
           </ScrollArea>
@@ -337,7 +347,7 @@ export default function MainContent({
       {/* Files Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wider">
+          <h2 className="text-sm font-medium uppercase tracking-wider text-neutral-400">
             Files
           </h2>
           <div className="flex gap-2">
@@ -345,23 +355,23 @@ export default function MainContent({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:text-white hover:bg-[#1e1e1e]"
+                className="text-neutral-400 hover:bg-[#1e1e1e] hover:text-white"
                 onClick={() => {
                   setCreatingFolder(true);
                   setNewFolderName("");
                 }}
               >
-                <Plus className="size-4 mr-1" />
+                <Plus className="mr-1 size-4" />
                 New folder
               </Button>
             )}
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-400 hover:text-white hover:bg-[#1e1e1e]"
+              className="text-neutral-400 hover:bg-[#1e1e1e] hover:text-white"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Upload className="size-4 mr-1" />
+              <Upload className="mr-1 size-4" />
               Upload file
             </Button>
           </div>
@@ -369,29 +379,30 @@ export default function MainContent({
             ref={fileInputRef}
             type="file"
             multiple
+            aria-label="Upload files"
             className="hidden"
             onChange={handleUpload}
           />
         </div>
 
         {files.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-500">
-            <FileText className="size-10 mb-3 text-gray-600" />
-            <p className="text-sm mb-3">No files yet</p>
+          <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
+            <FileText className="mb-3 size-10 text-neutral-600" />
+            <p className="mb-3 text-sm">No files yet</p>
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-400 hover:text-white hover:bg-[#1e1e1e]"
+              className="text-neutral-400 hover:bg-[#1e1e1e] hover:text-white"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Upload className="size-4 mr-1" />
+              <Upload className="mr-1 size-4" />
               Upload a file
             </Button>
           </div>
         ) : (
           <div className="w-full">
             {/* Table Header */}
-            <div className="flex items-center px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <div className="flex items-center px-4 py-2 text-xs font-medium uppercase tracking-wider text-neutral-500">
               <div className="flex-1">Name</div>
               <div className="w-[240px]">Added By</div>
               <div className="w-[48px]" />
@@ -404,16 +415,11 @@ export default function MainContent({
                 return (
                   <div
                     key={file.id}
-                    className="flex items-center px-4 py-3 border-b border-[#222] hover:bg-[#1a1a1a] transition-colors cursor-pointer group"
-                    onClick={() => {
-                      if (editingFileId !== file.id) {
-                        setPreviewFile(file);
-                      }
-                    }}
+                    className="group flex items-center border-b border-[#222] px-4 py-3 transition-colors hover:bg-[#1a1a1a]"
                   >
-                    <div className="flex-1 flex items-center gap-3 min-w-0">
-                      <FileIcon className="size-4 text-gray-500 flex-shrink-0" />
-                      {editingFileId === file.id ? (
+                    {editingFileId === file.id ? (
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <FileIcon className="size-4 shrink-0 text-neutral-500" />
                         <Input
                           ref={renameInputRef}
                           value={editName}
@@ -424,32 +430,47 @@ export default function MainContent({
                             if (e.key === "Escape") setEditingFileId(null);
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className="h-7 text-sm bg-[#111] border-[#333] text-white px-2 max-w-[300px]"
-                          autoFocus
+                          className="h-7 max-w-[300px] border-[#333] bg-[#111] px-2 text-sm text-white"
                         />
-                      ) : (
-                        <span className="text-sm text-white truncate">
+                      </div>
+                    ) : (
+                      <button
+                        className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+                        onClick={() => setPreviewFile(file)}
+                        type="button"
+                      >
+                        <FileIcon className="size-4 shrink-0 text-neutral-500" />
+                        <span className="truncate text-sm text-white">
                           {file.name}
                         </span>
-                      )}
-                    </div>
-                    <div className="w-[240px] flex items-center gap-2">
+                      </button>
+                    )}
+                    <button
+                      className="flex w-[240px] cursor-pointer items-center gap-2 text-left"
+                      onClick={() => {
+                        if (editingFileId !== file.id) {
+                          setPreviewFile(file);
+                        }
+                      }}
+                      type="button"
+                    >
                       <div
-                        className={`size-6 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0 ${getAvatarColor(file.addedBy)}`}
+                        className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white ${getAvatarColor(file.addedBy)}`}
                       >
                         {getInitial(file.addedBy)}
                       </div>
-                      <span className="text-sm text-gray-400 truncate">
+                      <span className="truncate text-sm text-neutral-400">
                         {file.addedBy}
                       </span>
-                    </div>
-                    <div className="w-[48px] flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                    </button>
+                    <div className="flex w-[48px] justify-end opacity-0 transition-opacity group-hover:opacity-100">
                       <DropdownMenu>
                         <DropdownMenuTrigger
                           render={
                             <button
-                              className="p-1 rounded hover:bg-[#333] text-gray-400 hover:text-white"
+                              className="rounded p-1 text-neutral-400 hover:bg-[#333] hover:text-white"
                               onClick={(e) => e.stopPropagation()}
+                              type="button"
                             />
                           }
                         >
@@ -460,28 +481,24 @@ export default function MainContent({
                           className="bg-[#1e1e1e] border-[#2a2a2a]"
                         >
                           <DropdownMenuItem
-                            className="text-gray-300 focus:text-white focus:bg-[#2a2a2a] cursor-pointer"
+                            className="cursor-pointer text-neutral-300 focus:bg-[#2a2a2a] focus:text-white"
                             onClick={(e) => {
                               e.stopPropagation();
                               setEditName(file.name);
                               setEditingFileId(file.id);
-                              setTimeout(
-                                () => renameInputRef.current?.focus(),
-                                0
-                              );
                             }}
                           >
-                            <Pencil className="size-4 mr-2" />
+                            <Pencil className="mr-2 size-4" />
                             Rename
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="text-gray-300 focus:text-white focus:bg-[#2a2a2a] cursor-pointer"
+                            className="cursor-pointer text-neutral-300 focus:bg-[#2a2a2a] focus:text-white"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDownloadFile(file);
                             }}
                           >
-                            <Download className="size-4 mr-2" />
+                            <Download className="mr-2 size-4" />
                             Download
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -491,7 +508,7 @@ export default function MainContent({
                               handleDeleteFile(file.id);
                             }}
                           >
-                            <Trash2 className="size-4 mr-2" />
+                            <Trash2 className="mr-2 size-4" />
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>

@@ -15,7 +15,7 @@ export type ChatMessageRole = "user" | "assistant";
 
 export interface ChatMessageProps extends HTMLAttributes<HTMLDivElement> {
   role: ChatMessageRole;
-  /** Show an "— interrupted" footer (e.g. when a stream was aborted mid-message). */
+  /** Show an "interrupted" footer (e.g. when a stream was aborted mid-message). */
   interrupted?: boolean;
   /** Override the bubble's max-width class. Default `max-w-[90%]`. */
   maxWidthClassName?: string;
@@ -44,7 +44,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
         {children}
         {interrupted && (
           <p className="mt-1 text-[11px] italic text-muted-foreground">
-            — interrupted
+            Interrupted
           </p>
         )}
       </div>

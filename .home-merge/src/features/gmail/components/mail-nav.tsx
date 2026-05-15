@@ -19,7 +19,7 @@ export function MailNav({ links, isCollapsed }: MailNavProps) {
 
           if (isCollapsed) {
             return (
-              <a
+              <button
                 aria-label={link.title}
                 className={cn(
                   buttonVariants({ variant: link.variant, size: "icon" }),
@@ -27,28 +27,26 @@ export function MailNav({ links, isCollapsed }: MailNavProps) {
                   link.variant === "default" &&
                     "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
                 )}
-                href="#"
                 key={link.title}
-                onClick={(event) => event.preventDefault()}
                 title={link.label ? `${link.title} (${link.label})` : link.title}
+                type="button"
               >
                 <Icon className="size-4" />
                 <span className="sr-only">{link.title}</span>
-              </a>
+              </button>
             );
           }
 
           return (
-            <a
+            <button
               className={cn(
                 buttonVariants({ variant: link.variant, size: "sm" }),
                 link.variant === "default" &&
                   "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white",
                 "justify-start"
               )}
-              href="#"
               key={link.title}
-              onClick={(event) => event.preventDefault()}
+              type="button"
             >
               <Icon className="mr-2 size-4" />
               {link.title}
@@ -62,7 +60,7 @@ export function MailNav({ links, isCollapsed }: MailNavProps) {
                   {link.label}
                 </span>
               ) : null}
-            </a>
+            </button>
           );
         })}
       </nav>

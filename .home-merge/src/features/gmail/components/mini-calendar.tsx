@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { cn } from "~/lib/utils";
 
 type CalendarCell = {
+  key: string;
   day: number | null;
   isToday: boolean;
 };
@@ -22,18 +23,23 @@ export function MiniCalendar() {
     const calendarCells: CalendarCell[] = [];
 
     for (let index = 0; index < monthStart.getDay(); index += 1) {
-      calendarCells.push({ day: null, isToday: false });
+      calendarCells.push({ key: `leading-${index}`, day: null, isToday: false });
     }
 
     for (let day = 1; day <= daysInMonth; day += 1) {
       calendarCells.push({
+        key: `day-${day}`,
         day,
         isToday: day === today.getDate(),
       });
     }
 
     while (calendarCells.length % 7 !== 0) {
-      calendarCells.push({ day: null, isToday: false });
+      calendarCells.push({
+        key: `trailing-${calendarCells.length}`,
+        day: null,
+        isToday: false,
+      });
     }
 
     return {
@@ -56,7 +62,7 @@ export function MiniCalendar() {
       </div>
 
       <div className="mt-1 grid grid-cols-7 gap-1">
-        {cells.map((cell, index) => (
+        {cells.map((cell) => (
           <div
             className={cn(
               "flex h-8 w-8 items-center justify-center rounded-md text-xs",
@@ -64,7 +70,7 @@ export function MiniCalendar() {
               cell.day != null && "hover:bg-primary/10",
               cell.isToday && "bg-primary text-primary-foreground"
             )}
-            key={`${cell.day ?? "blank"}-${index}`}
+            key={cell.key}
           >
             {cell.day ?? ""}
           </div>

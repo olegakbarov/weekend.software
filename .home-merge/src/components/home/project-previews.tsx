@@ -40,13 +40,23 @@ const financeNetCash =
 const researchFolderCount = SHARED_FOLDERS.filter(
   (folder) => folder.parentId === SHARED_FOLDER_ID
 ).length;
-const researchDocuments = SHARED_FILES.filter(
-  (file) => file.folderId === "documents"
-).length;
-const researchImages = SHARED_FILES.filter(
-  (file) => file.folderId === "images"
-).length;
-const researchFonts = SHARED_FILES.filter((file) => file.folderId === "fonts").length;
+const researchFileCounts = SHARED_FILES.reduce(
+  (counts, file) => {
+    if (file.folderId === "documents") {
+      counts.documents += 1;
+    } else if (file.folderId === "images") {
+      counts.images += 1;
+    } else if (file.folderId === "fonts") {
+      counts.fonts += 1;
+    }
+
+    return counts;
+  },
+  { documents: 0, images: 0, fonts: 0 }
+);
+const researchDocuments = researchFileCounts.documents;
+const researchImages = researchFileCounts.images;
+const researchFonts = researchFileCounts.fonts;
 
 const gmailInboxCount = primaryLinks[0]?.label || "0";
 const gmailDraftCount = primaryLinks[1]?.label || "0";
@@ -94,19 +104,22 @@ const todayExactEvents = upcomingEvents.filter((event) =>
 const tomorrowExactEvents = upcomingEvents.filter((event) =>
   isSameDay(event.startDate, tomorrow)
 );
+const exactEventIds = new Set([
+  ...todayExactEvents.map((event) => event.id),
+  ...tomorrowExactEvents.map((event) => event.id),
+]);
 
 const fallbackEvents = upcomingEvents.filter(
-  (event) =>
-    !todayExactEvents.some((exact) => exact.id === event.id) &&
-    !tomorrowExactEvents.some((exact) => exact.id === event.id)
+  (event) => !exactEventIds.has(event.id)
 );
 
 const todayEvents = todayExactEvents.length
   ? todayExactEvents.slice(0, 2)
   : fallbackEvents.slice(0, 1);
+const todayEventIds = new Set(todayEvents.map((event) => event.id));
 
 const tomorrowFallback = fallbackEvents.filter(
-  (event) => !todayEvents.some((todayEvent) => todayEvent.id === event.id)
+  (event) => !todayEventIds.has(event.id)
 );
 
 const tomorrowEvents = tomorrowExactEvents.length

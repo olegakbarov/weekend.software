@@ -1,5 +1,12 @@
 import { useEffect, type ReactNode } from "react";
 import { Cable } from "lucide-react";
+import {
+  Code,
+  CodeInline,
+  Diagram,
+  type DiagramEdge,
+  type DiagramNode,
+} from "@weekend/design/registry";
 import { SHELL_DOCS_SECTIONS } from "@/components/docs/shell-docs-sections";
 import {
   SHELL_DOCS_NAVIGATE_EVENT,
@@ -92,12 +99,16 @@ export function ShellDocsPage() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const nearest = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort(
-            (first, second) =>
-              first.boundingClientRect.top - second.boundingClientRect.top,
-          )[0];
+        const nearest = entries.reduce<IntersectionObserverEntry | null>(
+          (closest, entry) => {
+            if (!entry.isIntersecting) return closest;
+            if (!closest) return entry;
+            return entry.boundingClientRect.top < closest.boundingClientRect.top
+              ? entry
+              : closest;
+          },
+          null,
+        );
 
         if (nearest?.target.id) {
           setShellDocsSection(nearest.target.id);
@@ -163,6 +174,7 @@ export function ShellDocsPage() {
                 <li>The shell owns project discovery, runtime launch, browser panes, shared assets, and agent wiring.</li>
                 <li>The MCP sidecar translates agent tool calls into bridge requests against the live Tauri app.</li>
               </ul>
+              <ShellMentalModelDiagram />
               <div className="callout">
                 <Cable className="ico" size={16} />
                 <div>
@@ -194,7 +206,7 @@ export function ShellDocsPage() {
                 <CodeInline>portless</CodeInline> and routes project browser
                 traffic through <CodeInline>runtime.url</CodeInline>.
               </p>
-              <CodeBlock code={configSnippet} />
+              <Code language="json">{configSnippet}</Code>
               <p className="note">
                 Use <CodeInline>runtime.deployUrl</CodeInline> only when you
                 need the public deployment target. Runtime testing should use
@@ -236,7 +248,7 @@ export function ShellDocsPage() {
                 console, errors, navigation, clicks, inputs, network, DOM
                 mutations, and custom events.
               </p>
-              <CodeBlock code={bridgeSnippet} />
+              <Code language="javascript">{bridgeSnippet}</Code>
             </DocSection>
 
             <DocSection id="theme" title="Theme and Design">
@@ -266,11 +278,149 @@ export function ShellDocsPage() {
                 When enabled, Weekend also syncs a local design-system package
                 into <CodeInline>./shared-assets/weekend-design</CodeInline>.
               </p>
-              <CodeBlock code={designSnippet} />
+              <Code language="json">{designSnippet}</Code>
             </DocSection>
         </article>
       </main>
     </section>
+  );
+}
+
+const SHELL_DIAGRAM_NODES: DiagramNode[] = [
+  {
+    id: "project",
+    row: 0,
+    col: 0,
+    title: "Project directory",
+    tone: "primary",
+    items: ["Source code", "weekend.config.json", "shared-assets/"],
+  },
+  {
+    id: "shell",
+    row: 0,
+    col: 1,
+    title: "Weekend shell",
+    tone: "secondary",
+    items: ["React workspace", "Tauri backend", "TCP bridge"],
+  },
+  {
+    id: "webview",
+    row: 0,
+    col: 2,
+    title: "Browser webview",
+    items: ["Live app surface", "Injected bridge", "Observer events"],
+  },
+  {
+    id: "processes",
+    row: 1,
+    col: 0,
+    title: "Project processes",
+    items: ["dev server", "agent and user PTYs"],
+  },
+  {
+    id: "sidecar",
+    row: 1,
+    col: 1,
+    title: "Weekend MCP sidecar",
+    tone: "secondary",
+    items: ["Resolves project", "Forwards bridge calls"],
+  },
+  {
+    id: "agents",
+    row: 1,
+    col: 2,
+    title: "Agents",
+    items: ["Use MCP tools", "Read terminals"],
+  },
+];
+
+const SHELL_DIAGRAM_EDGES: DiagramEdge[] = [
+  // project ↔ shell (horizontal pair)
+  { from: "project.right", to: "shell.left", label: "config + files" },
+  {
+    from: { node: "shell", side: "left", offset: 28 },
+    to: { node: "project", side: "right", offset: 28 },
+    label: "file events",
+    labelSide: "below",
+  },
+  // shell ↔ webview (horizontal pair)
+  { from: "shell.right", to: "webview.left", label: "runtime + theme" },
+  {
+    from: { node: "webview", side: "left", offset: 28 },
+    to: { node: "shell", side: "right", offset: 28 },
+    label: "page events",
+    labelSide: "below",
+  },
+  // shell ↔ sidecar (vertical pair): labelSide left/right uses the wider
+  // axis clearance automatically so the labels sit beside the lines.
+  {
+    from: { node: "shell", side: "bottom", offset: -30 },
+    to: { node: "sidecar", side: "top", offset: -30 },
+    label: "bridge token",
+    labelSide: "left",
+  },
+  {
+    from: { node: "sidecar", side: "top", offset: 30 },
+    to: { node: "shell", side: "bottom", offset: 30 },
+    label: "responses",
+    labelSide: "right",
+  },
+  // sidecar ↔ agents (muted horizontal pair)
+  {
+    from: "agents.left",
+    to: "sidecar.right",
+    label: "MCP requests",
+    muted: true,
+  },
+  {
+    from: { node: "sidecar", side: "right", offset: 24 },
+    to: { node: "agents", side: "left", offset: 24 },
+    label: "tool results",
+    labelSide: "below",
+    muted: true,
+  },
+  // agents → webview (vertical)
+  { from: "agents.top", to: "webview.bottom", label: "browser tools" },
+  // processes → sidecar (muted)
+  {
+    from: "processes.right",
+    to: "sidecar.left",
+    label: "env + cwd",
+    muted: true,
+  },
+  // shell ↔ processes (curved diagonal pair)
+  {
+    from: { node: "shell", side: "bottom", offset: -60 },
+    to: { node: "processes", side: "top", offset: 40 },
+    label: "spawn + env",
+    shape: "curve",
+    curvature: 0.45,
+  },
+  {
+    from: { node: "processes", side: "right", offset: 16 },
+    to: { node: "shell", side: "bottom", offset: -90 },
+    label: "output + status",
+    shape: "curve",
+    curvature: 0.45,
+    labelSide: "below",
+    // Default below-midpoint placement sits at the sidecar's left edge;
+    // labelOffset pushes the label clear into the gap between rows.
+    labelOffset: { dx: -45, dy: 5 },
+  },
+];
+
+function ShellMentalModelDiagram() {
+  return (
+    <Diagram
+      ariaLabel="How a Weekend project interacts with the shell"
+      ariaDescription="A Weekend project directory exchanges files, runtime configuration, environment, browser events, and MCP tool calls with the Tauri shell."
+      caption="The shell owns orchestration; the project remains a regular app directory with a documented contract."
+      className="mental-model-diagram"
+      cols={3}
+      rows={2}
+      nodes={SHELL_DIAGRAM_NODES}
+      edges={SHELL_DIAGRAM_EDGES}
+    />
   );
 }
 
@@ -291,20 +441,6 @@ function DocSection({
   );
 }
 
-function CodeInline({ children }: { children: ReactNode }) {
-  return <code className="code-inline">{children}</code>;
-}
-
-function CodeBlock({ code }: { code: string }) {
-  return (
-    <div className="code-block">
-      <pre>
-        <code>{code}</code>
-      </pre>
-    </div>
-  );
-}
-
 function DataTable({
   columns,
   rows,
@@ -313,7 +449,7 @@ function DataTable({
   rows: string[][];
 }) {
   return (
-    <div className="my-3 overflow-x-auto">
+    <div className="table-wrap">
       <table className="props-table">
         <thead>
           <tr>

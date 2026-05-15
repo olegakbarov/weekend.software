@@ -197,7 +197,7 @@ export function GmailClient() {
               value={activeTab}
             >
               <div className="flex items-center px-4 py-2">
-                <h1 className="text-xl font-bold">Inbox</h1>
+                <h1 className="text-xl font-semibold">Inbox</h1>
                 <GmailTabsList className="ml-auto">
                   <GmailTabsTrigger
                     className="text-muted-foreground data-[state=active]:text-foreground"

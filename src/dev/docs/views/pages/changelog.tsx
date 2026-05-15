@@ -29,7 +29,7 @@ const RELEASES: ReadonlyArray<Release> = [
     version: "v0.4.0",
     date: "2026-04-10",
     notes: [
-      "First Tailwind/Radix/framer-motion port — Dialog, Table, MobileDrawer.",
+      "First Tailwind/Radix/framer-motion port, Dialog, Table, MobileDrawer.",
       "Workspace migrated from CDN-React + Babel-standalone to Vite + TypeScript.",
     ],
   },
@@ -77,8 +77,8 @@ export function PageChangelog(): React.JSX.Element {
                 gap: 6,
               }}
             >
-              {r.notes.map((note, i) => (
-                <li key={i} style={{ fontSize: 14, lineHeight: 1.6 }}>
+              {r.notes.map((note) => (
+                <li key={`${r.version}-${note}`} style={{ fontSize: 14, lineHeight: 1.6 }}>
                   {note}
                 </li>
               ))}

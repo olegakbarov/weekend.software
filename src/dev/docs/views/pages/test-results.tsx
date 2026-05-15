@@ -45,7 +45,7 @@ export function PageTestResults(): React.JSX.Element {
           Default header
         </H>
         <p>
-          Pass <code>summary</code> with no children — the default renders the
+          Pass <code>summary</code> with no children, the default renders the
           summary pills and total duration.
         </p>
         <div className="example">

@@ -48,6 +48,7 @@ function WorkspaceRoute() {
   const projectConfigError =
     state.projectConfigErrorByProject[project] ?? null;
   const playState = state.playStateByProject[project] ?? "idle";
+  const playError = state.playErrorByProject[project] ?? null;
   const filesystemEventVersion =
     state.filesystemEventVersionByProject[project] ??
     state.filesystemEventVersion;
@@ -239,6 +240,7 @@ function WorkspaceRoute() {
         onPlayProject={projectActions.playFromBrowser}
         onRestartApp={projectActions.restartAppFromBrowser}
         playState={playState}
+        playError={playError}
         projectConfigError={projectConfigError}
         projectConfigSnapshot={projectConfigSnapshot}
         projectKey={project}

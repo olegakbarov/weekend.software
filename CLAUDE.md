@@ -8,7 +8,7 @@ This is a Tauri + React + Rust monorepo. The desktop app lives at the repo root;
 - `src-tauri/**` — Rust backend, Tauri commands, project lifecycle
 - `packages/design/**` — `@weekend/design`, the canonical design system (vendored from fluid-functionalism, internally maintained)
 - `packages/design/dist/` — build output, synced into `<project>/shared-assets/weekend-design/` so agents building apps inside projects can `npm install` it
-- `~/.weekend/` — user data: projects, theme.json, shared-assets
+- `~/.weekend/` — user data: projects, `theme.json`, `design-system.json`, shared assets, bridge files
 
 ## Design system absorption — the discipline
 
@@ -30,7 +30,10 @@ When you encounter a UI pattern during migration, classify it:
 
 - Single source of truth: `<html data-theme="...">` where the value is `fluid` | `fluid-dark` | `weekend-dark` | `weekend-paper`.
 - `ThemeProvider` (`src/components/theme/theme-provider.tsx`) writes `data-theme` only — never `style.setProperty("--*", ...)`. Inline-style writes break the design system's `:root[data-theme=...]` cascade because inline has specificity 1,0,0,0. ThemeProvider also toggles `.light` / `.dark` classes; these no longer carry token definitions but are still load-bearing as the anchor for Tailwind's `dark:` variant.
-- Active theme persists to `~/.weekend/theme.json` via Tauri commands `get_active_theme` / `set_active_theme`. Setting emits a `theme-changed` event so all webviews stay in sync.
+- Active theme persists to `~/.weekend/theme.json` via Tauri commands `get_active_theme` / `set_active_theme`. Setting emits a `theme-changed` event for shell webviews, then Rust pushes the active theme into each tracking project browser webview with the injected `__WEEKEND_THEME_BRIDGE__`.
+- Global design-system defaults persist to `~/.weekend/design-system.json` via `get_design_system_config` / `set_design_system_config`. The project bridge merges global base vars, global per-theme vars, project base vars, then project per-theme vars, and writes them into a project-owned `<style id="weekend-project-ds-vars">` tag. Project overrides live in `weekend.config.json` under `theme.cssVariables` and `theme.themeVariables`.
+- Project browser panes get the theme bridge prepended to the browser bridge on `PageLoadEvent::Started` and again on `Finished`. The bridge writes `window.__WEEKEND_SHELL_THEME__`, `<html data-theme>`, `.dark` / `.light`, `window.__WEEKEND_SHELL_DESIGN_SYSTEM__`, `<html data-shape>`, and dispatches `weekend:theme`, `weekend:design-system`, and `weekend:design-system-overrides`.
+- Projects can opt out of shell theme/design tracking with `"theme": { "trackShell": false }`. They can opt out of Weekend design guidance/package assumptions with `"theme": { "designSystem": "none" }`.
 - **All theme tokens live in `packages/design/src/tokens.css`.** Adding a token: add it to all six blocks (`:root`, `.dark`, and the four `:root[data-theme="..."]` blocks). The exception is the Weekend `@theme inline` block in `src/styles.css`, which holds Tailwind v4 utility-class generators (`--font-sans`, `--font-mono`, `--text-xs..3xl`, `--radius-sm..xl`) — those drive `.text-xs`, `.font-mono`, `.rounded-sm` etc. and are intentionally global.
 - `src/styles.css` is for **app-internal CSS only** (animations, `.tool-*` classes, scrollbar webkit overrides, `@theme inline` for Tailwind utilities). It does not define theme tokens. Run `pnpm tokens:lint` any time to see what's defined where; `pnpm tokens:lint:check` exits 1 if a legacy-only token gains a consumer (use it in CI).
 
@@ -59,7 +62,7 @@ The fluid docs site is cloned into `src/dev/docs/` and rendered at the `/dev/ds`
 
 ## Don't
 
-- Don't add CSS variables on `<html>` via `style.setProperty` — break the cascade.
+- Don't add CSS variables on `<html>` via `style.setProperty` — it breaks the cascade. Project design overrides should flow through the injected `#weekend-project-ds-vars` style tag.
 - Don't import from `@fluid/*` — that name was retired during vendoring; the package is `@weekend/design`.
 - Don't create new Weekend-only primitives without first checking if `@weekend/design` should grow to cover the case.
 - Don't write to `location.hash` from within `/dev/ds` — TanStack hash history owns it. The embedded docs use module-level state in `src/dev/docs/docs-route-store.ts`.

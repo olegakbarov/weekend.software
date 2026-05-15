@@ -7,6 +7,7 @@ import {
 import { useEffect, useMemo } from "react";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Sidebar } from "@/components/sidebar/sidebar";
+import { BrowserWebviewPrewarmer } from "@/components/browser/browser-webview-prewarmer";
 import {
   SidebarProvider,
   type SidebarData,
@@ -60,11 +61,13 @@ function useCurrentRouteInfo(): CurrentRouteInfo {
       const last = matches[matches.length - 1];
       const routeId = last?.routeId;
       const params = last?.params as { project?: string } | undefined;
-      const search = last?.search as {
-        view?: string;
-        terminalId?: string;
-        tab?: string;
-      } | undefined;
+      const search = last?.search as
+        | {
+            view?: string;
+            terminalId?: string;
+            tab?: string;
+          }
+        | undefined;
 
       let route: CurrentRouteInfo["route"] = "index";
       if (routeId === "/workspace/$project") route = "workspace";
@@ -81,7 +84,9 @@ function useCurrentRouteInfo(): CurrentRouteInfo {
         view: search?.view ?? null,
         terminalId: search?.terminalId ?? null,
         settingsTab:
-          route === "settings" && isSettingsTab(search?.tab) ? search.tab : null,
+          route === "settings" && isSettingsTab(search?.tab)
+            ? search.tab
+            : null,
       };
     },
   });
@@ -108,8 +113,12 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
   const state = useWorkspaceState(controller);
   const navigate = useNavigate();
   const isFullscreen = useFullscreen();
-  const { isSidebarVisible, setIsSidebarVisible, isSidebarCollapsed, toggleSidebarCollapsed } =
-    useSidebarVisibility(isFullscreen);
+  const {
+    isSidebarVisible,
+    setIsSidebarVisible,
+    isSidebarCollapsed,
+    toggleSidebarCollapsed,
+  } = useSidebarVisibility(isFullscreen);
   const appActions = useAppActions(controller, state);
   const shouldShowTrafficLights = !isFullscreen && !isSidebarCollapsed;
 
@@ -148,7 +157,8 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
     currentProject: routeInfo.project,
     currentRoute: routeInfo.route,
     currentSettingsTab: routeInfo.settingsTab,
-    activeTerminalId: routeInfo.view === "terminal" ? routeInfo.terminalId : null,
+    activeTerminalId:
+      routeInfo.view === "terminal" ? routeInfo.terminalId : null,
     isFullscreen,
     projects: appActions.projects,
     terminalSessionsByProject: appActions.terminalSessionsByProject,
@@ -206,21 +216,16 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
           />
           <div
             className={cn(
-              "relative z-50 h-full shrink-0 overflow-hidden transition-[width] duration-150 ease-out"
+              "relative z-50 h-full shrink-0 overflow-hidden transition-[width] duration-150 ease-out",
             )}
             style={{
-              width: isSidebarVisible
-                ? `${SIDEBAR_WIDTH_PX}px`
-                : "0px",
+              width: isSidebarVisible ? `${SIDEBAR_WIDTH_PX}px` : "0px",
             }}
             onMouseLeave={() => {
               setIsSidebarVisible(false);
             }}
           >
-            <div
-              className="h-full"
-              style={{ width: `${SIDEBAR_WIDTH_PX}px` }}
-            >
+            <div className="h-full" style={{ width: `${SIDEBAR_WIDTH_PX}px` }}>
               {sidebar}
             </div>
           </div>
@@ -232,15 +237,17 @@ function WorkspaceRootLayout({ routeInfo }: { routeInfo: CurrentRouteInfo }) {
             width: isSidebarCollapsed ? "0px" : `${SIDEBAR_WIDTH_PX}px`,
           }}
         >
-          <div
-            className="h-full"
-            style={{ width: `${SIDEBAR_WIDTH_PX}px` }}
-          >
+          <div className="h-full" style={{ width: `${SIDEBAR_WIDTH_PX}px` }}>
             {sidebar}
           </div>
         </div>
       )}
       <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        <BrowserWebviewPrewarmer
+          activeProjectKey={routeInfo.project}
+          controller={controller}
+          state={state}
+        />
         <ErrorBoundary name="root-outlet">
           <Outlet />
         </ErrorBoundary>

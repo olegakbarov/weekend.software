@@ -1,11 +1,15 @@
 window.__WEEKEND_SHARED_DROP_WINDOW__ = true;
-document.documentElement.style.backgroundColor = "transparent";
+Object.assign(document.documentElement.style, {
+  backgroundColor: "transparent",
+});
 const applyWeekendSharedDropTransparency = () => {
   if (!document.body) {
     return;
   }
-  document.body.style.backgroundColor = "transparent";
-  document.body.style.background = "transparent";
+  Object.assign(document.body.style, {
+    background: "transparent",
+    backgroundColor: "transparent",
+  });
 };
 applyWeekendSharedDropTransparency();
 window.addEventListener("DOMContentLoaded", applyWeekendSharedDropTransparency, { once: true });

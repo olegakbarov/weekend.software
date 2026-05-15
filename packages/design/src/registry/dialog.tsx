@@ -3,14 +3,14 @@
 import {
   createContext,
   forwardRef,
-  useContext,
+  use,
   useEffect,
   useState,
   type ComponentPropsWithoutRef,
   type HTMLAttributes,
 } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { cn } from "../lib/cn";
 import { useIcon } from "../lib/icon-context";
 import { springs } from "../lib/springs";
@@ -49,8 +49,9 @@ interface DialogContentProps
 const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
   ({ className, children, size = "sm", ...props }, ref) => {
     const XIcon = useIcon("x");
-    const open = useContext(DialogOpenContext);
+    const open = use(DialogOpenContext);
     const shape = useShape();
+    const shouldReduceMotion = useReducedMotion();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -65,50 +66,68 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
 
     return (
       <DialogPrimitive.Portal forceMount>
-        <DialogPrimitive.Overlay asChild forceMount>
-          <motion.div
-            className="fixed inset-0 z-50 bg-black/40 dark:bg-black/80"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: open ? 1 : 0 }}
-            transition={open ? springs.slow : springs.moderate}
-          />
-        </DialogPrimitive.Overlay>
-        <DialogPrimitive.Content ref={ref} asChild forceMount {...props}>
-          <motion.div
-            className={cn(
-              "fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)]",
-              "bg-card border border-border/60",
-              "shadow-[0_4px_12px_rgba(0,0,0,0.02)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
-              "p-6 focus:outline-none",
-              size === "sm" && "max-w-[400px]",
-              size === "lg" && "max-w-[540px]",
-              shape.container,
-              className,
-            )}
-            initial={{ opacity: 0, scale: 0.97, x: "-50%", y: "-50%" }}
-            animate={{
-              opacity: open ? 1 : 0,
-              scale: open ? 1 : 0.97,
-              x: "-50%",
-              y: "-50%",
-            }}
-            transition={open ? springs.slow : springs.moderate}
-            onAnimationComplete={handleExitComplete}
-          >
-            {children}
-            <DialogPrimitive.Close asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-label="Close"
-                className="absolute right-3 top-3 w-7 h-7 px-0"
-              >
-                <XIcon size={14} strokeWidth={1.5} />
-                <span className="sr-only">Close</span>
-              </Button>
-            </DialogPrimitive.Close>
-          </motion.div>
-        </DialogPrimitive.Content>
+        <LazyMotion features={domAnimation}>
+          <DialogPrimitive.Overlay asChild forceMount>
+            <m.div
+              className="fixed inset-0 z-50 bg-black/40 dark:bg-black/80"
+              initial={shouldReduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: open ? 1 : 0 }}
+              transition={
+                shouldReduceMotion
+                  ? { duration: 0 }
+                  : open
+                    ? springs.slow
+                    : springs.moderate
+              }
+            />
+          </DialogPrimitive.Overlay>
+          <DialogPrimitive.Content ref={ref} asChild forceMount {...props}>
+            <m.div
+              className={cn(
+                "fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)]",
+                "bg-card border border-border/60",
+                "shadow-[0_4px_12px_rgba(0,0,0,0.02)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+                "p-6 focus:outline-none",
+                size === "sm" && "max-w-[400px]",
+                size === "lg" && "max-w-[540px]",
+                shape.container,
+                className,
+              )}
+              initial={
+                shouldReduceMotion
+                  ? false
+                  : { opacity: 0, scale: 0.97, x: "-50%", y: "-50%" }
+              }
+              animate={{
+                opacity: open ? 1 : 0,
+                scale: shouldReduceMotion ? 1 : open ? 1 : 0.97,
+                x: "-50%",
+                y: "-50%",
+              }}
+              transition={
+                shouldReduceMotion
+                  ? { duration: 0 }
+                  : open
+                    ? springs.slow
+                    : springs.moderate
+              }
+              onAnimationComplete={handleExitComplete}
+            >
+              {children}
+              <DialogPrimitive.Close asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Close"
+                  className="absolute right-3 top-3 size-7 px-0"
+                >
+                  <XIcon size={14} strokeWidth={1.5} />
+                  <span className="sr-only">Close</span>
+                </Button>
+              </DialogPrimitive.Close>
+            </m.div>
+          </DialogPrimitive.Content>
+        </LazyMotion>
       </DialogPrimitive.Portal>
     );
   },

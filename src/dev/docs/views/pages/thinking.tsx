@@ -22,17 +22,9 @@ function MorphingThinking({
 
   return (
     <span
-      className="inline-grid"
+      className="morphing-thinking"
       style={{
         fontSize: size,
-        fontVariationSettings: "var(--fw-semibold)",
-        background:
-          "linear-gradient(90deg, var(--muted-foreground) 0%, var(--foreground) 50%, var(--muted-foreground) 100%)",
-        backgroundSize: "200% 100%",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-        backgroundClip: "text",
-        animation: "shimmer 2.4s linear infinite",
       }}
     >
       <AnimatePresence mode="wait" initial={false}>
@@ -47,7 +39,6 @@ function MorphingThinking({
           {words[idx]}…
         </motion.span>
       </AnimatePresence>
-      <style>{`@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }`}</style>
     </span>
   );
 }

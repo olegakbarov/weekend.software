@@ -3,7 +3,7 @@
 import {
   createContext,
   forwardRef,
-  useContext,
+  use,
   useRef,
   useState,
   useEffect,
@@ -786,7 +786,7 @@ function FormatDropdown({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const shape = useShape();
-  const portalContainer = useContext(ColorPickerPortalContainerContext);
+  const portalContainer = use(ColorPickerPortalContainerContext);
   const ChevronDownIcon = useIcon("chevron-down");
 
   const [pos, setPos] = useState<

@@ -4,7 +4,7 @@
   "consumers": [
     {
       "file": "src/components/editor/project-editor-pane.tsx",
-      "line": 643,
+      "line": 713,
       "props": [
         "activePath",
         "files",

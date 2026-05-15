@@ -36,6 +36,9 @@ function manualChunkForDependency(id: string): string | undefined {
 
 export default defineConfig({
   plugins: [TanStackRouterVite({ target: "react", autoCodeSplitting: true }), react(), tailwindcss()],
+  worker: {
+    format: "es",
+  },
   build: {
     rollupOptions: {
       output: {

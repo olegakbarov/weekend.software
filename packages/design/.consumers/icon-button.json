@@ -4,7 +4,29 @@
   "consumers": [
     {
       "file": "src/components/editor/project-editor-pane.tsx",
-      "line": 609,
+      "line": 728,
+      "props": [
+        "icon",
+        "label",
+        "size",
+        "disabled",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/components/editor/project-editor-pane.tsx",
+      "line": 735,
+      "props": [
+        "icon",
+        "label",
+        "size",
+        "disabled",
+        "onClick"
+      ]
+    },
+    {
+      "file": "src/components/editor/project-editor-pane.tsx",
+      "line": 771,
       "props": [
         "icon",
         "label",
@@ -14,7 +36,7 @@
     },
     {
       "file": "src/components/editor/project-editor-pane.tsx",
-      "line": 615,
+      "line": 777,
       "props": [
         "icon",
         "label",
@@ -32,10 +54,11 @@
     }
   ],
   "propUsage": {
-    "icon": 3,
-    "label": 3,
-    "onClick": 2,
-    "size": 2
+    "disabled": 2,
+    "icon": 5,
+    "label": 5,
+    "onClick": 4,
+    "size": 4
   },
-  "totalUsages": 3
+  "totalUsages": 5
 }

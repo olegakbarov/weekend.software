@@ -1,7 +1,7 @@
 /* =====================================================================
-   Fluid Functionalism — Docs site
+   Fluid Functionalism, Docs site
    Layered on top of @weekend/design tokens.css.
-   This file owns the docs SHELL only — sidebar, topbar, page header,
+   This file owns the docs SHELL only: sidebar, topbar, page header,
    and a handful of utilities. Component pages will bring their own CSS.
    ===================================================================== */
 
@@ -95,7 +95,7 @@
   color: var(--background);
   display: grid;
   place-items: center;
-  font-size: 11px;
+  font-size: 12px;
   font-variation-settings: var(--fw-bold);
   letter-spacing: -0.02em;
   flex-shrink: 0;
@@ -112,11 +112,11 @@
 .ds-docs-root .layout[data-collapsed="true"] .navsearch,
 .ds-docs-root .layout[data-collapsed="true"] .nav-section,
 .ds-docs-root .layout[data-collapsed="true"] .nav .badge-new,
-.ds-docs-root .layout[data-collapsed="true"] .nav a span:not(.proximity-bg) {
+.ds-docs-root .layout[data-collapsed="true"] .nav :is(a, button) span:not(.proximity-bg) {
   opacity: 0;
   pointer-events: none;
 }
-.ds-docs-root .layout[data-collapsed="true"] .nav a {
+.ds-docs-root .layout[data-collapsed="true"] .nav :is(a, button) {
   width: 32px;
   padding: 0;
   justify-content: center;
@@ -154,7 +154,7 @@
 }
 .ds-docs-root .navsearch kbd {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   opacity: 0.5;
   padding: 1px 5px;
   border: 1px solid var(--border);
@@ -166,7 +166,7 @@
 }
 
 .ds-docs-root .nav-section {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-foreground);
   font-family: var(--font-mono);
   font-variation-settings: var(--fw-semibold);
@@ -181,18 +181,23 @@
   gap: var(--gap-row);
   position: relative;
 }
-.ds-docs-root .nav a {
+.ds-docs-root .nav :is(a, button) {
   position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   height: var(--row-h);
   padding: 0 12px;
+  border: 0;
   border-radius: var(--shape-item, 20px);
+  background: transparent;
   color: var(--muted-foreground);
   font-size: 13px;
   font-variation-settings: var(--fw-medium);
+  font: inherit;
   cursor: pointer;
+  text-align: left;
   transition:
     color var(--spring-fast-ms),
     font-variation-settings var(--spring-fast-ms),
@@ -200,19 +205,19 @@
   white-space: nowrap;
   overflow: hidden;
 }
-.ds-docs-root .nav a:hover {
+.ds-docs-root .nav :is(a, button):hover {
   color: var(--foreground);
   background: var(--hover);
   font-variation-settings: var(--fw-semibold);
 }
-.ds-docs-root .nav a[data-active="true"] {
+.ds-docs-root .nav :is(a, button)[data-active="true"] {
   color: var(--foreground);
   background: var(--accent);
   font-variation-settings: var(--fw-semibold);
 }
-.ds-docs-root .nav a .badge-new {
+.ds-docs-root .nav :is(a, button) .badge-new {
   margin-left: auto;
-  font-size: 10px;
+  font-size: 12px;
   padding: 0 6px;
   height: 16px;
   display: inline-flex;
@@ -222,12 +227,12 @@
   color: var(--foreground);
   font-variation-settings: var(--fw-medium);
 }
-.ds-docs-root .nav a .nav-icon {
+.ds-docs-root .nav :is(a, button) .nav-icon {
   flex-shrink: 0;
   transition: stroke-width var(--spring-fast-ms);
 }
-.ds-docs-root .nav a:hover .nav-icon,
-.ds-docs-root .nav a[data-active="true"] .nav-icon {
+.ds-docs-root .nav :is(a, button):hover .nav-icon,
+.ds-docs-root .nav :is(a, button)[data-active="true"] .nav-icon {
   stroke-width: 2;
 }
 
@@ -237,7 +242,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
 }
 .ds-docs-root .sidebar-collapse-btn {
@@ -278,7 +283,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--muted-foreground);
 }
 .ds-docs-root .topbar .crumbs .sep {
@@ -322,6 +327,10 @@
   flex-direction: column;
 }
 
+.ds-docs-root .shell-docs-main {
+  container-type: inline-size;
+}
+
 .ds-docs-root .page {
   padding: var(--section-pad);
   max-width: calc(var(--doc-max) + 128px);
@@ -331,11 +340,11 @@
 }
 
 .ds-docs-root .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 56px;
 }
 .ds-docs-root .page-eyebrow {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--muted-foreground);
   font-variation-settings: var(--fw-semibold);
   text-transform: uppercase;
@@ -343,7 +352,8 @@
   margin-bottom: 10px;
 }
 .ds-docs-root .page-header h1 {
-  font-size: 28px;
+  font-family: var(--font-sans);
+  font-size: var(--text-h1);
   font-variation-settings: var(--fw-bold);
   letter-spacing: -0.01em;
   line-height: 1;
@@ -351,7 +361,7 @@
 }
 .ds-docs-root .page-header .lede {
   color: var(--muted-foreground);
-  font-size: 15px;
+  font-size: var(--text-lg);
   line-height: 1.5;
   max-width: 620px;
 }
@@ -420,7 +430,7 @@
 }
 .ds-docs-root .cmd-section {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   font-variation-settings: var(--fw-semibold);
   text-transform: uppercase;
@@ -431,13 +441,18 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   height: 36px;
   padding: 0 12px;
+  border: 0;
   border-radius: var(--shape-item, 20px);
+  background: transparent;
   font-size: 13px;
   font-variation-settings: var(--fw-medium);
   color: var(--foreground);
   cursor: pointer;
+  font: inherit;
+  text-align: left;
   transition: all var(--spring-fast-ms);
 }
 .ds-docs-root .cmd-item[data-active="true"],
@@ -458,32 +473,49 @@
 .ds-docs-root .cmd-item .meta {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-foreground);
 }
 
 /* ===== Section, callout, headings ================================ */
+/* Rhythm: 8-multiple baseline grid.
+   - section break: 48px above + hairline + 48px padding (≈ 96px rest)
+   - H2 to body: 24px
+   - paragraph spacing: 16px
+   - block elements (table, code, callout): 24px above siblings
+   - H3 (subsection within a section): 32px above, 16px below */
 .ds-docs-root .section {
-  margin: 32px 0;
+  margin: 0;
+}
+.ds-docs-root .section + .section {
+  margin-top: 48px;
+  padding-top: 48px;
+  border-top: 1px solid var(--border);
 }
 .ds-docs-root .section > h2 {
-  font-size: 22px;
+  font-family: var(--font-sans);
+  font-size: var(--text-h2);
   font-variation-settings: var(--fw-bold);
-  margin: 0 0 8px;
-  letter-spacing: -0.005em;
-  line-height: 1.1;
+  margin: 0 0 24px;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
 }
 .ds-docs-root .section > h3 {
-  font-size: 16px;
+  font-size: var(--text-h3);
   font-variation-settings: var(--fw-semibold);
-  margin: 24px 0 8px;
+  margin: 32px 0 16px;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
 }
 .ds-docs-root .section > p {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--text-md);
+  line-height: 1.65;
   color: var(--muted-foreground);
   max-width: 680px;
-  margin: 0 0 12px;
+  margin: 0 0 16px;
+}
+.ds-docs-root .section > p:last-child {
+  margin-bottom: 0;
 }
 .ds-docs-root .section > p strong,
 .ds-docs-root .section > p b {
@@ -492,36 +524,50 @@
 }
 
 .ds-docs-root .section > ul {
-  margin: 0 0 12px;
+  margin: 0 0 16px;
   padding: 0;
   list-style: none;
   max-width: 680px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .ds-docs-root .section > ul > li {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--text-md);
+  line-height: 1.65;
   color: var(--muted-foreground);
-  padding-left: 16px;
+  padding-left: 18px;
   position: relative;
 }
 .ds-docs-root .section > ul > li::before {
-  content: "—";
+  content: ":";
   position: absolute;
   left: 0;
   top: 0;
   color: var(--muted-foreground);
   opacity: 0.5;
 }
+
+/* Block elements after flow content get a real rest beat. */
+.ds-docs-root .section > p + .table-wrap,
+.ds-docs-root .section > p + .weekend-code,
+.ds-docs-root .section > p + .callout,
+.ds-docs-root .section > ul + .table-wrap,
+.ds-docs-root .section > ul + .weekend-code,
+.ds-docs-root .section > ul + .callout,
+.ds-docs-root .section > h2 + .table-wrap,
+.ds-docs-root .section > h2 + .weekend-code,
+.ds-docs-root .section > h2 + .callout {
+  margin-top: 24px;
+}
+
 .ds-docs-root .section .note {
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--text-sm);
+  line-height: 1.6;
   color: var(--muted-foreground);
   opacity: 0.75;
   max-width: 680px;
-  margin: 16px 0 0;
+  margin: 24px 0 0;
 }
 
 .ds-docs-root .h-anchor {
@@ -547,13 +593,13 @@
 .ds-docs-root .callout {
   display: flex;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: var(--shape-container, 16px);
-  margin: 16px 0;
-  font-size: 13px;
-  line-height: 1.5;
+  margin: 24px 0;
+  font-size: var(--text-sm);
+  line-height: 1.55;
 }
 .ds-docs-root .callout .ico {
   flex-shrink: 0;
@@ -564,59 +610,22 @@
   font-variation-settings: var(--fw-semibold);
 }
 
-/* ===== Code ====================================================== */
-.ds-docs-root .code-block {
-  position: relative;
-  background: #0a0a0a;
-  color: #e5e5e5;
-  border-radius: var(--shape-container, 16px);
-  padding: 14px 16px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 1.55;
-  overflow-x: auto;
-  margin: 12px 0;
-}
-.ds-docs-root .code-block .copy-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: rgba(255, 255, 255, 0.06);
-  color: #d4d4d4;
-  border-radius: 8px;
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity var(--spring-fast-ms),
-    background-color var(--spring-fast-ms);
-}
-.ds-docs-root .code-block:hover .copy-btn,
-.ds-docs-root .code-block .copy-btn[data-copied="true"] {
-  opacity: 1;
-}
-.ds-docs-root .code-block .copy-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
-  color: white;
-}
-.ds-docs-root .code-block pre {
-  margin: 0;
-  white-space: pre;
-  font-family: inherit;
+.ds-docs-root .mental-model-diagram {
+  margin: 24px 0;
+  width: min(1200px, calc(100cqw - 128px));
+  max-width: none;
 }
 
-.ds-docs-root .code-inline {
-  font-family: var(--font-mono);
-  font-size: 0.92em;
-  background: var(--muted);
-  border: 1px solid var(--border);
-  padding: 1px 5px;
-  border-radius: 4px;
-  color: var(--foreground);
+/* ===== Code ====================================================== */
+/* `<Code>` and `<CodeInline>` from @weekend/design/registry own all
+   visual chrome. The docs only contribute layout rhythm. */
+.ds-docs-root .weekend-code {
+  margin: 24px 0;
+}
+
+.ds-docs-root .table-wrap {
+  margin: 24px 0;
+  overflow-x: auto;
 }
 
 /* ===== Example frame ============================================= */
@@ -642,11 +651,129 @@
 }
 .ds-docs-root .example-meta {
   padding: 8px 14px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* ===== Workbench ================================================== */
+.ds-docs-root .workbench-controls {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 16px;
+  max-width: 720px;
+}
+.ds-docs-root .workbench-field {
+  display: grid;
+  gap: 8px;
+}
+.ds-docs-root .workbench-field--narrow {
+  max-width: 360px;
+}
+.ds-docs-root .workbench-label,
+.ds-docs-root .workbench-title,
+.ds-docs-root .workbench-description,
+.ds-docs-root .workbench-error {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.ds-docs-root .workbench-label,
+.ds-docs-root .workbench-description {
+  color: var(--muted-foreground);
+}
+.ds-docs-root .workbench-title {
+  color: var(--foreground);
+}
+.ds-docs-root .workbench-error {
+  color: var(--destructive);
+}
+.ds-docs-root .workbench-config-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-container);
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+.ds-docs-root .workbench-config-header {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+.ds-docs-root .workbench-textarea {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  min-height: 150px;
+  padding: 12px;
+  resize: vertical;
+}
+.ds-docs-root .workbench-textarea:focus-visible {
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 1px var(--focus-ring);
+}
+.ds-docs-root .workbench-primitive-preview {
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--shape-container, 16px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 16px;
+}
+
+/* ===== Iconography =============================================== */
+.ds-docs-root .icon-grid {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+}
+.ds-docs-root .icon-card {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--shape-item, 12px);
+  color: var(--muted-foreground);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  gap: 4px;
+  padding: 10px;
+  text-align: center;
+}
+
+/* ===== Thinking indicator ======================================== */
+.ds-docs-root .morphing-thinking {
+  animation: shimmer 2.4s linear infinite;
+  background: linear-gradient(
+    90deg,
+    var(--muted-foreground) 0%,
+    var(--foreground) 50%,
+    var(--muted-foreground) 100%
+  );
+  background-clip: text;
+  background-size: 200% 100%;
+  display: inline-grid;
+  font-variation-settings: var(--fw-semibold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }
 
 /* ===== Props table =============================================== */
@@ -657,7 +784,7 @@
   border: 1px solid var(--border);
   border-radius: var(--shape-container, 16px);
   overflow: hidden;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 .ds-docs-root .props-table th,
 .ds-docs-root .props-table td {
@@ -670,7 +797,8 @@
   border-bottom: 0;
 }
 .ds-docs-root .props-table th {
-  font-size: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xxs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--muted-foreground);
@@ -695,13 +823,13 @@
   height: 22px;
   padding: 0 9px;
   border-radius: var(--radius-pill);
-  font-size: 11px;
+  font-size: 12px;
   font-variation-settings: var(--fw-medium);
 }
 .ds-docs-root .badge-sm {
   height: 18px;
   padding: 0 7px;
-  font-size: 10px;
+  font-size: 12px;
 }
 .ds-docs-root .badge-lg {
   height: 26px;
@@ -745,7 +873,7 @@
 }
 .ds-docs-root .swatch .meta .val {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
 }
 
@@ -762,7 +890,7 @@
   flex-direction: column;
   justify-content: flex-end;
   padding: 8px;
-  font-size: 10px;
+  font-size: 12px;
   font-family: var(--font-mono);
 }
 
@@ -785,7 +913,7 @@
 }
 .ds-docs-root .type-meta {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   display: flex;
   flex-direction: column;
@@ -811,7 +939,7 @@
   align-items: center;
   padding: 6px 0;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
 }
 .ds-docs-root .space-row .name {
   font-variation-settings: var(--fw-semibold);
@@ -852,16 +980,18 @@
 }
 .ds-docs-root .spring-card .meta {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-foreground);
 }
 .ds-docs-root .spring-card .stage {
   height: 80px;
   background: var(--muted);
   border-radius: 12px;
+  border: 0;
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  width: 100%;
 }
 .ds-docs-root .spring-card .ball {
   position: absolute;
@@ -889,7 +1019,6 @@
   padding: 0 14px;
   border: 0;
   cursor: pointer;
-  outline: none;
   border-radius: var(--shape-item, 20px);
   font-size: 13px;
   font-variation-settings: var(--fw-medium);
@@ -899,6 +1028,9 @@
   background: transparent;
   color: var(--foreground);
   font-family: inherit;
+}
+.ds-docs-root .btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus-ring);
 }
 .ds-docs-root .btn .btn-bg,
 .ds-docs-root .btn .bg {
@@ -928,7 +1060,7 @@
   background: var(--hover);
 }
 
-/* responsive — collapse sidebar on narrow screens */
+/* responsive: collapse sidebar on narrow screens */
 @media (max-width: 760px) {
   .ds-docs-root .layout {
     grid-template-columns: 1fr;

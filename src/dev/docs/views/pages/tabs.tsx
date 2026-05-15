@@ -64,22 +64,22 @@ export function PageTabs(): React.JSX.Element {
               </TabsList>
               <TabPanel value="library">
                 <p style={{ color: "var(--muted-foreground)", fontSize: 13, paddingTop: 12 }}>
-                  Library content — your saved items.
+                  Library content, your saved items.
                 </p>
               </TabPanel>
               <TabPanel value="recents">
                 <p style={{ color: "var(--muted-foreground)", fontSize: 13, paddingTop: 12 }}>
-                  Recents content — what you opened lately.
+                  Recents content, what you opened lately.
                 </p>
               </TabPanel>
               <TabPanel value="favorites">
                 <p style={{ color: "var(--muted-foreground)", fontSize: 13, paddingTop: 12 }}>
-                  Favorites content — pinned highlights.
+                  Favorites content, pinned highlights.
                 </p>
               </TabPanel>
               <TabPanel value="settings">
                 <p style={{ color: "var(--muted-foreground)", fontSize: 13, paddingTop: 12 }}>
-                  Settings content — preferences for this view.
+                  Settings content, preferences for this view.
                 </p>
               </TabPanel>
             </Tabs>
@@ -157,23 +157,23 @@ export function PageTabs(): React.JSX.Element {
         </H>
         <ul>
           <li>
-            <code>Tabs</code> — root. Accepts <code>value</code>,{" "}
+            <code>Tabs</code>, root. Accepts <code>value</code>,{" "}
             <code>onValueChange</code>, <code>selectedIndex</code>,{" "}
             <code>onSelect</code>, <code>defaultValue</code>, plus any prop from
             Radix&apos;s <code>Tabs.Root</code>.
           </li>
           <li>
-            <code>TabsList</code> — wraps the items. Mounts the proximity-hover
+            <code>TabsList</code>, wraps the items. Mounts the proximity-hover
             tracker, the active-pill, the hover overlay, and the focus ring.
           </li>
           <li>
-            <code>TabItem</code> — required <code>value</code> and{" "}
+            <code>TabItem</code>, required <code>value</code> and{" "}
             <code>label</code> (string). Optional <code>icon</code>. Note:{" "}
             <code>label</code> is a string (not children) so the inline-grid
             bold-ghost trick can pre-allocate width.
           </li>
           <li>
-            <code>TabPanel</code> — required <code>value</code> matching a{" "}
+            <code>TabPanel</code>, required <code>value</code> matching a{" "}
             <code>TabItem</code>. Only the active panel renders.
           </li>
         </ul>

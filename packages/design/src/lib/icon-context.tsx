@@ -2,7 +2,7 @@
 
 import {
   createContext,
-  useContext,
+  use,
   useState,
   useCallback,
   useEffect,
@@ -63,7 +63,7 @@ const IconContext = createContext<IconContextValue | null>(null);
  * Throws if used outside IconProvider.
  */
 export function useIconLibrary(): IconContextValue {
-  const ctx = useContext(IconContext);
+  const ctx = use(IconContext);
   if (!ctx) throw new Error("useIconLibrary must be used within an IconProvider");
   return ctx;
 }
@@ -78,7 +78,7 @@ export function useIconLibrary(): IconContextValue {
  */
 export function useIcon(name: AnyIconName): IconComponent {
   const canonical = resolveIconName(name);
-  const ctx = useContext(IconContext);
+  const ctx = use(IconContext);
   if (!ctx) return iconMap.lucide[canonical];
   return iconMap[ctx.iconLibrary][canonical];
 }
@@ -88,7 +88,7 @@ export function useIcon(name: AnyIconName): IconComponent {
  * Falls back to Lucide if no provider is present.
  */
 export function useIcons(): Record<IconName, IconComponent> {
-  const ctx = useContext(IconContext);
+  const ctx = use(IconContext);
   const lib = ctx?.iconLibrary ?? "lucide";
   return useMemo(() => iconMap[lib], [lib]);
 }

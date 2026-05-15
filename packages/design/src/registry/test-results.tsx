@@ -10,7 +10,7 @@ import {
 import {
   createContext,
   forwardRef,
-  useContext,
+  use,
   useMemo,
   type ComponentProps,
   type HTMLAttributes,
@@ -144,7 +144,7 @@ export const TestResultsSummary = forwardRef<
   HTMLDivElement,
   TestResultsSummaryProps
 >(function TestResultsSummary({ className, children, ...props }, ref) {
-  const { summary } = useContext(TestResultsContext);
+  const { summary } = use(TestResultsContext);
 
   if (!summary) return null;
 
@@ -204,7 +204,7 @@ export const TestResultsDuration = forwardRef<
   HTMLSpanElement,
   TestResultsDurationProps
 >(function TestResultsDuration({ className, children, ...props }, ref) {
-  const { summary } = useContext(TestResultsContext);
+  const { summary } = use(TestResultsContext);
 
   if (!summary?.duration) return null;
 
@@ -227,7 +227,7 @@ export const TestResultsProgress = forwardRef<
   HTMLDivElement,
   TestResultsProgressProps
 >(function TestResultsProgress({ className, children, ...props }, ref) {
-  const { summary } = useContext(TestResultsContext);
+  const { summary } = use(TestResultsContext);
 
   if (!summary || summary.total === 0) return null;
 
@@ -322,7 +322,7 @@ export const TestSuiteName = ({
   children,
   ...props
 }: TestSuiteNameProps) => {
-  const { name, status } = useContext(TestSuiteContext);
+  const { name, status } = use(TestSuiteContext);
 
   return (
     <CollapsiblePrimitive.Trigger
@@ -446,7 +446,7 @@ export type TestNameProps = HTMLAttributes<HTMLSpanElement>;
 
 export const TestName = forwardRef<HTMLSpanElement, TestNameProps>(
   function TestName({ className, children, ...props }, ref) {
-    const { name } = useContext(TestContext);
+    const { name } = use(TestContext);
     return (
       <span ref={ref} className={cn("flex-1", className)} {...props}>
         {children ?? name}
@@ -459,7 +459,7 @@ export type TestDurationProps = HTMLAttributes<HTMLSpanElement>;
 
 export const TestDuration = forwardRef<HTMLSpanElement, TestDurationProps>(
   function TestDuration({ className, children, ...props }, ref) {
-    const { duration } = useContext(TestContext);
+    const { duration } = use(TestContext);
     if (duration === undefined) return null;
     return (
       <span
@@ -477,7 +477,7 @@ export type TestStatusProps = HTMLAttributes<HTMLSpanElement>;
 
 export const TestStatus = forwardRef<HTMLSpanElement, TestStatusProps>(
   function TestStatus({ className, children, ...props }, ref) {
-    const { status } = useContext(TestContext);
+    const { status } = use(TestContext);
     return (
       <span
         ref={ref}

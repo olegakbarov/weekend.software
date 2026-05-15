@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import {
   DEFAULT_THEME,
   isDarkTheme,
@@ -47,7 +47,7 @@ function readInitialTheme(): ThemeName {
 }
 
 export function useShellTheme(): ShellTheme {
-  const fromContext = useContext(ShellThemeContext);
+  const fromContext = use(ShellThemeContext);
   const [fallback, setFallback] = useState<ThemeName>(readInitialTheme);
 
   useEffect(() => {

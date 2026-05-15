@@ -99,7 +99,7 @@ export function CommandPalette({
           <kbd
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 10,
+              fontSize: 12,
               opacity: 0.5,
               padding: "1px 5px",
               border: "1px solid var(--border)",
@@ -129,19 +129,19 @@ export function CommandPalette({
                   const i = matches.indexOf(it);
                   const isActive = i === activeIdx;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={it.id}
                       className="cmd-item"
                       data-active={isActive ? true : undefined}
                       onMouseEnter={() => setActiveIdx(i)}
                       onClick={() => onNav(it.id)}
-                      role="option"
-                      aria-selected={isActive}
+                      aria-current={isActive ? "true" : undefined}
                     >
                       <Icon name={it.icon} size={14} className="ico" />
                       <span>{it.name}</span>
                       <span className="meta">{it.id}</span>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -154,7 +154,7 @@ export function CommandPalette({
             borderTop: "1px solid var(--border)",
             display: "flex",
             gap: 16,
-            fontSize: 10,
+            fontSize: 12,
             color: "var(--muted-foreground)",
           }}
         >

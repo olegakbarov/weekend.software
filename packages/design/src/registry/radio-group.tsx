@@ -6,7 +6,7 @@ import {
   useState,
   useEffect,
   createContext,
-  useContext,
+  use,
   forwardRef,
   isValidElement,
   type ReactNode,
@@ -46,7 +46,7 @@ interface RadioGroupContextValue {
 const RadioGroupContext = createContext<RadioGroupContextValue | null>(null);
 
 function useRadioGroupContext(): RadioGroupContextValue {
-  const ctx = useContext(RadioGroupContext);
+  const ctx = use(RadioGroupContext);
   if (!ctx) throw new Error("useRadioGroup must be used within a RadioGroup");
   return ctx;
 }
@@ -341,7 +341,7 @@ const RadioItem = forwardRef<HTMLDivElement, RadioItemProps>(
         {...props}
       >
         {/* Radio circle */}
-        <div className="relative w-[15px] h-[15px] shrink-0" aria-hidden>
+        <div className="relative size-[15px] shrink-0" aria-hidden>
           {/* Border */}
           <div
             className={cn(
@@ -370,7 +370,7 @@ const RadioItem = forwardRef<HTMLDivElement, RadioItemProps>(
                 }}
                 transition={springs.fast}
               >
-                <div className="w-[8px] h-[8px] rounded-full bg-foreground" />
+                <div className="size-[8px] rounded-full bg-foreground" />
               </motion.div>
             )}
           </AnimatePresence>

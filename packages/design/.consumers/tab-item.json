@@ -3,48 +3,16 @@
   "tier": "registry",
   "consumers": [
     {
-      "file": "src/components/editor/project-editor-pane.tsx",
-      "line": 580,
+      "file": "src/components/settings/project-settings-page.tsx",
+      "line": 214,
       "props": [
         "value",
         "label"
       ]
     },
     {
-      "file": "src/components/editor/project-editor-pane.tsx",
-      "line": 581,
-      "props": [
-        "value",
-        "label"
-      ]
-    },
-    {
-      "file": "src/components/settings/settings-page.tsx",
-      "line": 190,
-      "props": [
-        "value",
-        "label"
-      ]
-    },
-    {
-      "file": "src/components/settings/settings-page.tsx",
-      "line": 191,
-      "props": [
-        "value",
-        "label"
-      ]
-    },
-    {
-      "file": "src/components/settings/settings-page.tsx",
-      "line": 192,
-      "props": [
-        "value",
-        "label"
-      ]
-    },
-    {
-      "file": "src/components/settings/settings-page.tsx",
-      "line": 193,
+      "file": "src/components/settings/project-settings-page.tsx",
+      "line": 215,
       "props": [
         "value",
         "label"
@@ -145,8 +113,8 @@
   ],
   "propUsage": {
     "icon": 4,
-    "label": 17,
-    "value": 17
+    "label": 13,
+    "value": 13
   },
-  "totalUsages": 17
+  "totalUsages": 13
 }

@@ -64,7 +64,7 @@ export function PageToolCall(): React.JSX.Element {
         <h1>Tool Call</h1>
         <p className="lede">
           The canonical card for a single tool invocation in an agent stream.
-          State drives the icon and badge — input-streaming, input-available,
+          State drives the icon and badge, input-streaming, input-available,
           output-available, output-error. Body slots auto-format records or
           accept a custom ReactNode.
         </p>

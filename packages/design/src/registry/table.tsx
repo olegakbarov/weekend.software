@@ -3,7 +3,7 @@
 import {
   createContext,
   forwardRef,
-  useContext,
+  use,
   useEffect,
   useRef,
   type HTMLAttributes,
@@ -11,7 +11,7 @@ import {
   type TdHTMLAttributes,
   type ThHTMLAttributes,
 } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { cn } from "../lib/cn";
 import { fontWeights } from "../lib/font-weight";
 import { springs } from "../lib/springs";
@@ -31,6 +31,7 @@ interface TableProps extends HTMLAttributes<HTMLTableElement> {
 const Table = forwardRef<HTMLTableElement, TableProps>(
   ({ children, className, ...props }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const shouldReduceMotion = useReducedMotion();
 
     const {
       activeIndex,
@@ -56,33 +57,43 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
           onMouseMove={handlers.onMouseMove}
           onMouseLeave={handlers.onMouseLeave}
         >
-          <AnimatePresence>
-            {activeRect && (
-              <motion.div
-                key={sessionRef.current}
-                className="absolute bg-accent/40 pointer-events-none"
-                initial={{
-                  opacity: 0,
-                  top: activeRect.top,
-                  left: activeRect.left,
-                  width: activeRect.width,
-                  height: activeRect.height,
-                }}
-                animate={{
-                  opacity: 1,
-                  top: activeRect.top,
-                  left: activeRect.left,
-                  width: activeRect.width,
-                  height: activeRect.height,
-                }}
-                exit={{ opacity: 0, transition: { duration: 0.06 } }}
-                transition={{
-                  ...springs.fast,
-                  opacity: { duration: 0.08 },
-                }}
-              />
-            )}
-          </AnimatePresence>
+          <LazyMotion features={domAnimation}>
+            <AnimatePresence>
+              {activeRect && (
+                <m.div
+                  key={sessionRef.current}
+                  className="absolute bg-accent/40 pointer-events-none"
+                  initial={
+                    shouldReduceMotion
+                      ? false
+                      : {
+                          opacity: 0,
+                          top: activeRect.top,
+                          left: activeRect.left,
+                          width: activeRect.width,
+                          height: activeRect.height,
+                        }
+                  }
+                  animate={{
+                    opacity: 1,
+                    top: activeRect.top,
+                    left: activeRect.left,
+                    width: activeRect.width,
+                    height: activeRect.height,
+                  }}
+                  exit={{ opacity: 0, transition: { duration: shouldReduceMotion ? 0 : 0.06 } }}
+                  transition={
+                    shouldReduceMotion
+                      ? { duration: 0 }
+                      : {
+                          ...springs.fast,
+                          opacity: { duration: 0.08 },
+                        }
+                  }
+                />
+              )}
+            </AnimatePresence>
+          </LazyMotion>
 
           <table
             ref={ref}
@@ -122,7 +133,7 @@ interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
 const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
   ({ index, className, style, ...props }, ref) => {
     const internalRef = useRef<HTMLTableRowElement>(null);
-    const ctx = useContext(TableContext);
+    const ctx = use(TableContext);
 
     useEffect(() => {
       if (index === undefined || !ctx) return;

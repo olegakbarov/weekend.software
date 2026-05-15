@@ -6,7 +6,7 @@ interface HeadingProps {
   children: React.ReactNode;
 }
 
-/** Anchor heading — visible link icon shows on hover, clickable to deep-link. */
+/** Anchor heading: visible link icon shows on hover, clickable to deep-link. */
 export function H({ as = "h2", id, children }: HeadingProps): React.JSX.Element {
   const Tag = as;
   return (

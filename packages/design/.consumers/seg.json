@@ -3,27 +3,6 @@
   "tier": "core",
   "consumers": [
     {
-      "file": "src/components/browser/browser-toolbar.tsx",
-      "line": 156,
-      "props": [
-        "variant",
-        "items",
-        "value",
-        "onChange",
-        "className"
-      ]
-    },
-    {
-      "file": "src/components/settings/settings-page.tsx",
-      "line": 207,
-      "props": [
-        "items",
-        "value",
-        "onChange",
-        "variant"
-      ]
-    },
-    {
       "file": "src/dev/docs/views/pages/tabs.tsx",
       "line": 203,
       "props": [
@@ -41,14 +20,31 @@
         "onChange",
         "variant"
       ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/workbench.tsx",
+      "line": 139,
+      "props": [
+        "items",
+        "onChange",
+        "value"
+      ]
+    },
+    {
+      "file": "src/dev/docs/views/pages/workbench.tsx",
+      "line": 155,
+      "props": [
+        "items",
+        "onChange",
+        "value"
+      ]
     }
   ],
   "propUsage": {
-    "className": 1,
     "items": 4,
     "onChange": 4,
     "value": 4,
-    "variant": 3
+    "variant": 1
   },
   "totalUsages": 4
 }

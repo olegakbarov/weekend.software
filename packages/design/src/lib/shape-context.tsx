@@ -2,7 +2,7 @@
 
 import {
   createContext,
-  useContext,
+  use,
   useState,
   useEffect,
   useCallback,
@@ -84,7 +84,7 @@ function readShellShape(defaultShape: ShapeVariant): ShapeVariant {
  * `<ShapeProvider>` is mounted (matches upstream behaviour).
  */
 export function useShape(): ShapeClasses {
-  const ctx = useContext(ShapeContext);
+  const ctx = use(ShapeContext);
   if (!ctx) return shapeMap.pill;
   return ctx.classes;
 }
@@ -94,7 +94,7 @@ export function useShape(): ShapeClasses {
  * Throws if no `<ShapeProvider>` is mounted.
  */
 export function useShapeContext(): ShapeContextValue {
-  const ctx = useContext(ShapeContext);
+  const ctx = use(ShapeContext);
   if (!ctx) throw new Error("useShapeContext must be used within a ShapeProvider");
   return ctx;
 }

@@ -86,7 +86,7 @@ export function PageDialog(): React.JSX.Element {
           Usage
         </H>
         <p>
-          Built on <CodeInline>@radix-ui/react-dialog</CodeInline>. Controlled or uncontrolled —
+          Built on <CodeInline>@radix-ui/react-dialog</CodeInline>. Controlled or uncontrolled:
           pass <CodeInline>open</CodeInline> + <CodeInline>onOpenChange</CodeInline> to control
           externally, or omit them and use <CodeInline>DialogTrigger</CodeInline>.
         </p>
@@ -134,20 +134,20 @@ export function PageDialog(): React.JSX.Element {
             <tr>
               <td className="prop-name">open</td>
               <td>boolean</td>
-              <td className="prop-default">—</td>
+              <td className="prop-default">None</td>
               <td>Controls visibility (controlled mode).</td>
             </tr>
             <tr>
               <td className="prop-name">onOpenChange</td>
               <td>(open: boolean) =&gt; void</td>
-              <td className="prop-default">—</td>
+              <td className="prop-default">None</td>
               <td>Called when the open state changes.</td>
             </tr>
             <tr>
               <td className="prop-name">size</td>
               <td>"sm" | "lg"</td>
               <td className="prop-default">"sm"</td>
-              <td>Max width — sm 400px, lg 540px. (DialogContent prop.)</td>
+              <td>Max width, sm 400px, lg 540px. (DialogContent prop.)</td>
             </tr>
           </tbody>
         </table>

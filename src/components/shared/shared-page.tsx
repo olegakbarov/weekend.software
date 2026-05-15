@@ -73,12 +73,19 @@ function ActionBar({
   const [isRenaming, setIsRenaming] = useState(false);
   const [draft, setDraft] = useState(asset.fileName);
   const [isDeleting, setIsDeleting] = useState(false);
+  const renameInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setIsRenaming(false);
     setDraft(asset.fileName);
     setIsDeleting(false);
   }, [asset.fileName]);
+
+  useEffect(() => {
+    if (!isRenaming) return;
+    renameInputRef.current?.focus();
+    renameInputRef.current?.select();
+  }, [isRenaming]);
 
   const submitRename = () => {
     const trimmed = draft.trim();
@@ -108,8 +115,8 @@ function ActionBar({
       {isRenaming ? (
         <div className="flex min-w-0 flex-1 items-center gap-1">
           <Input
-            autoFocus
             className="h-7 flex-1 px-2 font-code text-xs"
+            ref={renameInputRef}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -272,18 +279,13 @@ export function SharedPage({
   );
   const preparedInput = useMemo(() => prepareFileTreeInput(paths), [paths]);
 
-  const onSelectFileRef = useRef<(name: string) => void>(() => {});
-  useEffect(() => {
-    onSelectFileRef.current = (name: string) => setSelectedFileName(name);
-  });
-
   const { model } = useFileTree({
     initialExpansion: "open",
     preparedInput,
     onSelectionChange: (selectedPaths) => {
       const head = selectedPaths[0];
       if (!head || head.endsWith("/")) return;
-      onSelectFileRef.current(head);
+      setSelectedFileName(head);
     },
   });
 

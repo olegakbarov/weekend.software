@@ -1,0 +1,38 @@
+{
+  "symbol": "Code",
+  "tier": "registry",
+  "consumers": [
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 205,
+      "props": [
+        "language"
+      ]
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 247,
+      "props": [
+        "language"
+      ]
+    },
+    {
+      "file": "src/components/docs/shell-docs-page.tsx",
+      "line": 277,
+      "props": [
+        "language"
+      ]
+    },
+    {
+      "file": "src/dev/docs/components/code-block.tsx",
+      "line": 15,
+      "props": [
+        "language"
+      ]
+    }
+  ],
+  "propUsage": {
+    "language": 4
+  },
+  "totalUsages": 4
+}

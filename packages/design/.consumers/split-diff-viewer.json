@@ -4,12 +4,13 @@
   "consumers": [
     {
       "file": "src/components/editor/project-editor-pane.tsx",
-      "line": 787,
+      "line": 993,
       "props": [
         "header",
         "patch",
         "path",
-        "themeType"
+        "themeType",
+        "tokens"
       ]
     }
   ],
@@ -17,7 +18,8 @@
     "header": 1,
     "patch": 1,
     "path": 1,
-    "themeType": 1
+    "themeType": 1,
+    "tokens": 1
   },
   "totalUsages": 1
 }

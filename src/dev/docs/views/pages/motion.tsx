@@ -22,25 +22,18 @@ function SpringCard({ name, ms, role }: SpringSpec): React.JSX.Element {
         <div className="name">{name}</div>
         <div className="meta">{ms}ms</div>
       </div>
-      <div
+      <button
+        type="button"
         className="stage"
         onClick={() => setPos((p) => (p === "start" ? "end" : "start"))}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setPos((p) => (p === "start" ? "end" : "start"));
-          }
-        }}
       >
         <div
           className="ball"
           data-pos={pos}
           style={{ transition: `left ${ms}ms var(--ease-out-ui)` }}
         />
-      </div>
-      <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>{role}</div>
+      </button>
+      <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>{role}</div>
     </div>
   );
 }
@@ -54,7 +47,7 @@ export function PageMotion(): React.JSX.Element {
         <h1>Motion</h1>
         <p className="lede">
           Three spring tokens, that's the entire vocabulary. Springs adapt to interruption;
-          durations don't. Exits are slightly faster than enters — it makes the interface feel
+          durations don't. Exits are slightly faster than enters, it makes the interface feel
           alive.
         </p>
       </header>
@@ -86,7 +79,7 @@ export function PageMotion(): React.JSX.Element {
         </H>
         <p>
           Components use Framer Motion <CodeInline>type: "spring"</CodeInline>. They adapt
-          naturally to interruption — if a tooltip is mid-fade and you move away, the exit picks
+          naturally to interruption, if a tooltip is mid-fade and you move away, the exit picks
           up where the enter left off, not from the original anchor.
         </p>
         <CodeBlock>{[
@@ -108,7 +101,7 @@ export function PageMotion(): React.JSX.Element {
         </H>
         <p>
           The marquee interaction. When the cursor enters a group of related items (tabs, radios,
-          menu items), an animated background pill follows the <em>closest</em> item — not just
+          menu items), an animated background pill follows the <em>closest</em> item, not just
           the one being hovered. The hook is <CodeInline>useProximityHover</CodeInline>.
         </p>
       </div>

@@ -5,6 +5,9 @@
   const BRIDGE_KEY = "__WEEKEND_BRIDGE__";
   const BRIDGE_STATE_KEY = "__WEEKEND_BRIDGE_STATE__";
   const WRAP_MARKER = "__weekendBridgeWrapped__";
+  const EXTERNAL_SCHEME_PROTOCOLS = new Set(["mailto:", "tel:"]);
+  const WEB_SCHEME_PROTOCOLS = new Set(["http:", "https:"]);
+  const INPUT_TAG_NAMES = new Set(["input", "textarea", "select"]);
 
   const hasLowLevelIpc = () => {
     const i = window.__TAURI_INTERNALS__;
@@ -112,10 +115,10 @@
   const shouldOpenUrlExternally = (url, options) => {
     if (!url) return false;
     const protocol = url.protocol.toLowerCase();
-    if (protocol === "mailto:" || protocol === "tel:") {
+    if (EXTERNAL_SCHEME_PROTOCOLS.has(protocol)) {
       return true;
     }
-    if (protocol !== "http:" && protocol !== "https:") {
+    if (!WEB_SCHEME_PROTOCOLS.has(protocol)) {
       return false;
     }
     if (url.origin === window.location.origin) {
@@ -385,7 +388,7 @@
         const target = event.target;
         if (!target || !target.tagName) return;
         const tag = target.tagName.toLowerCase();
-        if (tag !== "input" && tag !== "textarea" && tag !== "select") return;
+        if (!INPUT_TAG_NAMES.has(tag)) return;
         pushEvent("input", {
           tag: target.tagName,
           id: target.id || undefined,
@@ -539,11 +542,13 @@
         if (!target || !target.tagName || target === document.documentElement) return;
         currentTarget = target;
         const rect = target.getBoundingClientRect();
-        overlay.style.left = rect.left + "px";
-        overlay.style.top = rect.top + "px";
-        overlay.style.width = rect.width + "px";
-        overlay.style.height = rect.height + "px";
-        overlay.style.display = "block";
+        Object.assign(overlay.style, {
+          display: "block",
+          height: rect.height + "px",
+          left: rect.left + "px",
+          top: rect.top + "px",
+          width: rect.width + "px",
+        });
       };
 
       const onClick = (event) => {

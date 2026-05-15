@@ -5,7 +5,7 @@ import {
   useState,
   useEffect,
   createContext,
-  useContext,
+  use,
   forwardRef,
   type ReactNode,
   type HTMLAttributes,
@@ -37,7 +37,7 @@ const CheckboxGroupContext = createContext<CheckboxGroupContextValue | null>(
 );
 
 function useCheckboxGroup(): CheckboxGroupContextValue {
-  const ctx = useContext(CheckboxGroupContext);
+  const ctx = use(CheckboxGroupContext);
   if (!ctx)
     throw new Error("useCheckboxGroup must be used within a CheckboxGroup");
   return ctx;
@@ -326,7 +326,7 @@ const CheckboxItem = forwardRef<HTMLDivElement, CheckboxItemProps>(
       >
         {/* Checkbox glyph */}
         <div
-          className="relative w-[15px] h-[15px] shrink-0"
+          className="relative size-[15px] shrink-0"
           aria-hidden
         >
           {/* Border */}

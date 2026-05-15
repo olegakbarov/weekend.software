@@ -2,7 +2,7 @@ import { CodeBlock, CodeInline } from "../../components/code-block";
 import { H } from "../../components/heading";
 
 const WEIGHT_AXES: ReadonlyArray<readonly [string, string, string]> = [
-  ["--fw-normal", "400", "Body text — paragraphs, descriptions"],
+  ["--fw-normal", "400", "Body text, paragraphs, descriptions"],
   ["--fw-medium", "450", "UI labels, button text at rest"],
   ["--fw-semibold", "550", "Hover/active state, strong UI"],
   ["--fw-bold", "700", "Headings only"],
@@ -16,7 +16,7 @@ const SCALE: ReadonlyArray<readonly [string, string, string, string]> = [
   ["md", "14", "1.5", "normal"],
   ["sm", "13", "1.4", "medium"],
   ["xs", "12", "1.4", "medium"],
-  ["xxs", "11", "1.4", "medium"],
+  ["xxs", "12", "1.4", "medium"],
 ];
 
 const HOVER_LINKS = ["Documentation", "Pricing", "Customers", "Changelog", "Contact"];
@@ -66,7 +66,7 @@ export function PageTypography(): React.JSX.Element {
                 >
                   Refined UI components with satisfying hover.
                 </div>
-                <div style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
                   {role}
                 </div>
               </div>
@@ -80,7 +80,7 @@ export function PageTypography(): React.JSX.Element {
           The hover transition
         </H>
         <p>
-          Hover any text below — weight transitions from 450 to 550 over 80ms. This is the entire
+          Hover any text below, weight transitions from 450 to 550 over 80ms. This is the entire
           interaction language for "this is interactive."
         </p>
         <div className="example">
@@ -89,15 +89,22 @@ export function PageTypography(): React.JSX.Element {
             style={{ flexDirection: "column", gap: 14, alignItems: "flex-start" }}
           >
             {HOVER_LINKS.map((t) => (
-              <a
+              <button
+                type="button"
                 key={t}
                 className="fluid-weight"
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                style={{ fontSize: 17, color: "var(--foreground)" }}
+                style={{
+                  background: "transparent",
+                  border: 0,
+                  color: "var(--foreground)",
+                  cursor: "pointer",
+                  fontSize: 17,
+                  padding: 0,
+                  textAlign: "left",
+                }}
               >
                 {t}
-              </a>
+              </button>
             ))}
           </div>
           <div className="example-meta">

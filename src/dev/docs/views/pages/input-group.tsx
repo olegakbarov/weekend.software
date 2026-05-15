@@ -15,7 +15,7 @@ export function PageInputGroup(): React.JSX.Element {
         <div className="page-eyebrow">Components</div>
         <h1>Input Group</h1>
         <p className="lede">
-          Vertical stack of fields where the cursor proximity surfaces the closest input — focus
+          Vertical stack of fields where the cursor proximity surfaces the closest input, focus
           ring + icon weight shift before you click.
         </p>
       </header>

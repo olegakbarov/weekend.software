@@ -40,7 +40,7 @@ type DialogContextValue = {
 const DialogContext = React.createContext<DialogContextValue | null>(null);
 
 function useDialogContext(): DialogContextValue {
-  const ctx = React.useContext(DialogContext);
+  const ctx = React.use(DialogContext);
   if (!ctx) {
     throw new Error("Dialog components must be used within <Dialog>.");
   }

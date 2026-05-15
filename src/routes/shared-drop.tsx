@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { invoke } from "@tauri-apps/api/core";
 import {
@@ -88,6 +88,7 @@ function SharedDropRoute() {
   const [lastSyncMessage, setLastSyncMessage] = useState<string | null>(null);
   const [renamingFileName, setRenamingFileName] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState("");
+  const renameInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingDeleteFileName, setPendingDeleteFileName] = useState<string | null>(
     null
   );
@@ -290,6 +291,17 @@ function SharedDropRoute() {
     : "Drop something here to make it available across projects.";
   const isBusy = isLoading || isImporting || isMutating;
 
+  useEffect(() => {
+    if (!renamingFileName) return;
+    const frame = requestAnimationFrame(() => {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+    };
+  }, [renamingFileName]);
+
   const startRename = (fileName: string) => {
     if (isBusy) return;
     setRenamingFileName(fileName);
@@ -448,7 +460,6 @@ function SharedDropRoute() {
                       {renamingFileName === asset.fileName ? (
                         <div className="space-y-2">
                           <Input
-                            autoFocus
                             className="h-7 bg-black/25 px-2 font-code text-[11px]"
                             onChange={(event) => {
                               setRenameDraft(event.currentTarget.value);
@@ -462,6 +473,7 @@ function SharedDropRoute() {
                                 cancelRename();
                               }
                             }}
+                            ref={renameInputRef}
                             value={renameDraft}
                           />
                           <p className="font-code text-[10px] leading-4 text-muted-foreground">

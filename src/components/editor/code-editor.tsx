@@ -211,22 +211,25 @@ export function CodeEditor({
     const view = new EditorView({ state, parent: container });
     viewRef.current = view;
 
+    let removeVimModeListener: (() => void) | null = null;
     if (isVimModeEnabled) {
       const cm = getCM(view);
       if (cm) {
-        cm.on(
-          "vim-mode-change",
-          (info: { mode: string; subMode?: string }) => {
-            onVimModeChangeRef.current?.(
-              info.mode as VimMode,
-              info.subMode
-            );
-          }
-        );
+        const handleVimModeChange = (info: {
+          mode: string;
+          subMode?: string;
+        }) => {
+          onVimModeChangeRef.current?.(info.mode as VimMode, info.subMode);
+        };
+        cm.on("vim-mode-change", handleVimModeChange);
+        removeVimModeListener = () => {
+          cm.off("vim-mode-change", handleVimModeChange);
+        };
       }
     }
 
     return () => {
+      removeVimModeListener?.();
       view.destroy();
       viewRef.current = null;
     };

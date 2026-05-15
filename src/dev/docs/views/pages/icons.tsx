@@ -199,31 +199,9 @@ export function PageIcons(): React.JSX.Element {
           onChange={(e) => setFilter(e.target.value)}
           style={{ maxWidth: 360, marginBottom: 16 }}
         />
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))",
-            gap: 6,
-          }}
-        >
+        <div className="icon-grid">
           {matched.map(([name, Icon]) => (
-            <div
-              key={name}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 4,
-                padding: 10,
-                border: "1px solid var(--border)",
-                borderRadius: "var(--shape-item, 12px)",
-                background: "var(--card)",
-                fontSize: 10,
-                color: "var(--muted-foreground)",
-                fontFamily: "var(--font-mono)",
-                textAlign: "center",
-              }}
-            >
+            <div key={name} className="icon-card">
               <Icon size={20} strokeWidth={1.5} />
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
                 {name}

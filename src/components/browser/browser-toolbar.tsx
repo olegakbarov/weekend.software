@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 import {
+  Columns2,
   Crosshair,
   FileCode2,
   Plus,
   RefreshCw,
   Settings,
+  Square,
   X,
 } from "lucide-react";
 import {
@@ -21,6 +23,8 @@ type WorkspaceMode =
   | "agent"
   | "terminal"
   | "settings";
+
+export type BrowserLayoutMode = "single" | "split";
 
 type TerminalGroup = "processes" | "agents";
 
@@ -110,7 +114,30 @@ function terminalGroupForSession(
     : "processes";
 }
 
-function TerminalTabStrip({
+export function groupTerminalSessions(
+  terminalSessions: TerminalSessionDescriptor[],
+  configuredProcesses: ConfiguredProcessMap
+): {
+  processSessions: TerminalSessionDescriptor[];
+  agentSessions: TerminalSessionDescriptor[];
+} {
+  return terminalSessions.reduce<{
+    processSessions: TerminalSessionDescriptor[];
+    agentSessions: TerminalSessionDescriptor[];
+  }>(
+    (groups, session) => {
+      if (terminalGroupForSession(session, configuredProcesses) === "agents") {
+        groups.agentSessions.push(session);
+      } else {
+        groups.processSessions.push(session);
+      }
+      return groups;
+    },
+    { processSessions: [], agentSessions: [] },
+  );
+}
+
+export function TerminalTabStrip({
   processSessions,
   agentSessions,
   activeTerminalId,
@@ -214,6 +241,8 @@ function TerminalTabStrip({
 
 export function BrowserToolbar({
   workspaceMode,
+  layoutMode,
+  onLayoutModeChange,
   onWorkspaceModeChange,
   projectId,
   urlInputDraft,
@@ -229,8 +258,11 @@ export function BrowserToolbar({
   onCreateTerminal,
   onCreateAgentTerminal,
   onOpenConfigFile: _onOpenConfigFile,
+  showTerminalTabs = true,
 }: {
   workspaceMode: WorkspaceMode;
+  layoutMode: BrowserLayoutMode;
+  onLayoutModeChange: (mode: BrowserLayoutMode) => void;
   onWorkspaceModeChange: (
     mode: "browser" | "editor" | "agent" | "settings"
   ) => void;
@@ -248,23 +280,16 @@ export function BrowserToolbar({
   onCreateTerminal: () => void;
   onCreateAgentTerminal: () => void;
   onOpenConfigFile: () => void;
+  showTerminalTabs?: boolean;
 }) {
-  const isBrowserActive = workspaceMode === "browser";
   const isTerminalActive =
     workspaceMode === "terminal" || workspaceMode === "agent";
+  const isBrowserActive = workspaceMode === "browser";
 
-  const { processSessions, agentSessions } = useMemo(() => {
-    return {
-      processSessions: terminalSessions.filter(
-        (session) =>
-          terminalGroupForSession(session, configuredProcesses) === "processes"
-      ),
-      agentSessions: terminalSessions.filter(
-        (session) =>
-          terminalGroupForSession(session, configuredProcesses) === "agents"
-      ),
-    };
-  }, [configuredProcesses, terminalSessions]);
+  const { processSessions, agentSessions } = useMemo(
+    () => groupTerminalSessions(terminalSessions, configuredProcesses),
+    [configuredProcesses, terminalSessions]
+  );
 
   const handleBrowserBarClick = () => {
     if (!isBrowserActive) {
@@ -278,14 +303,24 @@ export function BrowserToolbar({
   );
 
   const sideBtn =
-    "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground";
+    "inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground transition-colors hover:text-foreground";
   const sideBtnActive =
-    "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/60 text-foreground transition-colors";
+    "inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/60 text-foreground transition-colors";
+  const layoutBtn =
+    "inline-flex size-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:cursor-default disabled:opacity-45";
+  const layoutBtnActive =
+    "inline-flex size-8 shrink-0 items-center justify-center bg-secondary/60 text-foreground transition-colors disabled:cursor-default disabled:opacity-45";
 
   return (
     <div className="relative h-12 shrink-0 border-b border-border bg-background">
       <div className="flex h-full items-center gap-2 px-3">
-        <div className="grid min-w-0 flex-1 grid-cols-[1fr_2fr] gap-3">
+        <div
+          className={
+            showTerminalTabs
+              ? "grid min-w-0 flex-1 grid-cols-[1fr_2fr] gap-3"
+              : "grid min-w-0 flex-1 grid-cols-1"
+          }
+        >
           <div
             className={`flex min-w-0 items-center rounded-md border border-border/80 bg-background transition-opacity ${
               !isBrowserActive
@@ -293,6 +328,15 @@ export function BrowserToolbar({
                 : ""
             }`}
             onClick={!isBrowserActive ? handleBrowserBarClick : undefined}
+            onKeyDown={
+              !isBrowserActive
+                ? (event) => {
+                    if (event.key !== "Enter" && event.key !== " ") return;
+                    event.preventDefault();
+                    handleBrowserBarClick();
+                  }
+                : undefined
+            }
             role={!isBrowserActive ? "button" : undefined}
             tabIndex={!isBrowserActive ? 0 : undefined}
           >
@@ -353,20 +397,54 @@ export function BrowserToolbar({
             </div>
           </div>
 
-          <TerminalTabStrip
-            processSessions={processSessions}
-            agentSessions={agentSessions}
-            activeTerminalId={activeTerminalId}
-            isActiveMode={isTerminalActive}
-            onSelect={onSelectTerminal}
-            onRemove={onRemoveTerminal}
-            onCreateProcess={onCreateTerminal}
-            onCreateAgent={onCreateAgentTerminal}
-            disabled={!projectId}
-          />
+          {showTerminalTabs ? (
+            <TerminalTabStrip
+              processSessions={processSessions}
+              agentSessions={agentSessions}
+              activeTerminalId={activeTerminalId}
+              isActiveMode={isTerminalActive}
+              onSelect={onSelectTerminal}
+              onRemove={onRemoveTerminal}
+              onCreateProcess={onCreateTerminal}
+              onCreateAgent={onCreateAgentTerminal}
+              disabled={!projectId}
+            />
+          ) : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <div
+            aria-label="Project layout"
+            className="inline-flex h-8 shrink-0 overflow-hidden rounded-md border border-border/80 bg-background"
+            role="group"
+          >
+            <button
+              aria-label="Webview only"
+              aria-pressed={layoutMode === "single"}
+              className={layoutMode === "single" ? layoutBtnActive : layoutBtn}
+              disabled={!projectId}
+              onClick={() => onLayoutModeChange("single")}
+              title="Webview only"
+              type="button"
+            >
+              <Square className="size-3.5" />
+            </button>
+            <button
+              aria-label="Webview and process"
+              aria-pressed={layoutMode === "split"}
+              className={layoutMode === "split" ? layoutBtnActive : layoutBtn}
+              disabled={!projectId || processSessions.length === 0}
+              onClick={() => onLayoutModeChange("split")}
+              title={
+                processSessions.length === 0
+                  ? "No process to split with"
+                  : "Webview and process"
+              }
+              type="button"
+            >
+              <Columns2 className="size-3.5" />
+            </button>
+          </div>
           <button
             aria-label="Project settings"
             aria-pressed={workspaceMode === "settings"}

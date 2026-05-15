@@ -75,7 +75,7 @@ export function PageShadows(): React.JSX.Element {
                 <div
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 11,
+                    fontSize: 12,
                     fontVariationSettings: "var(--fw-semibold)",
                   }}
                 >

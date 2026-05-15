@@ -33,9 +33,9 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
 
       {/* Calendar grid */}
       <div className="grid grid-cols-7">
-        {cells.map((cell, i) => (
+        {cells.map((cell) => (
           <DayCell
-            key={`${cell.date.toISOString()}-${i}`}
+            key={cell.date.toISOString()}
             cell={cell}
             events={events}
             eventPositions={eventPositions}

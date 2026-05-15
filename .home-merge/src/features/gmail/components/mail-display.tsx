@@ -199,8 +199,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
                   <GmailButton
                     className="ml-auto"
-                    onClick={(event) => event.preventDefault()}
                     size="sm"
+                    type="button"
                   >
                     Send
                   </GmailButton>

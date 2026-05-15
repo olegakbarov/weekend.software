@@ -1,5 +1,8 @@
 import type { PlayState, ProjectConfigReadSnapshot } from "@/lib/controller";
-import { DEFAULT_PORTLESS_PROXY_PORT, isLocalDevHostname } from "./browser-url-utils";
+import {
+  DEFAULT_PORTLESS_PROXY_PORT,
+  isLocalDevHostname,
+} from "./browser-url-utils.ts";
 
 export type BrowserRuntimeTarget = {
   status: "ready" | "loading" | "blocked";
@@ -7,6 +10,21 @@ export type BrowserRuntimeTarget = {
   url: string | null;
   action: "play" | null;
 };
+
+export function shouldRenderNativeBrowserWebviewHost({
+  browserTargetStatus,
+  displayRuntimeSurfaceUrl,
+  isEmbeddedBrowserAvailable,
+  isRestoringCachedBrowserFrame,
+}: {
+  browserTargetStatus: BrowserRuntimeTarget["status"];
+  displayRuntimeSurfaceUrl: string | null;
+  isEmbeddedBrowserAvailable: boolean;
+  isRestoringCachedBrowserFrame: boolean;
+}): boolean {
+  if (!isEmbeddedBrowserAvailable || !displayRuntimeSurfaceUrl) return false;
+  return browserTargetStatus === "ready" || isRestoringCachedBrowserFrame;
+}
 
 export function buildRuntimeBrowserUrl(
   configSnapshot: ProjectConfigReadSnapshot
@@ -150,6 +168,15 @@ export function resolveBrowserRuntimeTarget({
         ? `Loading ${runtimeUrl}...`
         : `Starting runtime for ${projectId}...`,
       url: runtimeUrl,
+      action: null,
+    };
+  }
+
+  if (playState === "failed") {
+    return {
+      status: "blocked",
+      message: `Runtime failed to start for ${projectId}.`,
+      url: null,
       action: null,
     };
   }

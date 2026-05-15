@@ -1,0 +1,108 @@
+.weekend-diagram {
+  margin: 0;
+  width: 100%;
+}
+
+.weekend-diagram > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--shape-container, 16px);
+  background:
+    linear-gradient(
+      color-mix(in oklab, var(--foreground) 4%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--foreground) 4%, transparent) 1px,
+      transparent 1px
+    ),
+    var(--card);
+  background-size: 24px 24px;
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--foreground) 7%, transparent);
+}
+
+.weekend-diagram figcaption {
+  margin-top: 8px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.weekend-diagram-node rect {
+  fill: color-mix(in oklab, var(--background) 96%, var(--foreground));
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.weekend-diagram-node--primary rect {
+  fill: color-mix(in oklab, var(--color-green, #22c55e) 9%, var(--background));
+}
+
+.weekend-diagram-node--secondary rect {
+  fill: color-mix(in oklab, var(--color-blue, #3b82f6) 9%, var(--background));
+}
+
+.weekend-diagram-node--muted rect {
+  fill: color-mix(in oklab, var(--muted-foreground) 6%, var(--background));
+}
+
+.weekend-diagram-node text {
+  fill: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.weekend-diagram-node .weekend-diagram-node-title {
+  fill: var(--foreground);
+  font-family: var(--font-vcr, "VCR OSD Mono", monospace);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.weekend-diagram-node .weekend-diagram-node-divider {
+  stroke: color-mix(in oklab, var(--foreground) 18%, transparent);
+  stroke-width: 1;
+}
+
+.weekend-diagram-edge {
+  color: color-mix(in oklab, var(--foreground) 58%, transparent);
+}
+
+.weekend-diagram-edge path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.weekend-diagram-edge text {
+  fill: color-mix(in oklab, var(--muted-foreground) 86%, transparent);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-anchor: middle;
+}
+
+.weekend-diagram-edge--muted {
+  color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+}
+
+.weekend-diagram-arrowhead {
+  fill: color-mix(in oklab, var(--foreground) 58%, transparent);
+}
+
+.weekend-diagram-arrowhead--muted {
+  fill: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+}
+
+.weekend-diagram-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

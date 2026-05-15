@@ -9,7 +9,15 @@ import {
 import type { CalendarEvent } from "~/lib/calendar-types";
 import { dotColors } from "~/lib/event-colors";
 
-const MINI_WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const MINI_WEEKDAYS = [
+  { key: "sun", label: "S" },
+  { key: "mon", label: "M" },
+  { key: "tue", label: "T" },
+  { key: "wed", label: "W" },
+  { key: "thu", label: "T" },
+  { key: "fri", label: "F" },
+  { key: "sat", label: "S" },
+];
 
 interface YearViewProps {
   currentDate: Date;
@@ -51,9 +59,10 @@ function MiniMonth({
   const cells = getCalendarCells(month);
 
   return (
-    <div
+    <button
       className="cursor-pointer rounded-lg border border-cal-border p-3 transition-colors hover:border-cal-border-strong hover:bg-cal-surface/50"
       onClick={() => onMonthClick(month)}
+      type="button"
     >
       {/* Month name */}
       <div className="mb-2 text-sm font-semibold text-cal-text">
@@ -62,19 +71,19 @@ function MiniMonth({
 
       {/* Weekday header */}
       <div className="mb-1 grid grid-cols-7 gap-0">
-        {MINI_WEEKDAYS.map((d, i) => (
+        {MINI_WEEKDAYS.map((day) => (
           <div
-            key={i}
+            key={day.key}
             className="text-center text-[9px] font-medium text-cal-text-faint"
           >
-            {d}
+            {day.label}
           </div>
         ))}
       </div>
 
       {/* Days grid */}
       <div className="grid grid-cols-7 gap-0">
-        {cells.map((cell, i) => {
+        {cells.map((cell) => {
           const isCurrentMonth = isSameMonth(cell.date, month);
           const isCurrentDay = isSameDay(cell.date, today);
           const dayEvents = isCurrentMonth
@@ -84,7 +93,7 @@ function MiniMonth({
 
           return (
             <div
-              key={i}
+              key={cell.date.toISOString()}
               className="flex flex-col items-center py-0.5"
             >
               <span
@@ -99,9 +108,9 @@ function MiniMonth({
               </span>
               {isCurrentMonth && hasEvents && (
                 <div className="mt-px flex gap-px">
-                  {dayEvents.slice(0, 3).map((e, j) => (
+                  {dayEvents.slice(0, 3).map((e) => (
                     <span
-                      key={j}
+                      key={e.id}
                       className={cn(
                         "size-1 rounded-full",
                         dotColors[e.color] || dotColors.gray
@@ -114,6 +123,6 @@ function MiniMonth({
           );
         })}
       </div>
-    </div>
+    </button>
   );
 }

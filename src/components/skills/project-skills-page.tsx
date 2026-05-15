@@ -131,7 +131,7 @@ function InstalledSkillRow({
           {skill.name}
         </p>
         {skill.description && (
-          <p className="mt-0.5 truncate font-code text-[11px] text-muted-foreground">
+          <p className="mt-0.5 truncate font-code text-[12px] text-muted-foreground">
             {skill.description}
           </p>
         )}
@@ -181,7 +181,7 @@ function PopularSkillRow({
         <p className="truncate font-code text-[13px] text-foreground">
           {repo}
         </p>
-        <p className="mt-0.5 truncate font-code text-[11px] text-muted-foreground">
+        <p className="mt-0.5 truncate font-code text-[12px] text-muted-foreground">
           {desc}
         </p>
       </div>
@@ -234,10 +234,10 @@ function SkillsTerminal({
 
 function useInstalledSkills(project: string) {
   const [skills, setSkills] = useState<InstalledSkill[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
 
   const refresh = useCallback(async () => {
-    setIsLoading(true);
+    setIsScanning(true);
     try {
       const tree = await invoke<ProjectTreeNode[]>("list_project_tree", {
         project,
@@ -249,28 +249,28 @@ function useInstalledSkills(project: string) {
       }
 
       const skillPaths = findSkillFiles(skillsSubtree, ".claude/skills");
-      const loaded: InstalledSkill[] = [];
-
-      for (const path of skillPaths) {
-        try {
-          const content = await invoke<string>("read_project_file", {
-            project,
-            path,
-          });
-          const parsed = parseSkillFrontmatter(content);
-          if (parsed) {
-            loaded.push({ ...parsed, path });
-          }
-        } catch {
-          // skip unreadable files
-        }
-      }
+      const loaded = (
+        await Promise.all(
+          skillPaths.map(async (path) => {
+            try {
+              const content = await invoke<string>("read_project_file", {
+                project,
+                path,
+              });
+              const parsed = parseSkillFrontmatter(content);
+              return parsed ? { ...parsed, path } : null;
+            } catch {
+              return null;
+            }
+          }),
+        )
+      ).filter((skill): skill is InstalledSkill => skill !== null);
 
       setSkills(loaded);
     } catch {
       setSkills([]);
     } finally {
-      setIsLoading(false);
+      setIsScanning(false);
     }
   }, [project]);
 
@@ -278,7 +278,7 @@ function useInstalledSkills(project: string) {
     void refresh();
   }, [refresh]);
 
-  return { skills, isLoading, refresh };
+  return { skills, isScanning, refresh };
 }
 
 // ── Section label ──
@@ -321,7 +321,7 @@ export function ProjectSkillsPage({
   controller: WorkspaceController;
 }) {
   const [terminalId, setTerminalId] = useState<string | null>(null);
-  const { skills, isLoading, refresh } = useInstalledSkills(project);
+  const { skills, isScanning, refresh } = useInstalledSkills(project);
 
   useEffect(() => {
     const descriptor = controller.createTerminalSession(project, "skills");
@@ -348,7 +348,7 @@ export function ProjectSkillsPage({
                   type="button"
                 >
                   <RefreshCw
-                    className={`size-2.5 ${isLoading ? "animate-spin" : ""}`}
+                    className={`size-2.5 ${isScanning ? "animate-spin" : ""}`}
                   />
                 </button>
               }
@@ -359,7 +359,7 @@ export function ProjectSkillsPage({
             <div className="px-1">
               {skills.length === 0 ? (
                 <p className="px-2 py-3 text-center font-code text-[12px] text-muted-foreground">
-                  {isLoading ? "Scanning..." : "No skills installed"}
+                  {isScanning ? "Scanning…" : "No skills installed"}
                 </p>
               ) : (
                 skills.map((skill) => (
@@ -410,7 +410,7 @@ export function ProjectSkillsPage({
 
         {/* Footer */}
         <div className="shrink-0 border-t border-border px-3 py-2">
-          <p className="font-code text-[11px] text-muted-foreground">
+          <p className="font-code text-[12px] text-muted-foreground">
             .claude/skills/
           </p>
         </div>
@@ -422,8 +422,8 @@ export function ProjectSkillsPage({
           <SkillsTerminal terminalId={terminalId} project={project} />
         ) : (
           <div className="flex h-full items-center justify-center">
-            <p className="font-code text-[10px] text-muted-foreground">
-              Initializing terminal...
+            <p className="font-code text-[12px] text-muted-foreground">
+              Initializing terminal…
             </p>
           </div>
         )}

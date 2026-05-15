@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,18 +30,22 @@ function stableStringify(obj: Record<string, string>): string {
   return JSON.stringify(entries);
 }
 
+function draftFromFingerprint(fingerprint: string): { key: string; value: string }[] {
+  return Object.entries(JSON.parse(fingerprint) as Record<string, string>).map(
+    ([key, value]) => ({ key, value })
+  );
+}
+
 export function EnvVarsEditor({ env, onUpdate, title, description }: EnvVarsEditorProps) {
+  const envFingerprint = stableStringify(env);
   const [draft, setDraft] = useState<{ key: string; value: string }[]>(() =>
-    Object.entries(env).map(([key, value]) => ({ key, value }))
+    draftFromFingerprint(envFingerprint)
   );
   const [isSaving, setIsSaving] = useState(false);
 
-  const envFingerprint = stableStringify(env);
-  const [lastFingerprint, setLastFingerprint] = useState(envFingerprint);
-  if (envFingerprint !== lastFingerprint) {
-    setLastFingerprint(envFingerprint);
-    setDraft(Object.entries(env).map(([key, value]) => ({ key, value })));
-  }
+  useEffect(() => {
+    setDraft(draftFromFingerprint(envFingerprint));
+  }, [envFingerprint]);
 
   const handleAdd = useCallback(() => {
     setDraft((prev) => [...prev, { key: "", value: "" }]);

@@ -23,9 +23,12 @@ import {
   buildManagedBrowserWebviewCacheKey,
   claimBrowserWebviewStartupCleanup,
   clearManagedBrowserWebviewPageLoadHandler,
+  closeSupersededManagedBrowserWebviews,
   hasManagedBrowserWebview,
   hideManagedBrowserWebviewsExcept,
   showManagedBrowserWebview,
+  updateManagedBrowserWebviewLastUrl,
+  updateManagedBrowserWebviewReadyState,
 } from "@/lib/browser-webview-manager";
 import {
   notifyPreviewCaptured,
@@ -33,10 +36,12 @@ import {
   saveProjectPreview,
 } from "@/lib/project-preview";
 import { MOCK_MODE } from "@/lib/tauri-mock";
+import { isLocalDevUrl, localDevServerMessage } from "./browser-url-utils";
 import {
-  isLocalDevUrl,
-  localDevServerMessage,
-} from "./browser-url-utils";
+  isBrowserRuntimeUrlReady,
+  probeBrowserRuntimeReadiness,
+  type BrowserRuntimeProbeResult,
+} from "./browser-runtime-probe";
 
 export type WebviewState = {
   isFrameLoading: boolean;
@@ -63,7 +68,7 @@ const PREVIEW_MAX_WIDTH = 1024;
 
 async function downscalePngDataUrl(
   dataUrl: string,
-  maxWidth: number
+  maxWidth: number,
 ): Promise<string> {
   const img = new Image();
   await new Promise<void>((resolve, reject) => {
@@ -88,19 +93,13 @@ function toErrorMessage(error: unknown): string {
   return String(error);
 }
 
-type BrowserRuntimeProbeResult = {
-  ready: boolean;
-  statusCode: number | null;
-  error: string | null;
-};
-
 const STARTUP_RUNTIME_PROBE_INTERVAL_MS = 700;
 const STARTUP_RUNTIME_PROBE_TIMEOUT_MS = 15000;
 
 function buildStartupProbeErrorMessage(
   url: string,
   statusCode: number | null,
-  error: string | null
+  error: string | null,
 ): string {
   const host = (() => {
     try {
@@ -130,6 +129,8 @@ export function useBrowserWebview({
   configuredRuntimeUrl,
   runtimeSurfaceUrl,
   workspaceMode,
+  isBrowserPaneVisible,
+  shouldKeepPreviousSurfaceWhenUnavailable,
   playState,
   filesystemEventVersion,
   onCurrentPageUrlChange,
@@ -145,6 +146,8 @@ export function useBrowserWebview({
   configuredRuntimeUrl: string | null;
   runtimeSurfaceUrl: string | null;
   workspaceMode: string;
+  isBrowserPaneVisible: boolean;
+  shouldKeepPreviousSurfaceWhenUnavailable: boolean;
   playState: PlayState;
   filesystemEventVersion: number;
   onCurrentPageUrlChange: (projectKey: string, url: string) => void;
@@ -159,32 +162,31 @@ export function useBrowserWebview({
     selector: string;
     outerHTML?: string;
   }) => void;
-}): WebviewState & WebviewActions & {
-  nativeWebviewHostRef: React.RefObject<HTMLDivElement | null>;
-} {
+}): WebviewState &
+  WebviewActions & {
+    nativeWebviewHostRef: React.RefObject<HTMLDivElement | null>;
+  } {
   const [isFrameLoading, setIsFrameLoading] = useState(false);
   const [frameErrorMessage, setFrameErrorMessage] = useState<string | null>(
-    null
+    null,
   );
-  const [isAwaitingStartupRuntime, setIsAwaitingStartupRuntime] = useState(
-    false
-  );
+  const [isAwaitingStartupRuntime, setIsAwaitingStartupRuntime] =
+    useState(false);
   const [startupProbeErrorMessage, setStartupProbeErrorMessage] = useState<
     string | null
   >(null);
   const [isGrabbing, setIsGrabbing] = useState(false);
   const [activeWebviewRevision, setActiveWebviewRevision] = useState(0);
   const loadTimeoutRef = useRef<number | null>(null);
+  const runtimeReloadTimeoutRef = useRef<number | null>(null);
   const nativeWebviewHostRef = useRef<HTMLDivElement | null>(null);
   const activeWebviewRef = useRef<EmbeddedBrowserWebviewHandle | null>(null);
   const activationSequenceRef = useRef(0);
   const lastFilesystemEventVersionByProjectRef = useRef<Record<string, number>>(
-    {}
+    {},
   );
   const shouldUseStartupRuntimeProbe =
-    !MOCK_MODE &&
-    !!configuredRuntimeUrl &&
-    isLocalDevUrl(configuredRuntimeUrl);
+    !MOCK_MODE && !!configuredRuntimeUrl && isLocalDevUrl(configuredRuntimeUrl);
   const isStartupLoading =
     (playState === "starting" && shouldUseStartupRuntimeProbe) ||
     isAwaitingStartupRuntime;
@@ -199,15 +201,27 @@ export function useBrowserWebview({
     loadTimeoutRef.current = null;
   }, []);
 
+  const clearRuntimeReloadTimeout = useCallback(() => {
+    if (runtimeReloadTimeoutRef.current === null) return;
+    window.clearTimeout(runtimeReloadTimeoutRef.current);
+    runtimeReloadTimeoutRef.current = null;
+  }, []);
+
   // Route params can change before passive effects run; clear stale browser
   // status before paint so the previous project never flashes on the next one.
   useLayoutEffect(() => {
     clearLoadTimeout();
+    clearRuntimeReloadTimeout();
     setIsFrameLoading(false);
     setFrameErrorMessage(null);
     setIsAwaitingStartupRuntime(false);
     setStartupProbeErrorMessage(null);
-  }, [clearLoadTimeout, configuredRuntimeUrl, projectKey]);
+  }, [
+    clearLoadTimeout,
+    clearRuntimeReloadTimeout,
+    configuredRuntimeUrl,
+    projectKey,
+  ]);
 
   useEffect(() => {
     if (!shouldUseStartupRuntimeProbe) {
@@ -232,11 +246,7 @@ export function useBrowserWebview({
     if (playState === "failed") {
       setIsAwaitingStartupRuntime(false);
     }
-  }, [
-    playState,
-    projectKey,
-    shouldUseStartupRuntimeProbe,
-  ]);
+  }, [playState, projectKey, shouldUseStartupRuntimeProbe]);
 
   useEffect(() => {
     if (!shouldUseStartupRuntimeProbe) return;
@@ -252,12 +262,7 @@ export function useBrowserWebview({
       probeInFlight = true;
 
       try {
-        const result = await invoke<BrowserRuntimeProbeResult>(
-          "browser_probe_runtime_url",
-          {
-            url: configuredRuntimeUrl,
-          }
-        );
+        const result = await probeBrowserRuntimeReadiness(configuredRuntimeUrl);
         if (cancelled) return;
 
         if (result.ready) {
@@ -272,8 +277,8 @@ export function useBrowserWebview({
             buildStartupProbeErrorMessage(
               configuredRuntimeUrl,
               result.statusCode,
-              result.error
-            )
+              result.error,
+            ),
           );
         }
       } catch (error) {
@@ -285,8 +290,8 @@ export function useBrowserWebview({
             buildStartupProbeErrorMessage(
               configuredRuntimeUrl,
               null,
-              error instanceof Error ? error.message : String(error)
-            )
+              error instanceof Error ? error.message : String(error),
+            ),
           );
         }
       } finally {
@@ -372,7 +377,7 @@ export function useBrowserWebview({
     setIsGrabbing(shouldEnable);
     void invoke(
       shouldEnable ? "browser_start_element_grab" : "browser_stop_element_grab",
-      { label }
+      { label },
     ).catch(() => {
       setIsGrabbing(!shouldEnable);
     });
@@ -407,36 +412,37 @@ export function useBrowserWebview({
     const unlisten = listen<BrowserWebviewRouteChangePayload>(
       BROWSER_WEBVIEW_ROUTE_CHANGE_EVENT,
       (event) => {
-        const activeLabel = activeWebviewRef.current?.label;
-        if (!activeLabel || event.payload.webviewLabel !== activeLabel) {
-          return;
-        }
+        const expectedLabel = buildEmbeddedBrowserWebviewLabel(
+          projectKey,
+          frameVersion,
+        );
+        if (event.payload.webviewLabel !== expectedLabel) return;
 
         const nextUrl = event.payload.url.trim();
         if (!nextUrl) return;
 
+        updateManagedBrowserWebviewLastUrl(
+          buildManagedBrowserWebviewCacheKey(projectKey, frameVersion),
+          nextUrl,
+        );
         onCurrentPageUrlChange(projectKey, nextUrl);
         onUrlInputDraftChange(projectKey, nextUrl);
-      }
+      },
     );
 
     return () => {
       void unlisten.then((fn) => fn());
     };
-  }, [
-    onCurrentPageUrlChange,
-    onUrlInputDraftChange,
-    projectKey,
-  ]);
+  }, [frameVersion, onCurrentPageUrlChange, onUrlInputDraftChange, projectKey]);
 
-  // Cancel grab when leaving browser mode
+  // Cancel grab when the browser surface is no longer visible.
   useEffect(() => {
-    if (workspaceMode === "browser" || !isGrabbing) return;
+    if (isBrowserPaneVisible || !isGrabbing) return;
     const label = activeWebviewRef.current?.label;
     setIsGrabbing(false);
     if (!label) return;
     void invoke("browser_stop_element_grab", { label }).catch(() => undefined);
-  }, [isGrabbing, workspaceMode]);
+  }, [isBrowserPaneVisible, isGrabbing]);
 
   // Load timeout
   useEffect(() => {
@@ -458,6 +464,7 @@ export function useBrowserWebview({
           projectKey,
           url: navigationUrl,
         });
+        clearRuntimeReloadTimeout();
         setIsFrameLoading(false);
         setFrameErrorMessage(localDevServerMessage(navigationUrl));
       }, 10000);
@@ -468,6 +475,7 @@ export function useBrowserWebview({
     };
   }, [
     clearLoadTimeout,
+    clearRuntimeReloadTimeout,
     displayRuntimeSurfaceUrl,
     frameVersion,
     isFrameLoading,
@@ -520,12 +528,7 @@ export function useBrowserWebview({
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [
-    frameErrorMessage,
-    navigationUrl,
-    projectKey,
-    reloadCurrentPage,
-  ]);
+  }, [frameErrorMessage, navigationUrl, projectKey, reloadCurrentPage]);
 
   // One-shot orphan cleanup per renderer lifetime. This must not run on every
   // BrowserPane mount because the native webview cache intentionally survives
@@ -544,8 +547,9 @@ export function useBrowserWebview({
     return () => {
       activationSequenceRef.current += 1;
       activeWebviewRef.current = null;
+      clearRuntimeReloadTimeout();
     };
-  }, []);
+  }, [clearRuntimeReloadTimeout]);
 
   // Attach/detach the active webview, creating it lazily. The cache is managed
   // outside this hook so it can survive project-route remounts.
@@ -557,34 +561,65 @@ export function useBrowserWebview({
     activationSequenceRef.current = activationId;
     const cacheKey = buildManagedBrowserWebviewCacheKey(
       projectKey,
-      frameVersion
+      frameVersion,
     );
 
     const handlePageLoad = (payload: BrowserWebviewPageLoadPayload): void => {
       if (activationId !== activationSequenceRef.current) return;
       if (payload.phase === "started") {
+        clearRuntimeReloadTimeout();
+        updateManagedBrowserWebviewReadyState(cacheKey, false);
         setIsFrameLoading(true);
         return;
       }
-      clearLoadTimeout();
-      console.info("[Browser] native webview page loaded", {
-        projectKey,
-        url: payload.url,
-        webviewLabel: payload.webviewLabel,
-      });
-      setIsFrameLoading(false);
-      setFrameErrorMessage(null);
-      onCurrentPageUrlChange(projectKey, payload.url);
-      onUrlInputDraftChange(projectKey, payload.url);
+
+      void (async () => {
+        updateManagedBrowserWebviewLastUrl(cacheKey, payload.url);
+        onCurrentPageUrlChange(projectKey, payload.url);
+        onUrlInputDraftChange(projectKey, payload.url);
+
+        const isReady = await isBrowserRuntimeUrlReady(payload.url);
+        if (activationId !== activationSequenceRef.current) return;
+
+        if (!isReady) {
+          updateManagedBrowserWebviewReadyState(cacheKey, false);
+          setIsFrameLoading(true);
+          setFrameErrorMessage(null);
+          if (runtimeReloadTimeoutRef.current === null) {
+            runtimeReloadTimeoutRef.current = window.setTimeout(() => {
+              runtimeReloadTimeoutRef.current = null;
+              if (activationId !== activationSequenceRef.current) return;
+              void activeWebviewRef.current?.navigate(payload.url);
+            }, STARTUP_RUNTIME_PROBE_INTERVAL_MS);
+          }
+          return;
+        }
+
+        clearRuntimeReloadTimeout();
+        clearLoadTimeout();
+        console.info("[Browser] native webview page loaded", {
+          projectKey,
+          url: payload.url,
+          webviewLabel: payload.webviewLabel,
+        });
+        setIsFrameLoading(false);
+        setFrameErrorMessage(null);
+        updateManagedBrowserWebviewReadyState(cacheKey, true);
+      })();
     };
 
     const attach = async (): Promise<void> => {
       const hostElement = nativeWebviewHostRef.current;
-      if (!displayRuntimeSurfaceUrl) {
+      if (!displayRuntimeSurfaceUrl || !isBrowserPaneVisible) {
         activeWebviewRef.current = null;
         setIsFrameLoading(false);
         setFrameErrorMessage(null);
-        await hideManagedBrowserWebviewsExcept(null);
+        if (
+          !isBrowserPaneVisible ||
+          !shouldKeepPreviousSurfaceWhenUnavailable
+        ) {
+          await hideManagedBrowserWebviewsExcept(null);
+        }
         return;
       }
       if (!hostElement) {
@@ -596,13 +631,12 @@ export function useBrowserWebview({
       if (!hasCachedEntry) {
         setIsFrameLoading(true);
         setFrameErrorMessage(null);
-        await hideManagedBrowserWebviewsExcept(null);
       }
 
       try {
         const nextLabel = buildEmbeddedBrowserWebviewLabel(
           projectKey,
-          frameVersion
+          frameVersion,
         );
         const activation = await activateManagedBrowserWebview({
           cacheKey,
@@ -628,7 +662,8 @@ export function useBrowserWebview({
 
         activeWebviewRef.current = activation.entry.handle;
         setActiveWebviewRevision((previous) => previous + 1);
-        const isLoadingAfterActivation = activation.created || activation.navigated;
+        const isLoadingAfterActivation =
+          activation.created || activation.navigated;
         if (isLoadingAfterActivation) {
           setIsFrameLoading(true);
           setFrameErrorMessage(null);
@@ -649,7 +684,7 @@ export function useBrowserWebview({
         setFrameErrorMessage(
           navigationUrl && isLocalDevUrl(navigationUrl)
             ? localDevServerMessage(navigationUrl)
-            : "Failed to load the configured runtime endpoint."
+            : "Failed to load the configured runtime endpoint.",
         );
       }
     };
@@ -658,15 +693,19 @@ export function useBrowserWebview({
 
     return () => {
       disposed = true;
+      clearRuntimeReloadTimeout();
       clearManagedBrowserWebviewPageLoadHandler(cacheKey);
     };
   }, [
     clearLoadTimeout,
+    clearRuntimeReloadTimeout,
     frameVersion,
     navigationUrl,
     onCurrentPageUrlChange,
     onUrlInputDraftChange,
+    isBrowserPaneVisible,
     projectKey,
+    shouldKeepPreviousSurfaceWhenUnavailable,
     displayRuntimeSurfaceUrl,
   ]);
 
@@ -677,9 +716,12 @@ export function useBrowserWebview({
 
     const syncBrowserVisibility = async (): Promise<void> => {
       const activeWebview = activeWebviewRef.current;
+      if (displayRuntimeSurfaceUrl && isBrowserPaneVisible && !activeWebview) {
+        return;
+      }
       const expectedLabel = buildEmbeddedBrowserWebviewLabel(
         projectKey,
-        frameVersion
+        frameVersion,
       );
       const activeCacheKey =
         activeWebview?.label === expectedLabel
@@ -688,20 +730,25 @@ export function useBrowserWebview({
       const visibilityPlan = planBrowserPaneVisibility({
         activeLabel: activeWebview?.label ?? null,
         shouldShowActivePane:
-          workspaceMode === "browser" && !isFrameLoading && !frameErrorMessage,
+          isBrowserPaneVisible && !isFrameLoading && !frameErrorMessage,
       });
 
       if (!visibilityPlan.showActivePaneViaHandle) {
         if (visibilityPlan.hideActivePaneViaHandle) {
           await activeWebview?.hide();
         }
+        if (isBrowserPaneVisible && isFrameLoading && !frameErrorMessage) {
+          return;
+        }
         await hideManagedBrowserWebviewsExcept(activeCacheKey);
         return;
       }
 
+      await showManagedBrowserWebview(activeCacheKey!);
+      if (cancelled) return;
       await hideManagedBrowserWebviewsExcept(activeCacheKey);
       if (cancelled) return;
-      await showManagedBrowserWebview(activeCacheKey!);
+      await closeSupersededManagedBrowserWebviews(projectKey, activeCacheKey!);
     };
 
     void syncBrowserVisibility();
@@ -714,9 +761,9 @@ export function useBrowserWebview({
     displayRuntimeSurfaceUrl,
     frameErrorMessage,
     frameVersion,
+    isBrowserPaneVisible,
     isFrameLoading,
     projectKey,
-    workspaceMode,
   ]);
 
   // Handle Cmd/Ctrl+R when focus is in the main Tauri window
@@ -732,34 +779,35 @@ export function useBrowserWebview({
     return () => window.removeEventListener("keydown", handler);
   }, [reloadCurrentPage, workspaceMode]);
 
-  const capturePreview = useCallback(async (): Promise<CapturePreviewResult> => {
-    const handle = activeWebviewRef.current;
-    if (!handle) {
-      return { ok: false, reason: "webview not mounted" };
-    }
-    let rawDataUrl: string | null;
-    try {
-      rawDataUrl = await handle.captureScreenshot();
-    } catch (error) {
-      return { ok: false, reason: `capture: ${toErrorMessage(error)}` };
-    }
-    if (!rawDataUrl) {
-      return { ok: false, reason: "capture returned empty" };
-    }
-    let dataUrl: string;
-    try {
-      dataUrl = await downscalePngDataUrl(rawDataUrl, PREVIEW_MAX_WIDTH);
-    } catch (error) {
-      return { ok: false, reason: `downscale: ${toErrorMessage(error)}` };
-    }
-    try {
-      await saveProjectPreview(projectKey, dataUrl);
-    } catch (error) {
-      return { ok: false, reason: `save: ${toErrorMessage(error)}` };
-    }
-    notifyPreviewCaptured(projectKey, dataUrl);
-    return { ok: true, dataUrl };
-  }, [projectKey]);
+  const capturePreview =
+    useCallback(async (): Promise<CapturePreviewResult> => {
+      const handle = activeWebviewRef.current;
+      if (!handle) {
+        return { ok: false, reason: "webview not mounted" };
+      }
+      let rawDataUrl: string | null;
+      try {
+        rawDataUrl = await handle.captureScreenshot();
+      } catch (error) {
+        return { ok: false, reason: `capture: ${toErrorMessage(error)}` };
+      }
+      if (!rawDataUrl) {
+        return { ok: false, reason: "capture returned empty" };
+      }
+      let dataUrl: string;
+      try {
+        dataUrl = await downscalePngDataUrl(rawDataUrl, PREVIEW_MAX_WIDTH);
+      } catch (error) {
+        return { ok: false, reason: `downscale: ${toErrorMessage(error)}` };
+      }
+      try {
+        await saveProjectPreview(projectKey, dataUrl);
+      } catch (error) {
+        return { ok: false, reason: `save: ${toErrorMessage(error)}` };
+      }
+      notifyPreviewCaptured(projectKey, dataUrl);
+      return { ok: true, dataUrl };
+    }, [projectKey]);
 
   useEffect(() => {
     return registerPreviewCapturer(projectKey, async () => {

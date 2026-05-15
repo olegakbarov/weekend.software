@@ -20,23 +20,31 @@ export function ProjectActionButton({
 }) {
   if (isArchiveView) {
     return (
-      <span
-        className="relative shrink-0 rounded p-0.5 text-muted-foreground/0 transition-colors before:absolute before:-inset-3 before:content-[''] group-hover:text-muted-foreground/40 hover:!text-foreground"
+      <button
+        aria-label="Unarchive project"
+        className="relative shrink-0 rounded bg-transparent p-0.5 text-muted-foreground/0 transition-colors before:absolute before:-inset-3 before:content-[''] group-hover:text-muted-foreground/40 hover:!text-foreground"
         onClick={(e) => {
           e.stopPropagation();
           if (onUnarchiveProject) void onUnarchiveProject(project);
         }}
-        role="button"
         title="Unarchive project"
+        type="button"
       >
         <ArchiveRestore className="size-3" />
-      </span>
+      </button>
     );
   }
 
   return (
-    <span
-      className={`relative shrink-0 rounded p-0.5 transition-colors before:absolute before:-inset-3 before:content-[''] ${
+    <button
+      aria-label={
+        playState === "starting"
+          ? "Starting processes"
+          : playState === "running"
+            ? "Stop processes"
+            : "Start processes"
+      }
+      className={`relative shrink-0 rounded bg-transparent p-0.5 transition-colors before:absolute before:-inset-3 before:content-[''] disabled:cursor-default ${
         playState === "starting"
           ? "text-muted-foreground/60"
           : playState === "failed"
@@ -52,7 +60,7 @@ export function ProjectActionButton({
           onPlay(project);
         }
       }}
-      role="button"
+      disabled={playState === "starting"}
       title={
         playState === "starting"
           ? "Starting..."
@@ -62,6 +70,7 @@ export function ProjectActionButton({
               ? `Start failed. Click to retry.${playError ? ` ${playError}` : ""}`
               : "Start processes"
       }
+      type="button"
     >
       {playState === "starting" ? (
         <Loader2 className="size-3 animate-spin" />
@@ -72,6 +81,6 @@ export function ProjectActionButton({
       ) : (
         <Play className="size-3" />
       )}
-    </span>
+    </button>
   );
 }

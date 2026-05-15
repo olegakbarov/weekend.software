@@ -3,6 +3,13 @@
   "tier": "registry",
   "consumers": [
     {
+      "file": "src/components/settings/project-settings-page.tsx",
+      "line": 233,
+      "props": [
+        "value"
+      ]
+    },
+    {
       "file": "src/dev/docs/views/pages/input-copy.tsx",
       "line": 24,
       "props": [
@@ -22,8 +29,8 @@
   ],
   "propUsage": {
     "label": 2,
-    "value": 2,
+    "value": 3,
     "variant": 1
   },
-  "totalUsages": 2
+  "totalUsages": 3
 }

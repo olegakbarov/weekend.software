@@ -55,6 +55,17 @@ export {
 export { Badge, BADGE_HEX, badgeColors, badgeVariants } from "./registry/badge";
 export type { BadgeColor, BadgeProps, BadgeSize, BadgeVariant } from "./registry/badge";
 
+export { Diagram } from "./registry/diagram";
+export type {
+  DiagramAnchor,
+  DiagramAnchorSide,
+  DiagramEdge,
+  DiagramEdgeShape,
+  DiagramNode,
+  DiagramNodeTone,
+  DiagramProps,
+} from "./registry/diagram";
+
 export { CheckboxGroup, CheckboxItem } from "./registry/checkbox-group";
 export type {
   CheckboxGroupProps,
@@ -78,6 +89,9 @@ export type {
   ColorTileProps,
   ParsedColor,
 } from "./registry/color-picker";
+
+export { Code, CodeInline } from "./registry/code";
+export type { CodeProps, CodeInlineProps } from "./registry/code";
 
 export { Combobox } from "./registry/combobox";
 export type { ComboboxItem, ComboboxProps } from "./registry/combobox";

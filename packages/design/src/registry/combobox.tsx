@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "../lib/cn";
@@ -68,6 +68,7 @@ export function Combobox<T extends string = string>({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const shape = useShape();
   const inputRef = useRef<HTMLInputElement>(null);
+  const listboxId = useId();
 
   // When the popover opens, seed query so filtering starts from the current
   // value (so the input reflects what the consumer has). When it closes, drop
@@ -143,6 +144,7 @@ export function Combobox<T extends string = string>({
           role="combobox"
           aria-expanded={open}
           aria-haspopup="listbox"
+          aria-controls={listboxId}
           disabled={disabled}
           className={cn(
             TRIGGER_BASE,
@@ -197,7 +199,7 @@ export function Combobox<T extends string = string>({
             )}
           />
           <div className="border-t border-border/60" />
-          <ul role="listbox" className="max-h-[280px] overflow-y-auto py-1">
+          <ul id={listboxId} role="listbox" className="max-h-[280px] overflow-y-auto py-1">
             {filteredItems.length === 0 ? (
               <li
                 role="presentation"

@@ -3,15 +3,17 @@
   "tier": "registry",
   "consumers": [
     {
-      "file": "src/main.tsx",
-      "line": 41,
+      "file": "src/components/theme/design-system-provider.tsx",
+      "line": 144,
       "props": [
-        "defaultShape"
+        "shape",
+        "onShapeChange"
       ]
     }
   ],
   "propUsage": {
-    "defaultShape": 1
+    "onShapeChange": 1,
+    "shape": 1
   },
   "totalUsages": 1
 }

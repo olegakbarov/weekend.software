@@ -48,7 +48,7 @@ export function PageDropdown(): React.JSX.Element {
           Basic
         </H>
         <p className="lede">
-          A radio-style menu — exactly one item is checked. Click an item to select it; click again
+          A radio-style menu, exactly one item is checked. Click an item to select it; click again
           to clear.
         </p>
         <div className="example">
@@ -137,11 +137,11 @@ const [selected, setSelected] = useState<number | null>(0);
         </H>
         <ul>
           <li>
-            <CodeInline>checkedIndex</CodeInline> — index of the currently checked item. Sets the
+            <CodeInline>checkedIndex</CodeInline>, index of the currently checked item. Sets the
             roving tab stop and renders the moderate-spring selected background.
           </li>
           <li>
-            <CodeInline>children</CodeInline> — <CodeInline>MenuItem</CodeInline>,{" "}
+            <CodeInline>children</CodeInline>, <CodeInline>MenuItem</CodeInline>,{" "}
             <CodeInline>DropdownLabel</CodeInline>, and{" "}
             <CodeInline>DropdownSeparator</CodeInline> children.
           </li>
@@ -152,22 +152,22 @@ const [selected, setSelected] = useState<number | null>(0);
         </H>
         <ul>
           <li>
-            <CodeInline>icon</CodeInline> — <CodeInline>IconComponent</CodeInline> rendered at the
+            <CodeInline>icon</CodeInline>, <CodeInline>IconComponent</CodeInline> rendered at the
             start of the row.
           </li>
           <li>
-            <CodeInline>label</CodeInline> — text label; doubles as the accessible name.
+            <CodeInline>label</CodeInline>, text label; doubles as the accessible name.
           </li>
           <li>
-            <CodeInline>index</CodeInline> — position within the dropdown (sequential across
+            <CodeInline>index</CodeInline>, position within the dropdown (sequential across
             labels and separators).
           </li>
           <li>
-            <CodeInline>checked</CodeInline> — when true, weight shifts to semibold and the
+            <CodeInline>checked</CodeInline>, when true, weight shifts to semibold and the
             animated check stroke draws in.
           </li>
           <li>
-            <CodeInline>onSelect</CodeInline> — fired on click, Enter, or Space.
+            <CodeInline>onSelect</CodeInline>, fired on click, Enter, or Space.
           </li>
         </ul>
 
@@ -176,10 +176,10 @@ const [selected, setSelected] = useState<number | null>(0);
         </H>
         <ul>
           <li>
-            <CodeInline>DropdownLabel</CodeInline> — small caps-ish heading for a group of items.
+            <CodeInline>DropdownLabel</CodeInline>, small caps-ish heading for a group of items.
           </li>
           <li>
-            <CodeInline>DropdownSeparator</CodeInline> — 1px divider that bleeds to the edges of
+            <CodeInline>DropdownSeparator</CodeInline>, 1px divider that bleeds to the edges of
             the dropdown.
           </li>
         </ul>

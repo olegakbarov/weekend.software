@@ -7,7 +7,7 @@ import {
   useEffect,
   useLayoutEffect,
   createContext,
-  useContext,
+  use,
   forwardRef,
   Children,
   cloneElement,
@@ -71,7 +71,7 @@ interface TabsListContextValue {
 const TabsListContext = createContext<TabsListContextValue | null>(null);
 
 function useTabsList() {
-  const ctx = useContext(TabsListContext);
+  const ctx = use(TabsListContext);
   if (!ctx) throw new Error("TabItem must be used within a TabsList");
   return ctx;
 }
@@ -181,7 +181,7 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const isMouseInside = useRef(false);
     const shape = useShape();
-    const valueOrderCtx = useContext(TabsValueOrderContext);
+    const valueOrderCtx = use(TabsValueOrderContext);
     const [optimisticIdx, setOptimisticIdx] = useState<number | null>(null);
 
     // Derive value order from children synchronously

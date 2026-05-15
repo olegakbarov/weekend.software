@@ -50,6 +50,10 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 function handleDownload(file: FilePreviewProps["file"]) {
   if (!file) return;
   const src = getFileSrc(file);
@@ -94,7 +98,7 @@ function HtmlPreview({ src }: { src: string }) {
 }
 
 function DocxPreview({ file }: { file: NonNullable<FilePreviewProps["file"]> }) {
-  const [html, setHtml] = useState<string>("");
+  const [text, setText] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -107,10 +111,10 @@ function DocxPreview({ file }: { file: NonNullable<FilePreviewProps["file"]> }) 
         } else {
           arrayBuffer = dataUrlToArrayBuffer(file.dataUrl);
         }
-        const result = await mammoth.convertToHtml({ arrayBuffer });
-        setHtml(result.value);
-      } catch (err: any) {
-        setError(`Failed to render document: ${err.message}`);
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        setText(result.value);
+      } catch (err) {
+        setError(`Failed to render document: ${getErrorMessage(err)}`);
       }
     }
     convert();
@@ -125,10 +129,9 @@ function DocxPreview({ file }: { file: NonNullable<FilePreviewProps["file"]> }) 
   }
 
   return (
-    <div
-      className="flex-1 overflow-auto p-6 text-white leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-3 [&_li]:mb-1 [&_table]:border-collapse [&_td]:border [&_td]:border-[#2a2a2a] [&_td]:p-2 [&_th]:border [&_th]:border-[#2a2a2a] [&_th]:p-2 [&_a]:text-blue-400 [&_a]:underline"
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <pre className="flex-1 overflow-auto whitespace-pre-wrap p-6 font-sans leading-relaxed text-white">
+      {text}
+    </pre>
   );
 }
 

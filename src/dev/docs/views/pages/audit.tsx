@@ -12,7 +12,7 @@ import { CodeInline } from "../../components/code-block";
 import { H } from "../../components/heading";
 
 /**
- * Snapshot of `packages/design/AUDIT/INVENTORY.md` — Wave 1 fidelity table,
+ * Snapshot of `packages/design/AUDIT/INVENTORY.md`, Wave 1 fidelity table,
  * post-Phase-D. Hardcoded since the markdown's structure is stable; bump
  * during the next migration wave when the audit moves.
  */
@@ -148,13 +148,13 @@ const ROWS: ReadonlyArray<AuditRow> = [
   },
   {
     component: "TabsSubtle",
-    path: "—",
+    path: "None",
     status: "deferred",
-    note: "Skipped per D2 — Weekend Seg covers the segmented-control intent.",
+    note: "Skipped per D2, Weekend Seg covers the segmented-control intent.",
   },
   {
     component: "ThinkingIndicator",
-    path: "—",
+    path: "None",
     status: "deferred",
     note: "Skipped per D2. shimmer-text keyframes ready in tokens.",
   },
@@ -186,13 +186,13 @@ const ROWS: ReadonlyArray<AuditRow> = [
     component: "Combobox",
     path: "src/registry/combobox.tsx",
     status: "weekend-only",
-    note: "Combobox/select hybrid — no upstream equivalent.",
+    note: "Combobox/select hybrid, no upstream equivalent.",
   },
   {
     component: "NumberStepper",
     path: "src/components/number-stepper.tsx",
     status: "weekend-only",
-    note: "Numeric +/- stepper with hold-to-repeat — Weekend product surface.",
+    note: "Numeric +/- stepper with hold-to-repeat, Weekend product surface.",
   },
   {
     component: "Seg",
@@ -291,7 +291,7 @@ export function PageAudit(): React.JSX.Element {
           Components
         </H>
         <p>
-          {ROWS.length} entries. Status reflects the post-Phase-D snapshot — see{" "}
+          {ROWS.length} entries. Status reflects the post-Phase-D snapshot, see{" "}
           <CodeInline>AUDIT/SUMMARY.md</CodeInline> for the per-commit migration record.
         </p>
         <div className="example">

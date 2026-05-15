@@ -6,7 +6,7 @@ import {
   useEffect,
   useCallback,
   createContext,
-  useContext,
+  use,
   forwardRef,
   type ReactNode,
   type HTMLAttributes,
@@ -44,7 +44,7 @@ const AccordionGroupContext =
   createContext<AccordionGroupContextValue | null>(null);
 
 function useAccordionGroup() {
-  return useContext(AccordionGroupContext);
+  return use(AccordionGroupContext);
 }
 
 interface AccordionItemContextValue {
@@ -59,7 +59,7 @@ const AccordionItemContext =
   createContext<AccordionItemContextValue | null>(null);
 
 function useAccordionItemContext() {
-  const ctx = useContext(AccordionItemContext);
+  const ctx = use(AccordionItemContext);
   if (!ctx)
     throw new Error(
       "AccordionTrigger/AccordionContent must be used within an AccordionItem"
@@ -577,8 +577,8 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
   ({ value, index, disabled, children, className, ...props }, ref) => {
     const internalRef = useRef<HTMLDivElement>(null);
     const groupCtx = useAccordionGroup();
-    const standaloneOpen = useContext(StandaloneOpenContext);
-    const standaloneToggle = useContext(StandaloneToggleContext);
+    const standaloneOpen = use(StandaloneOpenContext);
+    const standaloneToggle = use(StandaloneToggleContext);
     const shape = useShape();
 
     const isOpen = groupCtx?.grouped

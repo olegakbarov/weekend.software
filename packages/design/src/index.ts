@@ -32,6 +32,17 @@ export type { SwitchProps } from "./components/switch";
 export { Textarea } from "./components/textarea";
 export type { TextareaProps, TextareaVariant } from "./components/textarea";
 
+export { Diagram } from "./registry/diagram";
+export type {
+  DiagramAnchor,
+  DiagramAnchorSide,
+  DiagramEdge,
+  DiagramEdgeShape,
+  DiagramNode,
+  DiagramNodeTone,
+  DiagramProps,
+} from "./registry/diagram";
+
 export { cn } from "./lib/cn";
 export type { IconComponent } from "./lib/icon";
 

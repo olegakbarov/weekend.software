@@ -154,6 +154,29 @@ pub(crate) fn browser_push_event<R: Runtime>(
     let parsed: serde_json::Value =
         serde_json::from_str(&data).unwrap_or(serde_json::Value::String(data));
     event_buffer.push_event(&label, category.clone(), parsed.clone());
+    if category == "route_change" {
+        let url = parsed
+            .get("url")
+            .or_else(|| parsed.get("to"))
+            .and_then(|value| value.as_str())
+            .unwrap_or("")
+            .trim();
+        if !url.is_empty() {
+            let from = parsed
+                .get("from")
+                .and_then(|value| value.as_str())
+                .map(str::to_string);
+            let _ = app.emit(
+                "browser-webview-route-change",
+                serde_json::json!({
+                    "webviewLabel": label.clone(),
+                    "windowLabel": webview.window().label(),
+                    "url": url,
+                    "from": from,
+                }),
+            );
+        }
+    }
     if category == "element_grab" {
         let _ = app.emit(
             "browser-element-grabbed",

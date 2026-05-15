@@ -5,8 +5,8 @@ import {
   type ReactNode,
   createContext,
   forwardRef,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -27,7 +27,7 @@ interface NavMenuContextValue {
 const NavMenuContext = createContext<NavMenuContextValue | null>(null);
 
 export function useNavMenu(): NavMenuContextValue {
-  const ctx = useContext(NavMenuContext);
+  const ctx = use(NavMenuContext);
   if (!ctx) throw new Error("useNavMenu must be used within a NavMenu");
   return ctx;
 }

@@ -1,5 +1,5 @@
 import { Bot, Terminal as TerminalIcon, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type TerminalSessionDescriptor, terminalDisplayLabel } from "@/lib/controller";
 
 export function TerminalItem({
@@ -24,8 +24,13 @@ export function TerminalItem({
   const startRename = () => {
     setIsEditing(true);
     setEditValue(terminalDisplayLabel(session));
-    requestAnimationFrame(() => editInputRef.current?.select());
   };
+
+  useEffect(() => {
+    if (!isEditing) return;
+    editInputRef.current?.focus();
+    editInputRef.current?.select();
+  }, [isEditing]);
 
   const commitRename = () => {
     if (editValue.trim()) {

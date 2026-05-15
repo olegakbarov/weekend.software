@@ -7,7 +7,7 @@ import {
   type HTMLAttributes,
   type ReactNode,
 } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import {
   CheckCircle2,
   ChevronDown,
@@ -135,21 +135,23 @@ export const ToolCall = forwardRef<HTMLDivElement, ToolCallProps>(
     ref,
   ) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
+    const shouldReduceMotion = useReducedMotion();
     const inputSlot = renderSlot(input);
     const outputSlot = renderSlot(output);
     const showError = state === "output-error" && Boolean(errorText);
     const hasBody = Boolean(inputSlot || outputSlot || showError || callId);
 
     return (
-      <div
-        ref={ref}
-        data-state={state}
-        className={cn(
-          "overflow-hidden rounded-lg border border-border bg-background",
-          className,
-        )}
-        {...props}
-      >
+      <LazyMotion features={domAnimation}>
+        <div
+          ref={ref}
+          data-state={state}
+          className={cn(
+            "overflow-hidden rounded-lg border border-border bg-background",
+            className,
+          )}
+          {...props}
+        >
         <button
           type="button"
           aria-expanded={hasBody ? isOpen : undefined}
@@ -175,24 +177,24 @@ export const ToolCall = forwardRef<HTMLDivElement, ToolCallProps>(
             {STATE_LABELS[state]}
           </span>
           {hasBody && (
-            <motion.span
+            <m.span
               className="text-muted-foreground"
               animate={{ rotate: isOpen ? 180 : 0 }}
-              transition={springs.fast}
+              transition={shouldReduceMotion ? { duration: 0 } : springs.fast}
             >
               <ChevronDown className="size-4" />
-            </motion.span>
+            </m.span>
           )}
         </button>
 
         <AnimatePresence initial={false}>
           {isOpen && hasBody && (
-            <motion.div
+            <m.div
               key="body"
-              initial={{ height: 0 }}
+              initial={shouldReduceMotion ? false : { height: 0 }}
               animate={{ height: "auto" }}
               exit={{ height: 0 }}
-              transition={{ ...springs.moderate, bounce: 0 }}
+              transition={shouldReduceMotion ? { duration: 0 } : { ...springs.moderate, bounce: 0 }}
               className="overflow-hidden border-t border-border"
             >
               <div className="space-y-3 p-3">
@@ -218,10 +220,11 @@ export const ToolCall = forwardRef<HTMLDivElement, ToolCallProps>(
                   </div>
                 )}
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
-      </div>
+        </div>
+      </LazyMotion>
     );
   },
 );

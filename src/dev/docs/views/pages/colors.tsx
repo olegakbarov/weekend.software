@@ -50,7 +50,7 @@ export function PageColors(): React.JSX.Element {
           Surfaces
         </H>
         <p>
-          Three depth levels, that's it. Hover and active are surface-relative overlays — they
+          Three depth levels, that's it. Hover and active are surface-relative overlays, they
           work on any elevation.
         </p>
         <div className="swatch-grid" style={{ marginTop: 16 }}>
@@ -75,7 +75,7 @@ export function PageColors(): React.JSX.Element {
         </H>
         <p>
           Tailwind's neutral scale, mapped to <CodeInline>--neutral-50</CodeInline> through{" "}
-          <CodeInline>--neutral-950</CodeInline>. The ramp does not invert in dark mode — only the
+          <CodeInline>--neutral-950</CodeInline>. The ramp does not invert in dark mode, only the
           surface tokens do.
         </p>
         <div className="ramp" style={{ marginTop: 16 }}>
@@ -94,7 +94,7 @@ export function PageColors(): React.JSX.Element {
         </H>
         <p>
           17 Tailwind 500s. Used for <strong>Badge variants</strong> and the{" "}
-          <strong>ColorPicker</strong> — never for primary chrome. When applied as a Badge
+          <strong>ColorPicker</strong>, never for primary chrome. When applied as a Badge
           background, the color is mixed with the card surface at 15% opacity.
         </p>
         <div className="swatch-grid" style={{ marginTop: 16 }}>
@@ -127,7 +127,7 @@ export function PageColors(): React.JSX.Element {
         </div>
         <Callout>
           <strong>The focus ring is the only chromatic accent in the system.</strong> A 1px
-          outline on <CodeInline>:focus-visible</CodeInline> only — never on click. Mouse users
+          outline on <CodeInline>:focus-visible</CodeInline> only, never on click. Mouse users
           never see it; keyboard users always do.
         </Callout>
       </div>

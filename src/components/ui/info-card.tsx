@@ -1,7 +1,7 @@
 import React, {
   createContext,
+  use,
   useCallback,
-  useContext,
   useMemo,
   useState,
 } from "react";
@@ -57,11 +57,13 @@ interface InfoCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 type InfoCardContentProps = CommonCardProps;
 type InfoCardFooterProps = CommonCardProps;
-type InfoCardDismissProps = React.HTMLAttributes<HTMLDivElement> & {
+type InfoCardDismissProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   children: React.ReactNode;
   onDismiss?: () => void;
 };
-type InfoCardActionProps = CommonCardProps;
+type InfoCardActionProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  children: React.ReactNode;
+};
 
 const InfoCardContent = React.memo(
   ({ children, className, ...props }: InfoCardContentProps) => {
@@ -142,7 +144,7 @@ function InfoCard({
 }
 
 const InfoCardFooter = ({ children, className }: InfoCardFooterProps) => {
-  const { isHovered } = useContext(InfoCardContext);
+  const { isHovered } = use(InfoCardContext);
 
   return (
     <div
@@ -159,37 +161,51 @@ const InfoCardFooter = ({ children, className }: InfoCardFooterProps) => {
 };
 
 const InfoCardDismiss = React.memo(
-  ({ children, className, onDismiss, ...props }: InfoCardDismissProps) => {
-    const { onDismiss: contextDismiss } = useContext(InfoCardContext);
+  ({
+    children,
+    className,
+    onDismiss,
+    type = "button",
+    ...props
+  }: InfoCardDismissProps) => {
+    const { onDismiss: contextDismiss } = use(InfoCardContext);
 
-    const handleClick = (e: React.MouseEvent) => {
+    const dismissInfoCard = (e: React.MouseEvent) => {
       e.preventDefault();
       onDismiss?.();
       contextDismiss();
     };
 
     return (
-      <div
-        className={cn("transition-colors hover:text-foreground", className)}
-        onClick={handleClick}
+      <button
+        className={cn(
+          "inline-flex bg-transparent p-0 text-left transition-colors hover:text-foreground",
+          className
+        )}
+        onClick={dismissInfoCard}
+        type={type}
         {...props}
       >
         {children}
-      </div>
+      </button>
     );
   }
 );
 InfoCardDismiss.displayName = "InfoCardDismiss";
 
 const InfoCardAction = React.memo(
-  ({ children, className, ...props }: InfoCardActionProps) => {
+  ({ children, className, type = "button", ...props }: InfoCardActionProps) => {
     return (
-      <div
-        className={cn("transition-colors hover:text-foreground", className)}
+      <button
+        className={cn(
+          "inline-flex bg-transparent p-0 text-left transition-colors hover:text-foreground",
+          className
+        )}
+        type={type}
         {...props}
       >
         {children}
-      </div>
+      </button>
     );
   }
 );

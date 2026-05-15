@@ -20,6 +20,11 @@ const SHAPE_ITEMS: ReadonlyArray<{ value: ShapeVariant; label: string }> = [
   { value: "rounded", label: "Rounded" },
 ];
 
+const THEME_LABEL_ID = "docs-workbench-theme-label";
+const SHAPE_LABEL_ID = "docs-workbench-shape-label";
+const CSS_VARIABLES_ID = "docs-workbench-css-variables";
+const THEME_VARIABLES_ID = "docs-workbench-theme-variables";
+
 function formatJson(value: unknown): string {
   return JSON.stringify(value ?? {}, null, 2);
 }
@@ -117,23 +122,9 @@ export function PageWorkbench(): React.JSX.Element {
         <H as="h2" id="controls">
           Controls
         </H>
-        <div
-          style={{
-            display: "grid",
-            gap: 16,
-            gridTemplateColumns: "minmax(0, 1fr)",
-            marginTop: 16,
-            maxWidth: 720,
-          }}
-        >
-          <label style={{ display: "grid", gap: 8 }}>
-            <span
-              style={{
-                color: "var(--muted-foreground)",
-                fontFamily: "var(--font-mono)",
-                fontSize: 11,
-              }}
-            >
+        <div className="workbench-controls">
+          <div className="workbench-field" role="group" aria-labelledby={THEME_LABEL_ID}>
+            <span id={THEME_LABEL_ID} className="workbench-label">
               Theme
             </span>
             <Seg
@@ -141,15 +132,13 @@ export function PageWorkbench(): React.JSX.Element {
               onChange={(next) => setActiveTheme(next as ThemeName)}
               value={activeTheme}
             />
-          </label>
-          <label style={{ display: "grid", gap: 8, maxWidth: 360 }}>
-            <span
-              style={{
-                color: "var(--muted-foreground)",
-                fontFamily: "var(--font-mono)",
-                fontSize: 11,
-              }}
-            >
+          </div>
+          <div
+            className="workbench-field workbench-field--narrow"
+            role="group"
+            aria-labelledby={SHAPE_LABEL_ID}
+          >
+            <span id={SHAPE_LABEL_ID} className="workbench-label">
               Shape
             </span>
             <Seg
@@ -157,41 +146,12 @@ export function PageWorkbench(): React.JSX.Element {
               onChange={(next) => setShape(next)}
               value={config.shape}
             />
-          </label>
-          <div
-            style={{
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-container)",
-              display: "grid",
-              gap: 12,
-              padding: 12,
-            }}
-          >
-            <div
-              style={{
-                alignItems: "center",
-                display: "flex",
-                gap: 12,
-                justifyContent: "space-between",
-              }}
-            >
+          </div>
+          <div className="workbench-config-panel">
+            <div className="workbench-config-header">
               <div>
-                <div
-                  style={{
-                    color: "var(--foreground)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 12,
-                  }}
-                >
-                  Global Variables
-                </div>
-                <div
-                  style={{
-                    color: "var(--muted-foreground)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 11,
-                  }}
-                >
+                <div className="workbench-title">Global Variables</div>
+                <div className="workbench-description">
                   Saved defaults propagate to tracking projects before project overrides.
                 </div>
               </div>
@@ -207,31 +167,12 @@ export function PageWorkbench(): React.JSX.Element {
                 Save
               </Button>
             </div>
-            <label style={{ display: "grid", gap: 6 }}>
-              <span
-                style={{
-                  color: "var(--muted-foreground)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                }}
-              >
-                CSS Variables
-              </span>
+            <label className="workbench-field" htmlFor={CSS_VARIABLES_ID}>
+              <span className="workbench-label">CSS Variables</span>
               <textarea
+                id={CSS_VARIABLES_ID}
+                className="workbench-textarea"
                 spellCheck={false}
-                style={{
-                  background: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius-control)",
-                  color: "var(--foreground)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 12,
-                  lineHeight: 1.55,
-                  minHeight: 150,
-                  outline: "none",
-                  padding: 12,
-                  resize: "vertical",
-                }}
                 value={cssVariablesDraft}
                 onChange={(event) => {
                   setCssVariablesDraft(event.target.value);
@@ -239,31 +180,12 @@ export function PageWorkbench(): React.JSX.Element {
                 }}
               />
             </label>
-            <label style={{ display: "grid", gap: 6 }}>
-              <span
-                style={{
-                  color: "var(--muted-foreground)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                }}
-              >
-                Per-theme Variables
-              </span>
+            <label className="workbench-field" htmlFor={THEME_VARIABLES_ID}>
+              <span className="workbench-label">Per-theme Variables</span>
               <textarea
+                id={THEME_VARIABLES_ID}
+                className="workbench-textarea"
                 spellCheck={false}
-                style={{
-                  background: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius-control)",
-                  color: "var(--foreground)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 12,
-                  lineHeight: 1.55,
-                  minHeight: 150,
-                  outline: "none",
-                  padding: 12,
-                  resize: "vertical",
-                }}
                 value={themeVariablesDraft}
                 onChange={(event) => {
                   setThemeVariablesDraft(event.target.value);
@@ -272,15 +194,7 @@ export function PageWorkbench(): React.JSX.Element {
               />
             </label>
             {saveError || designSystemError ? (
-              <div
-                style={{
-                  color: "var(--destructive)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                }}
-              >
-                {saveError ?? designSystemError}
-              </div>
+              <div className="workbench-error">{saveError ?? designSystemError}</div>
             ) : null}
           </div>
         </div>
@@ -290,18 +204,7 @@ export function PageWorkbench(): React.JSX.Element {
         <H as="h2" id="primitive-preview">
           Primitive Preview
         </H>
-        <div
-          style={{
-            alignItems: "center",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--shape-container, 16px)",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 10,
-            marginTop: 16,
-            padding: 16,
-          }}
-        >
+        <div className="workbench-primitive-preview">
           <Button>Primary</Button>
           <Button variant="secondary">Secondary</Button>
           <Button variant="tertiary">Tertiary</Button>
